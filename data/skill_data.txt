@@ -1,0 +1,304 @@
+019 Megido 8 1
+01A Megidola 10 1
+01B Megidolaon 14 1
+0BE Deathtouch 1 1
+0BF Mana Drain 5 1
+0C0 Life Drain 7 1
+104 Death Flies 100 1
+0EB Fire of Sinai 100 1
+10A Stinger 0 1
+10D Showtime 100 1
+11E Beast Roar 100 1
+04F Pestilence 100 1
+117 Meditation 100 1
+093 Freikugel 0 1
+0D0 Sol Niger 100 1
+0F2 God's Curse 100 1
+0F3 Hells Call 100 1
+0F1 Vast Light 100 1
+0DD Infinite Light 100 1
+111 High King 100 1
+110 Root of Evil 100 1
+183 Seduce 2 0
+181 Scout 3 0
+188 Beseech 3 0
+187 Wooing 3 0
+184 Brainwash 4 0
+186 Dark Pledge 5 0
+182 Kidnap 6 0
+189 Soul Recruit 4 0
+18A Mischief 3 0
+18B Death Pact 100 0
+1A5 Jive Talk 0 0
+18D Begging 2 0
+18C Pester 4 0
+190 Trade 3 0
+18E Blackmail 4 0
+191 Loan 4 0
+18F Stone Hunt 6 0
+199 Haggle 2 0
+1A4 Flatter 3 0
+19D Persuade 4 0
+19A Arbitration 4 0
+19C Gonnection 5 0
+19B Detain 5 0
+163 Charisma 5 0
+19E Intimidate 6 0
+19F Nag 6 0
+1A2 Maiden's Plea 6 0
+1A3 Wine Party 7 0
+037 Makajam 5 1
+038 Makajamon 8 1
+0C6 Mute Gaze 3 1
+0CF Dismal Tune 7 1
+0CA Toxic Cloud 4 1
+105 Soul Divide 100 1
+140 Anti Curse 3 0
+14A Void Curse 6 0
+0C9 Bael's Bane 100 1
+020 Mudo 3 1
+021 Mudoon 6 1
+022 Mamudo 6 1
+023 Mamudoon 9 1
+0C5 Stone Gaze 7 1
+0C7 Evil Gaze 8 1
+0C4 Hell Gaze 9 1
+13F Anti Death 5 0
+149 Void Death 8 0
+00D Zio 1 1
+00E Zionga 4 1
+00F Ziodyne 7 1
+010 Mazio 4 1
+011 Mazionga 7 1
+012 Maziodyne 10 1
+0B6 Shock 5 1
+0B7 Bolt Storm 9 1
+10B Round Trip 0 1
+137 Elec Boost 6 0
+13C Anti Elec 4 0
+146 Void Elec 7 0
+150 Elec Drain 9 0
+155 Elec Repel 10 0
+01C Hama 3 1
+01D Hamaon 6 1
+01E Mahama 6 1
+01F Mahamaon 9 1
+0C1 Violet Flash 8 1
+0BC Thunderclap 6 1
+0C3 Radiance 11 1
+0BD Holy Wrath 11 1
+0C2 Starlight 100 1
+07F Godly Light 100 1
+11F God's Bow 100 1
+13E Anti Expel 5 0
+148 Void Expel 8 0
+073 Sacrifice 6 1
+098 Last Resort 4 1
+074 Kamikaze 3 1
+001 Agi 1 1
+002 Agilao 4 1
+003 Agidyne 7 1
+004 Maragi 4 1
+005 Maragion 7 1
+006 Maragidyne 10 1
+0B0 Fire Breath 5 1
+0B1 Hellfire 7 1
+0B2 Prominence 10 1
+0B3 Ragnarok 100 1
+11B Hell Burner 100 1
+0A1 Magma Axis 0 1
+135 Fire Boost 6 0
+13A Anti Fire 4 0
+144 Void Fire 7 0
+14E Fire Drain 9 0
+153 Fire Repel 10 0
+013 Zan 1 1
+014 Zanma 4 1
+015 Zandyne 7 1
+016 Mazan 4 1
+017 Mazanma 7 1
+018 Mazandyne 10 1
+0B8 Wing Buffet 5 1
+0B9 Tornado 7 1
+0BA Wind Cutter 9 1
+0BB Wet Wind 100 1
+10C Whirlwind 0 1
+11A Hell Exhaust 100 1
+138 Force Boost 6 0
+13D Anti Force 4 0
+147 Void Force 7 0
+151 Force Drain 9 0
+156 Force Repel 10 0
+024 Dia 2 1
+025 Diarama 6 1
+026 Diarahan 9 1
+027 Media 5 1
+028 Mediarama 8 1
+029 Mediarahan 11 1
+0DA Prayer 11 1
+031 Recarm 8 1
+032 Samrecarm 11 1
+02B Patra 2 1
+02C Me Patra 5 1
+02D Mutudi 2 1
+02E Posumudi 2 1
+02F Paraladi 3 1
+030 Petradi 3 1
+033 Recarmdra 9 1
+15A Life Aid 4 0
+15D Life Refill 5 0
+15B Mana Aid 6 0
+15E Mana Refill 7 0
+15C Victory Cry 13 0
+007 Bufu 1 1
+008 Bufula 4 1
+009 Bufudyne 7 1
+00A Mabufu 4 1
+00B Mabufula 7 1
+00C Mabufudyne 10 1
+0B4 Ice Breath 5 1
+0B5 Glacial Blast 8 1
+0F4 Icy Death 100 1
+136 Ice Boost 6 0
+13B Anti Ice 4 0
+145 Void Ice 7 0
+14F Ice Drain 9 0
+154 Ice Repel 10 0
+0D2 Lullaby 2 1
+03C Dormina 4 1
+0D4 Eternal Rest 7 1
+03D Pulinpa 3 1
+0D5 Sonic Wave 6 1
+0D8 Panic Voice 7 1
+03F Tentarafoo 8 1
+0D6 Sexy Gaze 3 1
+03E Marin Karin 4 1
+0D7 Allure 8 1
+0D9 Intoxicate 100 1
+11D Death Lust 100 1
+116 Preach 100 1
+0F9 Wild Dance 0 1
+142 Anti Mind 3 0
+14C Void Mind 6 0
+10F Evil Gleam 100 1
+03B Shibaboo 4 1
+0D3 Binding Cry 6 1
+0D1 Stun Gaze 4 1
+141 Anti Nerve 3 0
+14B Void Nerve 6 0
+075 Feral Bite 1 1
+076 Venom Bite 3 1
+077 Charm Bite 5 1
+079 Stun Bite 6 1
+078 Stone Bite 7 1
+07A Hell Fang 8 1
+07B Feral Claw 1 1
+07C Venom Claw 3 1
+07D Stun Claw 5 1
+07E Iron Claw 7 1
+06F Needle Rush 1 1
+071 Toxic Sting 3 1
+070 Stun Needle 5 1
+072 Arid Needle 7 1
+060 Lunge 1 1
+061 Hell Thrust 3 1
+063 Tempest 8 1
+064 Hades Blast 8 1
+062 Berserk 6 1
+06B Mighty Gust 5 1
+067 Brutal Slash 6 1
+06D Guillotine 7 1
+069 Dark Sword 8 1
+06A Stasis Blade 9 1
+065 Heat Wave 8 1
+066 Blight 10 1
+068 Hassohappa 11 1
+06E Chaos Blade 10 1
+06C Deathbound 11 1
+09B Earthquake 100 1
+106 E&I 0 1
+107 Rebellion 0 1
+108 Bullet-Time 0 1
+118 Terror Blade 100 1
+119 Hell Spin 100 1
+113 Andalucia 100 1
+088 Divine Shot 0 1
+0A0 Spiral Viper 0 1
+090 Oni-Kagura 0 1
+083 Deadly Fury 0 1
+08F Javelin Rain 0 1
+085 Xeros-Beat 0 1
+0A3 Gaea Rage 0 1
+139 Anti Phys 5 0
+143 Void Phys 10 0
+14D Phys Drain 11 0
+152 Phys Repel 12 0
+099 Foul Havoc 0 1
+0F5 Mirage 0 1
+0A8 Tentacle 0 1
+047 Analyze 3 0
+0E0 Focus 5 1
+048 Trafuri 5 0
+0DF Beckon Call 6 0
+04A Riberama 4 0
+04C Lightoma 5 0
+04B Liftoma 6 0
+049 Estoma 7 0
+09E Holy Melody 100 1
+09F Evil Melody 100 1
+12C Bright Might 4 0
+12D Dark Might 4 0
+12B Might 7 0
+131 Counter 5 0
+132 Retaliate 7 0
+133 Avenge 9 0
+159 Endure 5 0
+12E Drain Attack 7 0
+130 Attack All 10 0
+165 Pierce 8 0
+122 Life Bonus 2 0
+125 Mana Bonus 3 0
+123 Life Gain 4 0
+126 Mana Gain 5 0
+124 Life Surge 7 0
+127 Mana Surge 8 0
+161 Lucky Find 5 0
+162 Watchful 8 0
+12A Mind's Eye 100 0
+128 Fast Retreat 100 0
+168 Never Yield 0 0
+169 Son's Oath 0 0
+0E1 Retreat 0 0 
+0E2 Gathering 0 0
+0E5 Laughter 0 0
+0E3 Dark Howl 0 0
+0E8 Foul Union 0 0
+0E9 Replicate 0 0
+0EC Conjutation 0 0
+0EA Aurora 0 0
+100 Domination 0 0
+0E6 Divine Will 0 0
+035 Sukunda 1 1
+034 Tarunda 2 1
+036 Rakunda 2 1
+039 Dekaja 5 1
+0CC Fog Breath 5 1
+0CB War Cry 6 1
+0CD Taunt 3 1
+0CE Debilitate 8 1
+04D Dekunda 1 1
+041 Sukukaja 3 1
+040 Tarukaja 5 1
+043 Makakaja 5 1
+042 Rakukaja 7 1
+044 Tetraja 4 1
+046 Tetrakarn 8 1
+045 Makarakarn 8 1
+02A Makatora 5 0
+109 Provoke 0 1
+112 Holy Star 0 1
+114 Red Capote 100 1
+0DC Dragon Eye 0 1
+0DB Beast Eye 0 1
+115 Startle 0 1
+11C Hell Throttle 100 1

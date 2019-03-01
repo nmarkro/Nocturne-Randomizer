@@ -1,0 +1,139 @@
+this is going to read like the writings of a madman...
+
+Nocturne Notes (offsets are based on SLUS_209.11)
+	Start of demons 0x0024A7F0
+	End of demons 0x002501B4
+	383 total demons
+	207 real demons, rest are bosses
+
+	Start of skills 0x00234CF4
+	
+	start of enconters at 0x002AFFE6
+	end of encounters is at 0x002BBC6A
+
+	# of encounters = 1270 (4F6h)
+	
+	breakpoint on/around 0x002597A4 gives enconter index
+	demon one id = 0x0116CF84
+
+	ai starts at 0x002999E4
+
+Demon layout (3Ch long)
+	00h - 0Fh				Header?
+	10h						Race ID
+	11h						Level
+	12h						HP (2 bytes)
+	14h						HP (2 bytes) again?
+	16h						MP (2 bytes)
+	18h						MP (2 bytes) again?
+	1Ah						Demon ID (2 bytes)
+	1Ch						ST stat
+	1Dh						0x00?
+	1Eh						MA stat
+	1Fh						VI stat
+	20h						AG stat
+	21h						LU stat
+	22h						Skill 1 (2 bytes)
+	24h						Skill 2 (2 bytes)
+	26h						Skill 3 (2 bytes)
+	28h						Skill 4 (2 bytes)
+	2Ah						Skill 5 (2 bytes)
+	2Ch						Skill 6 (2 bytes)
+	2Eh-35h
+	36h						Macca (2 bytes)
+	38h						EXP (2 bytes)
+		
+		
+Skills layout is 66h long
+	00h-09h 				?
+	0Ah						Skill 1
+	0Eh						Skill 2
+	12h						Skill 3
+	16h						Skill 4
+	1Ah						Skill 5
+	1Eh						Skill 6
+	22h						Skill 7
+	26h						Skill 8
+	...						not sure what the max # of skills are
+	
+	each skill is 4h long
+	00h						Level learned (0 means innate)
+	01h						Enabler? (can be 1 or 6)
+	02h						Skill ID (2 bytes)
+	
+	the 6 for enabler seems to only be on special fuse or evolutions
+
+enconter layout is 26h long
+
+AI layout is A4h long
+	00h-23h					?
+	24h-4Bh					Back attack skills (5 skills)
+	4Ch-73h					Regular skills (5 skills)
+	74h-9Bh					Low HP skills? (5 skills)	
+
+	skill layout (8h long)
+		00h 				Odds (each set of skills adds up to 100) (2 bytes?)
+		02h                 Skill ID (2 bytes)
+								Basic attack is 0x8000
+		rest is 0x00 filled
+
+
+tutorial fight ids = 0x4F2, 0x4F3
+
+tutorial fight 2 = 0x002BBBF8
+copy preta (demon_id 83) to 0x0024fc8c (demon_id 16Ah)
+preta is at 0x24bb28
+
+tutorial fight 3 = 0x002BBC1E
+copy sudama (demon_id 92) to 0x0024FCC8 (demon_id 16Bh)
+sudama is at 0x24bd44
+
+shop Iyomante price = 0x002DD6BC
+
+0x0032F680
+
+shops are at = 0x00230680
+shops are 82h long
+
+shop layout
+	00h 					0x0064?
+	02h 					Shop item 1 id (4 bytes?)
+	06h 					Shop item 2 id (4 bytes?)
+	...
+
+prices are tied to item id
+
+prices are at = 0x002DD4A0
+prices are 08h long
+
+price layout
+	00h-03h					?
+	04h						price (4 bytes)
+
+
+magatamas are at 0x0023AE3A
+magatamas are 42h long
+
+magatama layout:
+	00h-09h					?
+	0Ah						Something related to resistances(?) 2 bytes
+	0Ch						Something related to resistances(?) 2 bytes
+	0Eh						St boost
+	0Fh						0 or FF
+	10h						Ma boost
+	11h						Vi boost
+	12h						Ag boost
+	13h						Lu boost
+	14h						St boost again(?)
+	15h						0 or FF
+	16h 					Ma boost again(?)
+	17h 					Vi boost again(?)
+	18h 					Ag boost again(?)
+	19h 					Lu boost again(?)
+	1Ah-21h 				?
+	22h-42h					Skills
+
+	skills are 4 bytes long
+		0h 					Level learned
+		1h 					?
+		2h 					Skill id (2 bytes)

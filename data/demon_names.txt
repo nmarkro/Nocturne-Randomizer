@@ -1,0 +1,383 @@
+Vishnu
+Mithra
+Amaterasu
+Odin
+Atavaka
+Horus
+Laksmi
+Scathach
+Sarasvati
+Sati
+Uzume
+Shiva
+Beiji-Weng
+Wu Kong
+Dionysus
+Kali
+Skadi
+Parvati
+Kushinada
+Kikuri-Hime
+Bishamon
+Thor
+Jikoku
+Mikazuchi
+Okuninushi
+Koumoku
+Zouchou
+Minakata
+Chimera
+Baihu
+Senri
+Feng Huang
+Shiisaa
+Cai-Zhi
+Unicorn
+Flaemis
+Aquans
+Aeros
+Erthys
+Saki Mitama
+Kusi Mitama
+Nigi Mitama
+Nigi Mitama
+Efreet
+Purski
+Onkot
+Jinn
+Karasu
+Dis
+Isora
+Apsaras
+Koppa
+Titania
+Oberon
+Troll
+Setanta
+Kelpie
+Pyro Jack
+High Pixie
+Jack Frost
+Pixie
+Throne
+Dominion
+Virtue
+Power
+Principality
+Archangel
+Angel
+Flauros
+Decarabia
+Ose
+Berith
+Eligor
+Forneus
+Yurlungur
+Quetzalcoatl
+Raja Naga
+Mizuchi
+Naga
+Nozuchi
+Cerberus
+Orthrus
+Sparna
+Badb Catha
+Inugami
+Nekomata
+Gogmagog
+Titan
+Sarutahiko
+Sudama
+Hua Po
+Kodama
+Shiki-Ouji
+Oni
+Ikusa
+Momunofu
+Shikigami
+Rangda
+Dakini
+Yaksini
+Shikome
+Taraka
+Datsue-Ba
+Mada
+Girimehkala
+Tao Tie
+Pazuzu
+Baphomet
+Mot
+Aciel
+Surt
+Abaddon
+Loki
+Lilith
+Nyx
+Queen Mab
+Succubus
+Incubus
+Fomor
+Lilim
+Hresvelgr
+Mothman
+Raiju
+Nue
+Bicorn
+Zhen
+Rakshasa
+Legion
+Yaka
+Choronzon
+Preta
+Shadow
+Black Ooze
+Blob
+Slime
+Mou-Ryo
+Will o' Wisp
+Michael
+Gabriel
+Raphael
+Uriel
+Ganesha
+Valkyrie
+Arahabaki
+Kurama
+Hanuman
+Cu Chulainn
+Long
+Gui Xian
+Barong
+Makami
+Garuda
+Yatagarasu
+Gurr
+Albion
+?
+?
+?
+?
+?
+Samael
+?
+?
+?
+?
+?
+Pisaca
+Kaiwan
+Kin-Ki
+Sui-Ki
+Fuu-Ki
+Ongyo-Ki
+Clotho
+Lachesis
+Atropos
+Loa
+Chatterskull
+Phantom
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+Dante
+Metatron
+Beelzebub
+Pale Rider
+White Rider
+Red Rider
+Black Rider
+Matador
+Hell Biker
+Daisoujou
+The Harlot
+Trumpeter
+Futomimi
+Sakahagi
+Black Frost
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+Forneus (Boss)
+Specter 1 (Boss)
+Ahriman 2nd Form (Boss)
+Noah 2nd Form (Boss)
+Incubus (Boss)
+Koppa (Boss)
+Kaiwan (Boss)
+Ose (Boss)
+Kagutsuchi 2nd Form (Boss)
+Sakahagi (Boss)
+Kin-Ki (Boss)
+Sui-Ki (Boss)
+Fuu-Ki (Boss)
+Ongyo-Ki (Boss)
+Clotho 1 (Boss)
+Lachesis 1 (Boss)
+Atropos 1 (Boss)
+Specter 2 (Boss)
+Girimehkala (Boss)
+Specter 3 (Boss)
+Alciel (Boss)
+Skadi (Boss)
+Albion (Boss)
+Luvah (Boss)
+Urizen (Boss)
+Tharmas (Boss)
+Urthona (Boss)
+Futomimi (Boss)
+Gabriel (Boss)
+Raphael (Boss)
+Uriel (Boss)
+Samael (Boss)
+Baal Avatar (Boss)
+Ose Hallel (Boss)
+Flauros Hallel (Boss)
+Ahriman 1st Form (Boss)
+Noah 1st Form (Boss)
+Kagutsuchi 1st Form (Boss)
+Specter 1 6 Fuse (Boss)
+Specter 1 4/5 Fuse (Boss)
+Specter 1 2/3 Fuse (Boss)
+Mizuchi (Boss)
+?
+Sakahagi (Boss)
+Orthrus (Boss)
+Yaksini (Boss)
+Thor 1 (Boss)
+Black Frost (Boss)
+?
+?
+?
+?
+?
+?
+Kelpie (Boss)
+Kelpie (Boss)
+Berith (Boss)
+Succubus (Boss)
+?
+?
+?
+Troll (Boss)
+Will o' Wisp (Tutorial)
+Preta (Tutorial)
+Bishamonten 1 (Boss)
+Mara (Boss)
+Monten? (Boss)
+Monten? (Boss)
+Monten? (Boss)
+Monten? (Boss)
+Clotho 2 (Boss)
+Lachesis 2 (Boss)
+Atropos 2 (Boss)
+Mithra (Boss)
+?
+?
+?
+Mada (Boss)
+Mot (Boss)
+Surt (Boss)
+?
+Thor 2 (Boss)
+?
+Dante 1 (Boss)
+Dante 2? (Boss)
+Dante 2? (Boss)
+Metatron (Boss)
+Beelzebub Fly (Boss)
+Lucifer (Boss)
+Pale Rider (Boss)
+White Rider (Boss)
+Red Rider (Boss)
+Black Rider (Boss)
+Matador (Boss)
+Hell Biker (Boss)
+Daisoujou (Boss)
+The Harlot (Boss)
+Trumpeter (Boss)
+?
+?
+?
+?
+Loa (Boss)
+Virtue (Boss)
+Power (Boss)
+Legion (Boss)
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
+?
