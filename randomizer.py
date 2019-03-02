@@ -3,6 +3,7 @@ import random
 import struct
 import copy
 import math
+import shutil
 from collections import defaultdict
 
 from rom import Rom
@@ -16,7 +17,7 @@ config_exp_modifier = 2					# Mulitlpy EXP values of demons
 config_make_logs = True 				# Write various data to the logs/ folder
 config_write_binary = True 				# Write the game's binary to a separe file for easier hex reading
 config_fix_tutorial = True 				# replace a few tutorial fights
-config_balance_mp = True 				# multiply mp values of enemy demons so they can use higher ranked skills at a lower level
+config_balance_mp = False 				# multiply mp values of enemy demons so they can use higher ranked skills at a lower level
 config_easy_hospital = True				# Force hospital demons/boss to not have null/repel/abs phys
 config_keep_marogareh_pierce = True		# Don't randomize Pierce on Maraogareh
 config_easy_recruits = True				# Patch game so demon recruits always succeed after giving 2 things
@@ -300,14 +301,6 @@ def randomize_battles(demon_map):
 			#	break
 		offset += 0x26
 
-def fix_tutorials():
-	# replaces the 1x preta and 2x sudamas tutorial fights with the unmodified, scipted will o' wisp demons
-	tutorial_2_offset = 0x002BBBF8
-	tutorial_3_offset = 0x002BBC1E
-
-	rom.write(struct.pack('<H', 0x13E), tutorial_2_offset)
-	rom.write(struct.pack('<HH', 0x13E, 0x13E), tutorial_3_offset)
-
 def write_demon_log(output_path, demons):
 	with open(output_path, "w") as file:
 		for demon in demons:
@@ -342,17 +335,17 @@ def main(rom_path, output_path):
 
 	if config_fix_tutorial:
 		print("fixing tutorials")
-		fix_tutorials()
+		nocturne.fix_tutorials(rom)
 
 	print('randomizing magatamas')
 	new_magatamas = randomize_magatamas()
 
-	print("applying easy recruits patch")
 	if config_easy_recruits:
+		print("applying easy recruits patch")
 		nocturne.patch_demon_recruits(rom)
 
 	print("copying iso")
-	copyfile(rom_path, output_path)
+	shutil.copyfile(rom_path, output_path)
 
 	print("writing new binary")
 	nocturne.write_all(rom, new_demons, new_magatamas)

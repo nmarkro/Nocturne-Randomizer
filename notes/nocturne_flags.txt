@@ -1,0 +1,70 @@
+Boss Flags
+0008		Forneus
+0022		Ose?
+004A		Girimehkala
+0061		Noah
+0075		Ahriman
+0083		Baal Avatar
+04AB		Specter 1
+04C5		Troll
+0106		Red Rider
+0107		Daisoujou
+0108		Matador
+0109		Black Rider
+010A		Hell Biker
+0112		White Rider
+0113		Pale Rider
+0114		Beelzebub
+0115		Metatron
+0116		The Harlot
+0118		Trumpeter
+0488		Mara
+0565		Orthrus
+0566		Yaksini
+0568		Thor 1
+0595		Mizuchi
+059A		Black Frost
+05A2		Sui-Ki
+05A4		Kin-Ki
+05A5 		Fuu-Ki
+05A6		Ongyo-Ki
+05EC		Specter 2
+0621		Specter 3
+0642		Sisters
+0649		Clotho
+064A		Lachesis
+064B		Atropos
+0671		Thor 2
+0685		Surt
+0686		Mada
+0691		Mithra
+0696		Mot
+06A9		Aciel
+06AA		Skadi
+06AB		Albion
+0711		Bishamon?
+0712 		Kouoku
+0713		Zouchou
+0714		Jikoku
+0732		Bishamon?
+
+Terminal Flags
+0441		Location 0x0F
+0461		Location 0x10
+0481		Location 0x11
+04C1		Location 0x13
+04E1		Location 0x14
+04E2		Location 0x14
+0501		Location 0x15
+0521		Location 0x16
+0541		Location 0x17
+0581		Location 0x19
+05A1		Location 0x1A
+05C1		Location 0x1B
+0641		Location 0x1F
+0661		Location 0x20
+0681		Location 0x21
+06A1		Location 0x22
+06E1		Location 0x23
+0662		Location 0x25
+0663		Location 0x25

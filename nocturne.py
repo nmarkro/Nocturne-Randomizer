@@ -238,6 +238,14 @@ def patch_demon_recruits(rom):
 	rom.write_word(patch, 0x00171F9C)		# replaces li a0, 0x8
 	rom.write_word(patch, 0x001737E4)		# replaces li a0, 0x8
 
+def fix_tutorials(rom):
+	# replaces the 1x preta and 2x sudamas tutorial fights with the unmodified, scipted will o' wisp demons
+	tutorial_2_offset = 0x002BBBF8
+	tutorial_3_offset = 0x002BBC1E
+
+	rom.write(struct.pack('<H', 0x13E), tutorial_2_offset)
+	rom.write(struct.pack('<HH', 0x13E, 0x13E), tutorial_3_offset)
+
 def load_all(rom):
 	load_demons(rom)
 	load_skills(rom)

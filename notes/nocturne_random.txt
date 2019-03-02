@@ -157,15 +157,16 @@ leave hospital flags = 0x01248DC0, 0x01248DCC
 	flag_id = 403h
 
 write_flag_func at 0x001E0ED0
-	flag_id = flag_id + 0x1F
 	a = flag_id >> 0x05
-	b = 1 << flag_id
+	bit = 1 << (flag_id % 16)
 	a = a << 0x02
 	a = a + 0x840
 	flag_addr = 0x01248500 + a
 	flag_val = [flag_addr]
-	flag_val = flag_val OR b
+	flag_val = flag_val OR bit
 	[flag_addr] = flag_val
+
+read_flag is at 0x001E0F50
 
 patch demon recruit (always recruit after giving 2 things):
 	change 0x00270584 from
@@ -173,24 +174,7 @@ patch demon recruit (always recruit after giving 2 things):
 	to
 		li a0, 0x0 (?)
 		not sure what flag 0x00 is but it's never set from what I've seen
-	change 0x002705D8 from
-		li a0, 0x8
-	to
-		li a0, 0x0 (?)
-	change 0x00270670 from
-		li a0, 0x8
-	to
-		li a0, 0x0 (?)
-	change 0x00270A18
-		li a0, 0x8
-	to
-		li a0, 0x0 (?)
 so write 0x24040000 to 0x00270584, 0x002705D8, 0x00270670, 0x00270A18, 0x00270F44, 0x00270F9C, 0x002727E4
-
-specter 1 addr = 0x003AF2DE
-
-yoyogi terminal flag = 0x001248DCC
-ginza terminal flag = 0x001248DD8
 
 terminal flags are at 0x002FC1A4
 

@@ -1,0 +1,132 @@
+SMC - T
+    Forneus (Wadatsumi) -> Shibuya
+    The Harlot w/unlock (Candelabra)
+    Black Rider w/unlock (Candelabra)
+        Unlocks Pale Rider
+Shibuya - T
+    {locked} Mara (Muspell | Great Chakra) 
+    -> Amala Network 1 & Ginza
+    Shop - Iyomante, Shiranui
+Amala Network 1
+    Specter 1 -> Labyrinth of Amala
+Ginza - T
+    -> Ginza Underpass
+    -> Nihilo East (w/unlock)
+    -> Nihilo West to Obelisk (w/unlock)
+    -> Yurakucho Tunnel (w/unlock)
+Ginza Underpass - T
+    Troll unlocked in Ginza (Bead Chain) 
+    -> Ginza
+    Matador (Candelabra) 
+        -> Ikebukuro
+        Afterlife Bell (w/unlock)
+    Shop - Ankh, Hifumi, Kamudo
+    Red Rider w/unlock (Candelabra)
+        Unlocks Black Rider
+Ikebukuro - T
+    2x Oni miniboss (Bead Chain)
+    Thor chain - 
+        Orthrus Miniboss
+        Yaksini Miniboss
+        Thor (Narukami)
+            Unlocks Dante
+    Dante 
+        -> Ikebukuro Tunnel (if Ikebukuro unlocked)
+        -> Kabukicho Prison (if Ikebukuro unlocked)
+        -> Nihilo East & +2 Stock
+    Daisoujou (Candelabra)
+Nihilo East - T
+    Koppa + Incubus Miniboss (Kila 1)
+    Eligor 1 Miniboss (Kila 2)
+    Berith (Kila 3)
+    Kaiwan (Kila 4)
+    [4x Kila] Ose (Anathema)
+        Unlocks Ikebukuro East exit  
+Ikebukuro Tunnel - T
+    Kin-Ki, Sui-Ki & Fuu-Ki minibosses
+        -> Ongyo-Ki (Murakumo)
+    -> Asakusa
+    -> (implicit) Kabukicho Prison
+Kabukicho Prison - T
+    Umugi Stone
+    [Umugi Stone] Mizuchi (Miasma)
+        -> Black Frost (Satan)
+    Unlocks Asakusa from Ikebukuro Tunnel
+Asakusa - T
+    -> Mifunashiro (if unlocked)
+    -> Yoyogi Park (if unlocked)
+        Shop - Kamurogi, Vimana, Sophia
+        [Kimon Stone] - Bishamon 1 (Gundari)
+        Pale Rider w/unlock (Candelabra)
+    -> Nihilo West / Obelisk
+    -> Amala Network 2 (if unlocked)
+    -> Amala Network 3 (if unlocked)
+    Shop - Nirvana, Gehenna
+    Puzzle Boy - Geis
+Obelisk - T (Assembly of Nihilo: Marunouchi)
+    Sisters (Djed)
+        Opens Asakusa -> Amala Network 2
+        +2 Stock
+        Unlocks Mara
+    -> ToK (locked)
+    [Sword] -> Bando Shrine
+Amala Network 2
+    Specter 2
+        Opens Asakusa -> Yoyogi
+Yoyogi - T
+    Girimehkala & Sakahagi
+        Gives Pyramid 1 (remove?)
+        Unlocks Asakusa -> Amala Network 3
+Amala Network 3
+    Specter 3
+        -> Amala Temple
+Amala Temple - T
+    Albion
+    Aciel (Adama)
+    Skadi
+    All 3 
+        Unlocks Mifunashiro boss
+        [Pyramid 2] -> Unlocks ToK
+Mifunashiro - T
+    -> Asakusa
+    Mifunashiro boss {Futomimi or Seraphs} w/unlock -> Unlocks Ginza to Yurakucho tunnel
+Yurakucho Tunnel - T
+    Trumpeter (Candelabra)
+    Kimon Stone
+    -> Diet Building
+Diet Building - T
+    Surt
+        Mada
+            Mot
+                Mithra
+                    Samael - Pyramid 2
+ToK - Tx3
+    Ahriman - Stone1
+        Noah - Stone2
+        Shop - Kailash
+        Thor2
+            Baal Avatar - Stone3
+            [Stone 1-3]
+                Kagutsuchi
+                    Lucifer w/unlock
+All Magatamas - Sword
+Bando Shrine
+    Zouchou
+    Koumoku
+    Jikoku
+    Bishamon 2
+        - All 4 (Masakados)
+Labyrithn of Amala - T
+    Note: Candelabras are in total gained
+    [1 Candelabra] 1st Kalpa
+        [3 Candelabra] 2nd Kalpa
+            Efreet w/unlock -> Ginza -> Asakusa -> Star Key
+            Moon Key
+                [Moon Key] White Rider (Candelabra)
+                    Unlocks Red Rider
+                [6 Candelabra] 3rd Kalpa
+                    Dante 2 (Candelabra)
+                        [9 Candelabra] 4th Kalpa
+                            Beelzebub - Unlocks Efreet
+                            [Star Key] 5th Kalpa
+                                Metatron - Unlocks Lucifer
