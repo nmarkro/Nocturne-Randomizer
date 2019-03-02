@@ -8,15 +8,17 @@ Nocturne Notes (offsets are based on SLUS_209.11)
 
 	Start of skills 0x00234CF4
 	
-	start of enconters at 0x002AFFE6
-	end of encounters is at 0x002BBC6A
+	start of battles at 0x002AFFE0
+	end of battles is at 0x002BBC7A
 
-	# of encounters = 1270 (4F6h)
+	# of battles = 1270 (4F6h)
 	
 	breakpoint on/around 0x002597A4 gives enconter index
 	demon one id = 0x0116CF84
 
 	ai starts at 0x002999E4
+
+	all binary addr are += 0xFF000 on ps2/emu
 
 Demon layout (3Ch long)
 	00h - 0Fh				Header?
@@ -63,7 +65,17 @@ Skills layout is 66h long
 	
 	the 6 for enabler seems to only be on special fuse or evolutions
 
-enconter layout is 26h long
+battle layout is 26h long
+	00h-01h                 ?
+	02h                     item drop
+	03h 					item drop activator
+	04h-05h                 ?
+	06h						Demon 1 ID (2 bytes)
+	08h 					Demon 2 ID (2 bytes)
+	....
+	not sure max # of demons yet (10 i think)
+
+	item drop can be magatamas too (that's how the game gives you wadatsumi, satan, ect)
 
 AI layout is A4h long
 	00h-23h					?
@@ -137,3 +149,52 @@ magatama layout:
 		0h 					Level learned
 		1h 					?
 		2h 					Skill id (2 bytes)
+
+beat forneus flag = 0x01248D41
+	flag_id = 8h
+leave hospital flags = 0x01248DC0, 0x01248DCC
+	flag_id = 476h
+	flag_id = 403h
+
+write_flag_func at 0x001E0ED0
+	flag_id = flag_id + 0x1F
+	a = flag_id >> 0x05
+	b = 1 << flag_id
+	a = a << 0x02
+	a = a + 0x840
+	flag_addr = 0x01248500 + a
+	flag_val = [flag_addr]
+	flag_val = flag_val OR b
+	[flag_addr] = flag_val
+
+patch demon recruit (always recruit after giving 2 things):
+	change 0x00270584 from
+		li a0, 0x8
+	to
+		li a0, 0x0 (?)
+		not sure what flag 0x00 is but it's never set from what I've seen
+	change 0x002705D8 from
+		li a0, 0x8
+	to
+		li a0, 0x0 (?)
+	change 0x00270670 from
+		li a0, 0x8
+	to
+		li a0, 0x0 (?)
+	change 0x00270A18
+		li a0, 0x8
+	to
+		li a0, 0x0 (?)
+so write 0x24040000 to 0x00270584, 0x002705D8, 0x00270670, 0x00270A18, 0x00270F44, 0x00270F9C, 0x002727E4
+
+specter 1 addr = 0x003AF2DE
+
+yoyogi terminal flag = 0x001248DCC
+ginza terminal flag = 0x001248DD8
+
+terminal flags are at 0x002FC1A4
+
+specter 1 flag = 0x01248DD4 bit 11
+	flag_id = 0x4AB 
+
+for ppj's "beating boss unlocks terminal" idea, change whatever terminal flag to be whatever boss flag

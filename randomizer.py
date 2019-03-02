@@ -19,6 +19,7 @@ config_fix_tutorial = True 				# replace a few tutorial fights
 config_balance_mp = True 				# multiply mp values of enemy demons so they can use higher ranked skills at a lower level
 config_easy_hospital = True				# Force hospital demons/boss to not have null/repel/abs phys
 config_keep_marogareh_pierce = True		# Don't randomize Pierce on Maraogareh
+config_easy_recruits = True				# Patch game so demon recruits always succeed after giving 2 things
 
 # Bosses to replace
 # these are the ones I think won't cause issues, but I haven't tested them all yet
@@ -281,108 +282,22 @@ def randomize_magatamas():
 		new_magatamas.append(new_magatama)
 	return new_magatamas
 
-# def write_demons(new_demons):
-# 	for demon in new_demons:
-# 		rom.seek(demon.offset)
-
-# 		rom.write_byte(demon.level, rom.w_offset + 0x11)
-# 		rom.write_halfword(demon.hp, rom.w_offset + 0x12)
-# 		rom.write_halfword(demon.hp, rom.w_offset + 0x14)
-# 		rom.write_halfword(demon.mp, rom.w_offset + 0x16)
-# 		rom.write_halfword(demon.mp, rom.w_offset + 0x18)
-
-# 		stats = struct.pack('<BBBBBB', demon.stats[0], 0x00, demon.stats[1], demon.stats[2], demon.stats[3], demon.stats[4])
-# 		rom.write(stats, rom.w_offset + 0x1C)
-
-# 		rom.write_halfword(demon.macca_drop, rom.w_offset + 0x36)
-# 		rom.write_halfword(demon.exp_drop, rom.w_offset + 0x38)
-
-# 		# don't change boss ai or skills
-# 		if not demon.is_boss:
-# 			rom.seek(demon.offset + 0x22)
-# 			for i in range(8):
-# 				if i < len(demon.battle_skills):
-# 					skill = demon.battle_skills[i]
-# 					rom.write_halfword(skill)
-# 				else:
-# 					rom.write_halfword(0)
-
-# 			write_skills(demon)
-# 			write_ai(demon)
-
-# def write_skills(demon):
-# 	for i in range(len(demon.skills)):
-# 		skill = demon.skills[i]
-# 		offset = (skill['offset'] + 0x0A) + (i * 0x04)
-# 		rom.seek(offset)
-# 		rom.write_byte(skill['level'])
-# 		rom.write_byte(skill['magic_byte'])
-# 		rom.write_halfword(skill['skill_id'])
-
-# def write_ai(demon):
-# 	ai_offset = 0x002999E4
-
-# 	offset = (ai_offset + (demon.ind * 0xA4)) + 0x24
-
-# 	# todo: make generating odds more random
-# 	total_odds = [
-# 		[100,],
-# 		[50, 50],
-# 		[40, 30, 30],
-# 		[25, 25, 25, 25],
-# 		[20, 20, 20, 20, 20],
-# 	]
-
-# 	# 3 sets of ai skills
-# 	for i in range(3):
-# 		skill_pool = copy.copy(demon.battle_skills)
-
-# 		# add basic attack to skill pool and shuffle
-# 		skill_pool.append(0x8000)
-# 		random.shuffle(skill_pool)
-
-# 		# can only write a max of 5 skills per set
-# 		num_of_skills = min(len(skill_pool), 5)
-# 		odds = total_odds[num_of_skills - 1]
-
-# 		# write the new demon ai
-# 		for j in range(num_of_skills):
-# 			skill = skill_pool[j]
-# 			rom.write(struct.pack('<HHI', odds[j], skill_pool[j], 0), offset)
-# 			offset += 0x08
-
-# 		# fill the rest with zeros
-# 		for j in range(num_of_skills, 5):
-# 			rom.write(struct.pack('<Q', 0), offset)
-# 			offset += 0x08
-
-# def write_magatamas(new_magatams):
-# 	for magatama in new_magatams:
-# 		stats = struct.pack('<BBBBBB', magatama.stats[0], 0xFF, magatama.stats[1], magatama.stats[2], magatama.stats[3], magatama.stats[4])
-# 		rom.write(stats, magatama.offset + 0x0E)
-# 		rom.write(stats, magatama.offset + 0x14)
-# 		for i in range(len(magatama.skills)):
-# 			skill = magatama.skills[i]
-# 			s = magatama.offset + 0x22 + (i * 4)
-# 			rom.write_halfword(skill['level'], s)
-# 			rom.write_halfword(skill['skill_id'], s + 2)
-
 def randomize_battles(demon_map):
-	battle_offset = 0x002AFFE6
+	battle_offset = 0x002AFFE0
 	N_BATTLES = 1270
 
-	offset = battle_offset
+	offset = battle_offset + 6
 
 	for i in range(N_BATTLES):
-		# max # of demons is 11?
-		for j in range(0, 0x16, 2):
+		# max # of demons is 10?
+		for j in range(0, 20, 2):
 			old_demon = rom.read_halfword(offset + j)
 			if old_demon > 0:
 				new_demon = demon_map.get(old_demon)
 				if new_demon:
 					rom.write_halfword(new_demon, offset + j)
-			else:
-				break
+			#else:
+			#	break
 		offset += 0x26
 
 def fix_tutorials():
@@ -419,7 +334,6 @@ def main(rom_path, output_path):
 	print('randomizing demons')
 	demon_map = generate_demon_permutation(config_easy_hospital)
 	new_demons = randomize_demons(demon_map, config_exp_modifier, config_balance_mp)
-	#write_demons(new_demons)
 	if config_make_logs:
 		write_demon_log('logs/random_demons.txt', new_demons)
 
@@ -432,10 +346,13 @@ def main(rom_path, output_path):
 
 	print('randomizing magatamas')
 	new_magatamas = randomize_magatamas()
-	#write_magatamas(new_magatamas)
 
-	#print("copying iso")
-	#copyfile(rom_path, output_path)
+	print("applying easy recruits patch")
+	if config_easy_recruits:
+		nocturne.patch_demon_recruits(rom)
+
+	print("copying iso")
+	copyfile(rom_path, output_path)
 
 	print("writing new binary")
 	nocturne.write_all(rom, new_demons, new_magatamas)

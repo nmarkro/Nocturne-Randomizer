@@ -227,6 +227,17 @@ def write_magatamas(rom, new_magatams):
 			rom.write_halfword(skill['level'], s)
 			rom.write_halfword(skill['skill_id'], s + 2)
 
+def patch_demon_recruits(rom):
+	# patch the flag check during demon recruiting to use an always(?) zero flag as oppsed to the forneus flag
+	patch = 0x24040000						# li a0, 0x0
+	rom.write_word(patch, 0x00171584)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x001715D8)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x00171670)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x00171A18)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x00171F44)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x00171F9C)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x001737E4)		# replaces li a0, 0x8
+
 def load_all(rom):
 	load_demons(rom)
 	load_skills(rom)

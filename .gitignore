@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# ps2 isos and binary
+rom/*.iso
+rom/SLUS_209.11
+
+# logs
+logs/
