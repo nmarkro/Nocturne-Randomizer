@@ -4,49 +4,49 @@
 0BE Deathtouch 1 1
 0BF Mana Drain 5 1
 0C0 Life Drain 7 1
-104 Death Flies 100 1
-0EB Fire of Sinai 100 1
-10A Stinger 0 1
+104 Death Flies 0 1
+0EB Fire of Sinai 0 1
+10A Stinger 100 1
 10D Showtime 100 1
 11E Beast Roar 100 1
-04F Pestilence 100 1
+04F Pestilence 0 1
 117 Meditation 100 1
-093 Freikugel 0 1
-0D0 Sol Niger 100 1
-0F2 God's Curse 100 1
-0F3 Hells Call 100 1
-0F1 Vast Light 100 1
-0DD Infinite Light 100 1
-111 High King 100 1
-110 Root of Evil 100 1
-183 Seduce 2 0
-181 Scout 3 0
-188 Beseech 3 0
-187 Wooing 3 0
-184 Brainwash 4 0
-186 Dark Pledge 5 0
-182 Kidnap 6 0
-189 Soul Recruit 4 0
-18A Mischief 3 0
-18B Death Pact 100 0
-1A5 Jive Talk 0 0
-18D Begging 2 0
-18C Pester 4 0
-190 Trade 3 0
-18E Blackmail 4 0
-191 Loan 4 0
-18F Stone Hunt 6 0
-199 Haggle 2 0
-1A4 Flatter 3 0
-19D Persuade 4 0
-19A Arbitration 4 0
-19C Gonnection 5 0
-19B Detain 5 0
-163 Charisma 5 0
-19E Intimidate 6 0
-19F Nag 6 0
-1A2 Maiden's Plea 6 0
-1A3 Wine Party 7 0
+093 Freikugel 100 1
+0D0 Sol Niger 0 1
+0F2 God's Curse 0 1
+0F3 Hells Call 0 1
+0F1 Vast Light 0 1
+0DD Infinite Light 0 1
+111 High King 0 1
+110 Root of Evil 0 1
+183 Seduce 2 2
+181 Scout 3 2
+188 Beseech 3 2
+187 Wooing 3 2
+184 Brainwash 4 2
+186 Dark Pledge 5 2
+182 Kidnap 6 2
+189 Soul Recruit 4 2
+18A Mischief 3 2
+18B Death Pact 100 2
+1A5 Jive Talk 100 2
+18D Begging 2 2
+18C Pester 4 2
+190 Trade 3 2
+18E Blackmail 4 2
+191 Loan 4 2
+18F Stone Hunt 6 2
+199 Haggle 2 2
+1A4 Flatter 3 2
+19D Persuade 4 2
+19A Arbitration 4 2
+19C Gonnection 5 2
+19B Detain 5 2
+163 Charisma 5 2
+19E Intimidate 6 2
+19F Nag 6 2
+1A2 Maiden's Plea 6 2
+1A3 Wine Party 7 2
 037 Makajam 5 1
 038 Makajamon 8 1
 0C6 Mute Gaze 3 1
@@ -55,7 +55,7 @@
 105 Soul Divide 100 1
 140 Anti Curse 3 0
 14A Void Curse 6 0
-0C9 Bael's Bane 100 1
+0C9 Bael's Bane 0 1
 020 Mudo 3 1
 021 Mudoon 6 1
 022 Mamudo 6 1
@@ -106,7 +106,7 @@
 0B2 Prominence 10 1
 0B3 Ragnarok 100 1
 11B Hell Burner 100 1
-0A1 Magma Axis 0 1
+0A1 Magma Axis 100 1
 135 Fire Boost 6 0
 13A Anti Fire 4 0
 144 Void Fire 7 0
@@ -122,7 +122,7 @@
 0B9 Tornado 7 1
 0BA Wind Cutter 9 1
 0BB Wet Wind 100 1
-10C Whirlwind 0 1
+10C Whirlwind 100 1
 11A Hell Exhaust 100 1
 138 Force Boost 6 0
 13D Anti Force 4 0
@@ -158,7 +158,7 @@
 00C Mabufudyne 10 1
 0B4 Ice Breath 5 1
 0B5 Glacial Blast 8 1
-0F4 Icy Death 100 1
+0F4 Icy Death 0 1
 136 Ice Boost 6 0
 13B Anti Ice 4 0
 145 Void Ice 7 0
@@ -177,10 +177,10 @@
 0D9 Intoxicate 100 1
 11D Death Lust 100 1
 116 Preach 100 1
-0F9 Wild Dance 0 1
+0F9 Wild Dance 100 1
 142 Anti Mind 3 0
 14C Void Mind 6 0
-10F Evil Gleam 100 1
+10F Evil Gleam 0 1
 03B Shibaboo 4 1
 0D3 Binding Cry 6 1
 0D1 Stun Gaze 4 1
@@ -216,19 +216,19 @@
 06E Chaos Blade 10 1
 06C Deathbound 11 1
 09B Earthquake 100 1
-106 E&I 0 1
-107 Rebellion 0 1
-108 Bullet-Time 0 1
+106 E&I 100 1
+107 Rebellion 100 1
+108 Bullet-Time 100 1
 118 Terror Blade 100 1
 119 Hell Spin 100 1
 113 Andalucia 100 1
-088 Divine Shot 0 1
-0A0 Spiral Viper 0 1
-090 Oni-Kagura 0 1
-083 Deadly Fury 0 1
-08F Javelin Rain 0 1
-085 Xeros-Beat 0 1
-0A3 Gaea Rage 0 1
+088 Divine Shot 100 1
+0A0 Spiral Viper 100 1
+090 Oni-Kagura 100 1
+083 Deadly Fury 100 1
+08F Javelin Rain 100 1
+085 Xeros-Beat 100 1
+0A3 Gaea Rage 100 1
 139 Anti Phys 5 0
 143 Void Phys 10 0
 14D Phys Drain 11 0
@@ -238,12 +238,12 @@
 0A8 Tentacle 0 1
 047 Analyze 3 0
 0E0 Focus 5 1
-048 Trafuri 5 0
-0DF Beckon Call 6 0
-04A Riberama 4 0
-04C Lightoma 5 0
-04B Liftoma 6 0
-049 Estoma 7 0
+048 Trafuri 5 1
+0DF Beckon Call 6 1
+04A Riberama 4 1
+04C Lightoma 5 1
+04B Liftoma 6 1
+049 Estoma 7 1
 09E Holy Melody 100 1
 09F Evil Melody 100 1
 12C Bright Might 4 0
@@ -266,8 +266,8 @@
 162 Watchful 8 0
 12A Mind's Eye 100 0
 128 Fast Retreat 100 0
-168 Never Yield 0 0
-169 Son's Oath 0 0
+168 Never Yield 100 0
+169 Son's Oath 100 0
 0E1 Retreat 0 0 
 0E2 Gathering 0 0
 0E5 Laughter 0 0
@@ -295,10 +295,10 @@
 046 Tetrakarn 8 1
 045 Makarakarn 8 1
 02A Makatora 5 0
-109 Provoke 0 1
-112 Holy Star 0 1
+109 Provoke 100 1
+112 Holy Star 100 1
 114 Red Capote 100 1
 0DC Dragon Eye 0 1
 0DB Beast Eye 0 1
 115 Startle 0 1
-11C Hell Throttle 100 1
+11C Hell Throttle 0 1

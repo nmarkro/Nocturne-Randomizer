@@ -42,14 +42,15 @@ Boss Flags
 06A9		Aciel
 06AA		Skadi
 06AB		Albion
-0711		Bishamon?
+0711		Bishamon 1?
 0712 		Kouoku
 0713		Zouchou
 0714		Jikoku
-0732		Bishamon?
+0732		Bishamon 2?
 
 Terminal Flags
-0441		Location 0x0F
+000D		Unlock warping to terminals
+0441		Location SMC flag
 0461		Location 0x10
 0481		Location 0x11
 04C1		Location 0x13
@@ -68,3 +69,8 @@ Terminal Flags
 06E1		Location 0x23
 0662		Location 0x25
 0663		Location 0x25
+0751		Location 0x28
+
+Other Flags
+0025		Unlock Sac Fusions
+0028		Unlock Compendium

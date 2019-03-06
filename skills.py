@@ -6,7 +6,11 @@ class Skill(object):
 		self.name = name
 		self.rank = rank
 
-		self.is_attack = None
+		# skill types
+		# 0 = Passive
+		# 1 = Attack
+		# 2 = Recruitment
+		self.skill_type = 1
 
 	def __repr__(self):
 		return self.name

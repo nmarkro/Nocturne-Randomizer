@@ -66,14 +66,21 @@ Skills layout is 66h long
 	the 6 for enabler seems to only be on special fuse or evolutions
 
 battle layout is 26h long
-	00h-01h                 ?
+	00h 					Boss Identifier (2 bytes)
+		01FFh	= 	Boss
 	02h                     item drop
 	03h 					item drop activator
-	04h-05h                 ?
+	04h 					Boss Phase ID? (2 bytes?)
 	06h						Demon 1 ID (2 bytes)
 	08h 					Demon 2 ID (2 bytes)
 	....
 	not sure max # of demons yet (10 i think)
+	1Ch						Battle arena (4 bytes)
+	20h						Who gets first turn (2 bytes?)
+		0Dh = MC
+		0Bh = Boss
+	22h 					Call reinforcements? (2 bytes?)
+	24h 					Battle music (2 bytes?)
 
 	item drop can be magatamas too (that's how the game gives you wadatsumi, satan, ect)
 
@@ -101,8 +108,6 @@ copy sudama (demon_id 92) to 0x0024FCC8 (demon_id 16Bh)
 sudama is at 0x24bd44
 
 shop Iyomante price = 0x002DD6BC
-
-0x0032F680
 
 shops are at = 0x00230680
 shops are 82h long
@@ -174,11 +179,26 @@ patch demon recruit (always recruit after giving 2 things):
 	to
 		li a0, 0x0 (?)
 		not sure what flag 0x00 is but it's never set from what I've seen
-so write 0x24040000 to 0x00270584, 0x002705D8, 0x00270670, 0x00270A18, 0x00270F44, 0x00270F9C, 0x002727E4
+so write 0x24040000 to 
+0x00270584
+0x002710E4
+0x002705D8
+0x00270670
+0x00270A18
+0x002709D4
+0x002727E4
 
 terminal flags are at 0x002FC1A4
 
-specter 1 flag = 0x01248DD4 bit 11
+specter 1 flag = 0x01248DD4
 	flag_id = 0x4AB 
 
-for ppj's "beating boss unlocks terminal" idea, change whatever terminal flag to be whatever boss flag
+for ppj's "beating boss unlocks terminal" idea, change whatever terminal flag to be whatever boss flag, would need to nop the "write_flag" call when you enter a terminal
+
+Forneus unlocks terminals (I think this breaks triggering Specter 1)
+	change 0x0020FE14 from
+		li a0, 0xD
+		0x2404000D
+	to
+		li a0, 0x8
+		0x24040008

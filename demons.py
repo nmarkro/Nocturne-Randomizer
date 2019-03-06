@@ -18,7 +18,7 @@ class Demon(object):
 
 		self.is_boss = None
 		self.phys_inv = None
-		self.in_hospital = None
+		self.base_demon = None
 
 	def __repr__(self):
 		return self.name

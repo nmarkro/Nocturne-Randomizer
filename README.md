@@ -1,2 +1,2 @@
 # Nocturne-Randomizer
-Randomizer for SMT3 Nocturne
+A very much WIP randomizer for SMT3 Nocturne

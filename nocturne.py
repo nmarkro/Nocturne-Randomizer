@@ -7,15 +7,16 @@ import random
 import demons
 import skills
 import magatamas
+import boss_battles
 
 N_DEMONS = 383
 N_MAGATAMAS = 25
 
 # demons/bosses that absorb/repel/null phys
-phys_invalid_demons = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274, 276, 277, 333, 352]
+phys_invalid_demons = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274, 276, 277, 333, 334, 352]
 
-# demons/bosses that are normally in the hospital
-hospital_demons = [137, 92, 97, 131, 91, 256]
+# demons/bosses that are normally in the hospital/shibuya
+base_demons = [137, 92, 97, 131, 91, 126, 103, 135, 136, 256]
 
 def load_demons(rom):
 	demon_offset = 0x0024A7F0
@@ -58,7 +59,7 @@ def load_demons(rom):
 
 		# keep track of phys invalid demons and demons in the hospital for "Easy Hospital"
 		demon.phys_inv = demon_id in phys_invalid_demons
-		demon.in_hospital = demon_id in hospital_demons
+		demon.base_demon = demon_id in base_demons
 
 		demon.offset = demon_offset
 
@@ -85,13 +86,16 @@ def load_demon_skills(rom, demon_id):
 
 		skill = {
 			'level': level,
-			'magic_byte': magic_byte,
+			# hopefully fix evolution demons with no skills
+			#'magic_byte': magic_byte,
+			'magic_byte': 1,
 			'skill_id': skill_id,
 			'offset': offset,
 		}
 
-		s.append(skill)
-		count += 1
+		if skill not in s:
+			s.append(skill)
+			count += 1
 
 	rom.load_offsets()
 	return s
@@ -107,10 +111,10 @@ def load_skills(rom):
 		skill_id = int(skill_data[i][1], 16)
 		name = skill_data[i][2]
 		rank = int(skill_data[i][3])
-		attack = int(skill_data[i][4])
+		skill_type = int(skill_data[i][4])
 
 		skill = skills.add_skill(skill_id, name, rank)
-		skill.is_attack = bool(attack & 1)
+		skill.skill_type = skill_type
 
 def load_magatamas(rom):
 	magatama_offset = 0x0023AE3A
@@ -140,6 +144,31 @@ def load_magatamas(rom):
 		magatama.skills = s
 		magatama.offset = magatama_offset
 
+def load_boss_battles(rom):
+	battle_offset = 0x002AFFE0
+	N_BATTLES = 1270
+
+	rom.seek(battle_offset)
+	for i in range(N_BATTLES):
+		offset = rom.r_offset
+		is_boss, item_drop, phase_value, demons, arena, first_turn, reinforcement_value, music = struct.unpack('<HHH22sIHHH', rom.read(0x26))
+
+		if is_boss == 0x01FF:
+			boss = 0
+			data = []
+			for j in range(0, 22, 2):
+				demon_id = struct.unpack('<H', demons[j : j + 2])[0]
+				data.append(demon_id)
+				if demon_id >= 100:
+					boss = demon_id
+
+			battle = boss_battles.add_battle(i, boss, offset)
+			battle.phase_value = phase_value
+			battle.data = data
+			battle.arena = arena
+			battle.first_turn = first_turn
+			battle.reinforcement_value = reinforcement_value
+			battle.music = music
 
 def write_demons(rom, new_demons):
 	for demon in new_demons:
@@ -227,18 +256,18 @@ def write_magatamas(rom, new_magatams):
 			rom.write_halfword(skill['level'], s)
 			rom.write_halfword(skill['skill_id'], s + 2)
 
-def patch_demon_recruits(rom):
+def patch_easy_demon_recruits(rom):
 	# patch the flag check during demon recruiting to use an always(?) zero flag as oppsed to the forneus flag
 	patch = 0x24040000						# li a0, 0x0
 	rom.write_word(patch, 0x00171584)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x001720E4)		# replaces li a0, 0x8
 	rom.write_word(patch, 0x001715D8)		# replaces li a0, 0x8
 	rom.write_word(patch, 0x00171670)		# replaces li a0, 0x8
 	rom.write_word(patch, 0x00171A18)		# replaces li a0, 0x8
-	rom.write_word(patch, 0x00171F44)		# replaces li a0, 0x8
-	rom.write_word(patch, 0x00171F9C)		# replaces li a0, 0x8
+	rom.write_word(patch, 0x001719D4)		# replaces li a0, 0x8
 	rom.write_word(patch, 0x001737E4)		# replaces li a0, 0x8
 
-def fix_tutorials(rom):
+def patch_fix_tutorials(rom):
 	# replaces the 1x preta and 2x sudamas tutorial fights with the unmodified, scipted will o' wisp demons
 	tutorial_2_offset = 0x002BBBF8
 	tutorial_3_offset = 0x002BBC1E
@@ -246,10 +275,16 @@ def fix_tutorials(rom):
 	rom.write(struct.pack('<H', 0x13E), tutorial_2_offset)
 	rom.write(struct.pack('<HH', 0x13E, 0x13E), tutorial_3_offset)
 
+def patch_unlock_compendium(rom):
+	# this a real hack-y way of doing this that I need to fix later (probably with a hooked function)
+	# makes entering the SMC terminal (which is forced) unlock the compendium
+	rom.write_halfword(0x0028, 0x001FD1A6)	# set the SMC termnal flag to be the same flag as the compedium flag
+
 def load_all(rom):
 	load_demons(rom)
 	load_skills(rom)
 	load_magatamas(rom)
+	load_boss_battles(rom)
 
 def write_all(rom, demons, magatamas):
 	write_demons(rom, demons)

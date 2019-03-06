@@ -22,7 +22,7 @@ def lookup(ind):
 	return all_magatamas.get(ind)
 
 def where(**kwargs):
-	return filter(lambda skill : all([key in skill.__dict__ and (val(skill.__dict__[key]) if callable(val) else skill.__dict__[key] == val) for key, val in kwargs.items()]), all_magatamas.values())
+	return filter(lambda magatama : all([key in magatama.__dict__ and (val(magatama.__dict__[key]) if callable(val) else magatama.__dict__[key] == val) for key, val in kwargs.items()]), all_magatamas.values())
 
 def find(**kwargs):
 	results = where(**kwargs)
