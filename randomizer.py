@@ -48,7 +48,7 @@ def generate_demon_permutation(easy_hospital = False):
 	for demon in demons.where():
 		demon_id = 1
 		# only include the allowed bosses
-		if demon.is_boss:
+		if demon.is_boss or demon.name == "Dante":
 			if demon.ind in allowed_boss_ids:
 				demon_id = 2
 			else:
@@ -217,7 +217,7 @@ def randomize_skills(old_level, new_demon, force_skill=None):
 				}
 
 				extend_skills.append(skill)
-				print('Giving skill: ' + str(s) + ' to ' + str(new_demon))
+				# print('Giving skill: ' + str(s) + ' to ' + str(new_demon))
 
 		for i in range(len(extend_skills)):
 			new_skills.pop()
