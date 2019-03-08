@@ -163,7 +163,7 @@ leave hospital flags = 0x01248DC0, 0x01248DCC
 
 write_flag_func at 0x001E0ED0
 	a = flag_id >> 0x05
-	bit = 1 << (flag_id % 16)
+	bit = 1 << (flag_id % 32?)
 	a = a << 0x02
 	a = a + 0x840
 	flag_addr = 0x01248500 + a

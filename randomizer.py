@@ -15,7 +15,7 @@ import boss_battles
 # Config
 config_balance_by_skill_rank = False		# Permutate skills based on rank
 config_exp_modifier = 2						# Mulitlpy EXP values of demons
-config_make_logs = False 					# Write various data to the logs/ folder
+config_make_logs = True 					# Write various data to the logs/ folder
 config_write_binary = False					# Write the game's binary to a separe file for easier hex reading
 config_fix_tutorial = True 					# replace a few tutorial fights
 config_easy_hospital = True					# Force hospital demons/boss to not have null/repel/abs phys
@@ -226,7 +226,6 @@ def randomize_skills(old_level, new_demon, force_skill=None):
 		new_skills.extend(extend_skills)
 		new_skills.reverse()
 
-
 	# Use the newly generated demon skills for battle skills
 	for battle_skill in new_demon.battle_skills:
 		try:
@@ -278,6 +277,8 @@ def randomize_demons(demon_map, exp_modifier=1):
 		# take the new demons level, stats, hp, and mp for balancing
 		new_demon.level = old_demon.level
 		new_demon.hp = old_demon.hp
+		if new_demon.name == "Mara (Boss)":
+			new_demon.hp = min(new_demon.hp, 4000)
 		new_demon.mp = old_demon.mp
 
 		# half the level if the demon is a boss appearing early
