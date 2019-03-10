@@ -47,7 +47,6 @@ def load_demons(rom):
 		s = []
 		for j in range(0, len(battle_skills), 2):
 			skill = struct.unpack('<H', battle_skills[j : j + 2])[0]
-			#skill = ord(battle_skills[j : j + 1])
 			if skill > 0:
 				s.append(skill)
 
@@ -66,7 +65,7 @@ def load_demons(rom):
 def load_demon_skills(rom, demon_id):
 	skill_offset = 0x00234CF4
 
-	s = []
+	demon_skills = []
 
 	rom.save_offsets()
 
@@ -81,24 +80,28 @@ def load_demon_skills(rom, demon_id):
 		magic_byte = rom.read_byte()
 		skill_id = rom.read_halfword()
 
-		if magic_byte == 0 or count >= 17:
+		if magic_byte == 0 or count >= 23:
 			break
 
-		skill = {
+		if magic_byte == 7:
+			continue
+
+		s = {
 			'level': level,
-			# hopefully fix evolution demons with no skills
-			#'magic_byte': magic_byte,
 			'magic_byte': 1,
 			'skill_id': skill_id,
 			'offset': offset,
 		}
 
-		if skill not in s:
-			s.append(skill)
-			count += 1
+		for skill in demon_skills:
+			if skill['skill_id'] == s['skill_id']:
+				continue
+
+		demon_skills.append(s)
+		count += 1
 
 	rom.load_offsets()
-	return s
+	return demon_skills
 
 
 def load_skills(rom):
@@ -132,12 +135,18 @@ def load_magatamas(rom):
 		magatama = magatamas.add_magatama(i, magatama_name)
 		magatama.stats = [strength, magic, vitality, agility, luck]
 		
+		magatama.level = None
+
 		s = []
 		for j in range(0, len(skills), 4):
 			level, skill_id = struct.unpack('<HH', skills[j : j + 4])
+
+			if magatama.level is None:
+				magatama.level = level
+
 			if skill_id > 0:
 				skill = {
-					'level': level,
+					'level': level - magatama.level,
 					'skill_id': skill_id,
 				}
 				s.append(skill)
@@ -145,22 +154,22 @@ def load_magatamas(rom):
 		magatama.offset = magatama_offset
 
 def load_boss_battles(rom):
-	battle_offset = 0x002AFFE0
-	N_BATTLES = 1270
+	boss_data = open('data/boss_data.txt', 'r').read().strip()
+	pattern = re.compile(r"(\d+) ([\w\d\- ]+)")
 
-	rom.seek(battle_offset)
-	for i in range(N_BATTLES):
-		offset = rom.r_offset
+	boss_data = list(map(lambda s: re.search(pattern, s), boss_data.split('\n')))
+
+	for i in range(len(boss_data)):
+		offset = int(boss_data[i][1])
+		rom.seek(offset)
+		boss = boss_data[i][2]
 		is_boss, item_drop, phase_value, demons, arena, first_turn, reinforcement_value, music = struct.unpack('<HHH22sIHHH', rom.read(0x26))
 
 		if is_boss == 0x01FF:
-			boss = 0
 			data = []
 			for j in range(0, 22, 2):
 				demon_id = struct.unpack('<H', demons[j : j + 2])[0]
 				data.append(demon_id)
-				if demon_id >= 100:
-					boss = demon_id
 
 			battle = boss_battles.add_battle(i, boss, offset)
 			battle.phase_value = phase_value
@@ -169,6 +178,10 @@ def load_boss_battles(rom):
 			battle.first_turn = first_turn
 			battle.reinforcement_value = reinforcement_value
 			battle.music = music
+			# check if magatama
+			if item_drop > 0x140 and item_drop < 0x15A:
+				item_drop = 0
+			battle.item_drop = item_drop
 
 def write_demons(rom, new_demons):
 	for demon in new_demons:
@@ -207,6 +220,11 @@ def write_skills(rom, demon):
 		rom.write_byte(skill['level'])
 		rom.write_byte(skill['magic_byte'])
 		rom.write_halfword(skill['skill_id'])
+		
+	offset = demon.skills[0]['offset']
+
+	for i in range(len(demon.skills), 23):
+		rom.write_word(0, offset + 0x0A + (i * 0x4))
 
 def write_ai(rom, demon):
 	ai_offset = 0x002999E4
@@ -258,6 +276,7 @@ def write_magatamas(rom, new_magatams):
 
 def patch_easy_demon_recruits(rom):
 	# patch the flag check during demon recruiting to use an always(?) zero flag as oppsed to the forneus flag
+	# this also doesn't work half the time for some fucking reason
 	patch = 0x24040000						# li a0, 0x0
 	rom.write_word(patch, 0x00171584)		# replaces li a0, 0x8
 	rom.write_word(patch, 0x001720E4)		# replaces li a0, 0x8
@@ -274,11 +293,6 @@ def patch_fix_tutorials(rom):
 
 	rom.write(struct.pack('<H', 0x13E), tutorial_2_offset)
 	rom.write(struct.pack('<HH', 0x13E, 0x13E), tutorial_3_offset)
-
-def patch_unlock_compendium(rom):
-	# this a real hack-y way of doing this that I need to fix later (probably with a hooked function)
-	# makes entering the SMC terminal (which is forced) unlock the compendium
-	rom.write_halfword(0x0028, 0x001FD1A6)	# set the SMC termnal flag to be the same flag as the compedium flag
 
 def load_all(rom):
 	load_demons(rom)

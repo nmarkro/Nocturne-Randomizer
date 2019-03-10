@@ -3,10 +3,12 @@ import random
 import struct
 import copy
 import math
+import logging
 import shutil
 from collections import defaultdict
 
 from rom import Rom
+import logic
 import demons
 import skills
 import magatamas
@@ -16,13 +18,12 @@ import boss_battles
 config_balance_by_skill_rank = False		# Permutate skills based on rank
 config_exp_modifier = 2						# Mulitlpy EXP values of demons
 config_make_logs = True 					# Write various data to the logs/ folder
-config_write_binary = False					# Write the game's binary to a separe file for easier hex reading
+config_write_binary = True					# Write the game's binary to a separe file for easier hex reading
 config_fix_tutorial = True 					# replace a few tutorial fights
 config_easy_hospital = True					# Force hospital demons/boss to not have null/repel/abs phys
 config_keep_marogareh_pierce = True			# Don't randomize Pierce on Maraogareh
 config_easy_recruits = True					# Patch game so demon recruits always succeed after giving 2 things
 config_always_go_first = True				# Always go first in randomized boss fights
-config_early_compendium_unlock = True 		# Have the compendium from the start of the game
 config_give_pixie_estoma_riberama = True 	# Give pixie estoma and riberama
 
 # Bosses to replace
@@ -49,10 +50,10 @@ def generate_demon_permutation(easy_hospital = False):
 		demon_id = 1
 		# only include the allowed bosses
 		if demon.is_boss or demon.name == "Dante":
-			if demon.ind in allowed_boss_ids:
-				demon_id = 2
-			else:
-				demon_id = demon.name
+			# if demon.ind in allowed_boss_ids:
+			# 	demon_id = 2
+			# else:
+			demon_id = demon.name
 
 		# shuffle mitamas and elementals by themselves
 		if demon.race == 7 or demon.race == 8:
@@ -204,7 +205,7 @@ def randomize_skills(old_level, new_demon, force_skill=None):
 			has_skill = False
 
 			for skill in new_skills:
-				if skill['skill_id'] == force_skill:
+				if skill['skill_id'] == s:
 					has_skill = True
 					break
 
@@ -256,6 +257,36 @@ def randomize_skills(old_level, new_demon, force_skill=None):
 	return [new_skills, new_battle_skills]
 
 
+def swap_demons(old_demon, new_demon, exp_modifier=1, stat_modifier=1):
+	# remember old level to fix skills later
+	old_level = new_demon.level
+
+	# take the new demons level, stats, hp, and mp for balancing
+	new_demon.level = old_demon.level
+	new_demon.hp = round(old_demon.hp * stat_modifier)
+	if new_demon.name == "Mara (Boss)":
+		new_demon.hp = min(new_demon.hp, 4000)
+	if old_demon.name == "Atropos 2 (Boss)":
+		new_demon.hp = new_demon.hp * 3
+	if new_demon.name == "Atropos 2 (Boss)" or new_demon.name == "Clotho 2 (Boss)" or new_demon.name == "Lachesis 2 (Boss)":
+		new_demon.hp = round(new_demon.hp / 3)
+	new_demon.mp = round(old_demon.mp * stat_modifier)
+
+	# reduce the level if the demon is a boss appearing early
+	if old_level > new_demon.level and new_demon.is_boss:
+		new_demon.level = int(math.floor(new_demon.level * 3 / 4))
+
+	new_demon.stats = randomize_stats(math.floor(sum(old_demon.stats) * stat_modifier))
+
+	# multiply exp
+	exp = int(math.floor(old_demon.exp_drop * exp_modifier * stat_modifier))
+	exp = min(exp, 0xFFFF)
+
+	new_demon.macca_drop = round(old_demon.macca_drop * stat_modifier)
+	new_demon.exp_drop = exp
+
+	return new_demon
+
 def randomize_demons(demon_map, exp_modifier=1):
 	new_demons = []
 
@@ -271,31 +302,11 @@ def randomize_demons(demon_map, exp_modifier=1):
 		old_demon = demons.lookup(ind)
 		new_demon = copy.copy(demons.lookup(demon_map[ind]))
 
-		# remember old level to fix skills later
-		old_level = new_demon.level
-
-		# take the new demons level, stats, hp, and mp for balancing
-		new_demon.level = old_demon.level
-		new_demon.hp = old_demon.hp
-		if new_demon.name == "Mara (Boss)":
-			new_demon.hp = min(new_demon.hp, 4000)
-		new_demon.mp = old_demon.mp
-
-		# half the level if the demon is a boss appearing early
-		if old_level > new_demon.level and new_demon.is_boss:
-			new_demon.level = int(math.floor(new_demon.level / 2))
-
-		new_demon.stats = randomize_stats(sum(old_demon.stats))
-
-		# multiply exp
-		exp = int(math.floor(old_demon.exp_drop * exp_modifier))
-		exp = min(exp, 0xFFFF)
-
-		new_demon.macca_drop = old_demon.macca_drop
-		new_demon.exp_drop = exp
-
-		# don't change the skills of bosses
 		if not new_demon.is_boss:
+			old_level = new_demon.level
+			new_demon = swap_demons(old_demon, new_demon, exp_modifier)
+
+			# distribute basic buffs to the base demons
 			if old_demon.base_demon and len(skills_to_distribute) > 0:
 				skill = [skills_to_distribute.pop()]
 				new_demon.skills, new_demon.battle_skills = randomize_skills(old_level, new_demon, skill)
@@ -304,10 +315,10 @@ def randomize_demons(demon_map, exp_modifier=1):
 			else:
 				new_demon.skills, new_demon.battle_skills = randomize_skills(old_level, new_demon)
 			
-		new_demons.append(new_demon)
+			new_demons.append(new_demon)
 
-		if config_make_logs:
-			f.write(str(old_demon) + " -> " + str(new_demon) + "\n")
+			if config_make_logs:
+				f.write(str(old_demon) + " -> " + str(new_demon) + "\n")
 
 	if config_make_logs:
 		f.close()
@@ -330,6 +341,8 @@ def randomize_magatamas():
 			new_skill = skill_map.get(ind)
 			if new_skill:
 				skill['skill_id'] = new_skill
+			skill['level'] = skill['level'] + new_magatama.level
+
 			new_skills.append(skill)
 
 		new_magatama.skills = new_skills
@@ -359,34 +372,76 @@ def randomize_battles(demon_map):
 					rom.write_halfword(new_demon, offset + j)
 		offset += 0x20
 
-def randomize_boss_battles(demon_map):
-	# I do not like how this is handled, will completely change later when logic is implemented
+boss_extras = {
+	'Albion (Boss)': [279, 280, 280, 281, 282],	# Urizen, Luvah, Tharmas, Urthona
+	'White Rider (Boss)': [359, 359],			# Virtue
+	'Red Rider (Boss)': [360, 360],				# Power
+	'Black Rider (Boss)': [361, 361],			# Legion
+	'Pale Rider (Boss)': [358, 358],  			# Loa
+	'Atropos 2 (Boss)': [326, 327]				# Clotho, Lachesis
+}
+
+def randomize_boss_battles(world):
+	boss_demons = []
+
 	for battle in boss_battles.where():
-		old_boss = battle.boss
+		old_boss_battle = battle.boss
+		new_boss_battle = None
 
-		if old_boss in allowed_boss_ids:
-			new_boss_id = demon_map.get(old_boss)
+		for check in world.get_checks():
+			if check.name == old_boss_battle:
+				new_boss = check.boss
+				break
 
-			new_boss = list(boss_battles.where(boss = new_boss_id))
+		if new_boss is not None:
+			new_boss_battle = list(boss_battles.where(boss = new_boss.name))[0]
+			old_boss_demon = None
+			new_boss_demon = None
 
-			if len(new_boss) > 0:
-				new_boss = new_boss[0]
-				offset = battle.offset
+			for d in battle.data:
+				if d > 0:
+					old_boss_demon = copy.copy(demons.lookup(d))
+					break
 
-				rom.write_halfword(new_boss.phase_value, offset + 0x04) 
+			for d in new_boss_battle.data:
+				if d > 0:
+					new_boss_demon = copy.copy(demons.lookup(d))
+					break
 
-				for i in range(len(new_boss.data)):
-					rom.write_halfword(new_boss.data[i], offset + 0x06 + (i * 2))
+			extras = boss_extras.get(new_boss_demon.name)
 
-				rom.write_word(new_boss.arena, offset + 0x1C) 
+			swapped_demon = copy.copy(swap_demons(old_boss_demon, new_boss_demon, config_exp_modifier))
+			boss_demons.append(swapped_demon)
 
-				if config_always_go_first:
-					rom.write_halfword(0x0D, offset + 0x20)
-				else:
-					rom.write_halfword(new_boss.first_turn, offset + 0x20)
-				
-				rom.write_halfword(new_boss.reinforcement_value, offset + 0x22)
-				rom.write_halfword(new_boss.music, offset + 0x24)
+			stat_mod = 1
+			if extras is not None:
+				stat_mod = 1 / (len(extras) + 1)
+				if new_boss_demon.name == 'Atropos 2 (Boss)' or old_boss_battle == new_boss.name:
+					stat_mod = 1
+				for d in extras:
+					boss_demons.append(swap_demons(old_boss_demon, demons.lookup(d), config_exp_modifier, stat_mod))
+
+			reward = 0
+			if new_boss.reward is not None:
+				for magatama in magatamas.where():
+					if magatama.name == new_boss.reward.name:
+						reward = magatama.ind + 320
+						magatama.level = min(magatama.level, round(swapped_demon.level/2))
+
+			offset = battle.offset
+			rom.write_halfword(reward, offset + 0x02)
+			rom.write_halfword(new_boss_battle.phase_value, offset + 0x04)
+			for i in range(len(new_boss_battle.data)):
+				rom.write_halfword(new_boss_battle.data[i], offset + 0x06 + (i * 2))
+			rom.write_word(new_boss_battle.arena, offset + 0x1C)
+			if config_always_go_first:
+				rom.write_halfword(0x0D, offset + 0x20)
+			else:
+				rom.write_halfword(new_boss_battle.first_turn, offset + 0x20)
+			rom.write_halfword(new_boss_battle.reinforcement_value, offset + 0x22)
+			rom.write_halfword(new_boss_battle.music, offset + 0x24)
+
+	return boss_demons		
 
 # lmao good luck reading whatever mess this outputs
 def write_demon_log(output_path, demons):
@@ -402,6 +457,10 @@ def write_demon_log(output_path, demons):
 def main(rom_path, output_path):
 	random.seed()
 
+	logger = logging.getLogger('')
+	if config_make_logs:
+		logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
+
 	print('opening iso')
 	init_rom_data(rom_path)
 
@@ -412,15 +471,20 @@ def main(rom_path, output_path):
 	if config_make_logs:
 		write_demon_log('logs/demons.txt', demons.where())
 
+	print('creating logical progression')
+	world = logic.create_world()
+	world = logic.randomize_world(world, logger)
+
 	print('randomizing demons')
 	demon_map = generate_demon_permutation(config_easy_hospital)
 	new_demons = randomize_demons(demon_map, config_exp_modifier)
-	if config_make_logs:
-		write_demon_log('logs/random_demons.txt', new_demons)
 
 	print('randomizing battles')
 	randomize_battles(demon_map)
-	randomize_boss_battles(demon_map)
+	new_bosses = randomize_boss_battles(world)
+	new_demons.extend(new_bosses)
+	if config_make_logs:
+		write_demon_log('logs/random_demons.txt', new_demons)
 
 	if config_fix_tutorial:
 		print("fixing tutorials")
@@ -433,12 +497,8 @@ def main(rom_path, output_path):
 		print("applying easy recruits patch")
 		nocturne.patch_easy_demon_recruits(rom)
 
-	if config_early_compendium_unlock:
-		print("applying early compendium unlock patch")
-		nocturne.patch_unlock_compendium(rom)
-
 	print("copying iso")
-	shutil.copyfile(rom_path, output_path)
+	#shutil.copyfile(rom_path, output_path)
 
 	print("writing new binary")
 	nocturne.write_all(rom, new_demons, new_magatamas)

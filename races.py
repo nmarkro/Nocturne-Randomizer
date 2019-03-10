@@ -109,20 +109,20 @@ class all_demons:
     def print_elemental_results(self):
         for i in range(len(self.elemental_results)):
             if self.elemental_results[i] == race_erthys:
-                print raceref[i],"makes Erthys"
+                print(raceref[i],"makes Erthys")
             elif self.elemental_results[i] == race_aeros:
-                print raceref[i],"makes Aeros"
+                print(raceref[i],"makes Aeros")
             elif self.elemental_results[i] == race_aquans:
-                print raceref[i],"makes Aquans"
+                print(raceref[i],"makes Aquans")
             elif self.elemental_results[i] == race_flaemis:
-                print raceref[i],"makes Flaemis"
+                print(raceref[i],"makes Flaemis")
             elif self.elemental_results[i] == 0:
-                print raceref[i],"does not turn into an element"
+                print(raceref[i],"does not turn into an element")
     def grab_name(self):
         if len(self.spare_names) == 1:
             r=0
         elif len(self.spare_names) == 0:
-            print "Warning in grab_name() - Need name and there's no name left."
+            print("Warning in grab_name() - Need name and there's no name left.")
             return "UNKNOWN NAME"
         else:
             r = random.randint(0,len(self.spare_names)-1)
@@ -130,7 +130,7 @@ class all_demons:
         del self.spare_names[r]
         return name
     def grab_spare_level(self,low_level=0,high_level=99,get_next_past_cap=False):
-        viable = filter(lambda x: x > low_level and x < high_level, self.spare_levels)
+        viable = list(filter(lambda x: x > low_level and x < high_level, self.spare_levels))
         if not viable:
             if get_next_past_cap:
                 for i in self.spare_levels:
@@ -228,14 +228,14 @@ class all_demons:
         #this snippet is ugly but it was needed to get a good looking spread
         for i in range(4):
             if len(self.spare_levels) < 0:
-                print "Error: Not enough spare levels to use in randomize_elementals_mitamas()"
+                print("Error: Not enough spare levels to use in randomize_elementals_mitamas()")
                 return 0
             r = random.randint(rand_divider,len(self.spare_levels)-1)
             while self.spare_levels[r] > current_element_mitama_max or self.spare_levels[r] in used_levels:
                 r = random.randint(rand_divider,len(self.spare_levels)-1)
                 max_iterations-=1
                 if max_iterations == 0:
-                    print "Locked up :(. Please try again."
+                    print("Locked up :(. Please try again.")
                     return 0
             used_levels.append(self.spare_levels[r])
             del self.spare_levels[r]
@@ -247,7 +247,7 @@ class all_demons:
                 r = random.randint(0,rand_divider)
                 max_iterations-=1
                 if max_iterations == 0:
-                    print "Locked up :(. Please try again."
+                    print("Locked up :(. Please try again.")
                     return 0
             used_levels.append(self.spare_levels[r])
             del self.spare_levels[r]
@@ -258,7 +258,7 @@ class all_demons:
                 r = random.randint(0,rand_divider)
                 max_iterations-=1
                 if max_iterations == 0:
-                    print "Locked up :(. Please try again."
+                    print("Locked up :(. Please try again.")
                     return 0
             used_levels.append(self.spare_levels[r])
             del self.spare_levels[r]
@@ -295,7 +295,7 @@ class all_demons:
             #TODO - make sure these two are 3+ levels apart
             for j in range(2):
                 if (len(used_levels) == 0):
-                    print "Error: Not enough levels given in randomize_elementals_mitamas()"
+                    print("Error: Not enough levels given in randomize_elementals_mitamas()")
                     return 0
                 r = random.randint(0,len(used_levels)-1)
                 d = demon(used_levels[r], self.grab_name(), elemental_races[i])
@@ -303,8 +303,8 @@ class all_demons:
                 random_demons.append(d)
                 del used_levels[r]
         if not len(used_levels) == 0:
-            print used_levels
-            print "Warning: Unused levels in randomize_elementals_mitamas()"
+            print(used_levels)
+            print("Warning: Unused levels in randomize_elementals_mitamas()")
         return random_demons
     def find_base_ten_demons(self, supplied_demons):
         initial_ten = copy.deepcopy(self.spare_levels[:10])
@@ -350,9 +350,9 @@ class all_demons:
                         elif len(other_races) == 1:
                             chosen_race = other_races[0]
                         else:
-                            print "Error: find_base_ten_demons() I thought I found a fusion but I was wrong :(. Please redo"
-                            print "lr ",lr," hfr ",half_found_race," s.race ",s.race, " or ",other_races
-                            print "rr ",rr
+                            print("Error: find_base_ten_demons() I thought I found a fusion but I was wrong :(. Please redo")
+                            print("lr ",lr," hfr ",half_found_race," s.race ",s.race, " or ",other_races)
+                            print("rr ",rr)
                             
                         least = -1
                         for ind in range(len(initial_ten)):
@@ -367,19 +367,19 @@ class all_demons:
                             
                         else: #
                             #find a level between lower of race and current demon's level in spare_levels
-                            viable = filter(lambda x: x > lr and x < s.level and x > initial_ten[-1], self.spare_levels)
+                            viable = list(filter(lambda x: x > lr and x < s.level and x > initial_ten[-1], self.spare_levels))
                             if not viable:
-                                print "Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name
+                                print("Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name)
                             else:
                                 ri = viable[random.randint(0,len(viable)-1)]
                                 self.add_demon(demon(ri,self.grab_name(), chosen_race))
                                 self.spare_levels.remove(ri)
                                 
                     else:
-                        viable = filter(lambda x: x > lr and x <s.level and x > initial_ten[-1], self.spare_levels)
+                        viable = list(filter(lambda x: x > lr and x <s.level and x > initial_ten[-1], self.spare_levels))
                         
                         if len(viable) < 2:
-                            print "Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name
+                            print("Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name)
                         else:
                             random.shuffle(viable)
                             if len(rr) > 1:
@@ -492,14 +492,14 @@ class all_demons:
                     #fiend_levels.append(self.spare_levels[0])
                     #del self.spare_levels[0]
                 if not done:
-                    print "Error in fill_demon_slots(). Could not find any demon that could be made at level",self.spare_levels[0]
+                    print("Error in fill_demon_slots(). Could not find any demon that could be made at level",self.spare_levels[0])
                     unfusable_levels.append(self.spare_levels[0])
                     del self.spare_levels[0]
         #if existing_fusion_combos isn't empty that's fine and even preferred
         for fl in fiend_levels:
             self.add_demon(demon(fl,self.grab_name(),race_fiend))
         if self.spare_levels:
-            print "Warning in fill_demon_slots() - Couldn't generate all demons. Levels remaining:",self.spare_levels
+            print("Warning in fill_demon_slots() - Couldn't generate all demons. Levels remaining:",self.spare_levels)
         #print "Unfusable levels:",unfusable_levels
         #print "Fiend levels:",fiend_levels
     #allow_underfuse = True: If the race result is there, but the highest level of that race is below the level of the fusion result, then return the highest level. allow_underfuse = False: instead of returning highest level, return an empty result.
@@ -650,7 +650,7 @@ random.seed()
 a = all_demons(demon_levels, demon_names)
 a.generate()
 for d in a.demons:
-    print d.str()
+    print(d.str())
 a.print_elemental_results()
 #print "Spare levels: ", a.spare_levels
 
