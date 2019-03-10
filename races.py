@@ -97,6 +97,7 @@ class all_demons:
         self.spare_levels = copy.deepcopy(levels)
         self.spare_names = copy.deepcopy(names)
         self.demons = []
+        self.initial_ten_demons = []
         self.elemental_results = [-1, 0, 0, 0, 0,\
            0, 0, 0, 0, 0,\
            0, 0, 0, 0, 0,\
@@ -106,6 +107,7 @@ class all_demons:
         self.elemental_result_count = 21
         self.elemental_result_count_each = 4 #4 races provide 
         self.unused_results = len(self.elemental_results) - self.elemental_result_count #6
+        self.generation_error = False
     def print_elemental_results(self):
         for i in range(len(self.elemental_results)):
             if self.elemental_results[i] == race_erthys:
@@ -229,6 +231,7 @@ class all_demons:
         for i in range(4):
             if len(self.spare_levels) < 0:
                 print "Error: Not enough spare levels to use in randomize_elementals_mitamas()"
+                self.generation_error=True
                 return 0
             r = random.randint(rand_divider,len(self.spare_levels)-1)
             while self.spare_levels[r] > current_element_mitama_max or self.spare_levels[r] in used_levels:
@@ -296,6 +299,7 @@ class all_demons:
             for j in range(2):
                 if (len(used_levels) == 0):
                     print "Error: Not enough levels given in randomize_elementals_mitamas()"
+                    self.generation_error = True
                     return 0
                 r = random.randint(0,len(used_levels)-1)
                 d = demon(used_levels[r], self.grab_name(), elemental_races[i])
@@ -325,13 +329,13 @@ class all_demons:
                 i+=1
         initial_ten = initial_ten[:10-len(in_ten)]
         #print "Adjusted Initial ten",initial_ten
-        demon_initial_ten = []
+        
         for s in supplied_demons:
             in_ten_flag = False
             for t in in_ten:
                 if s.level == t:
                     in_ten_flag = True
-                    demon_initial_ten.append(s)
+                    self.initial_ten_demons.append(s)
             if not in_ten_flag:
                 if self.low_reverse_fuse(s)==0:
                     lr = self.find_lower_of_race(s)
@@ -353,6 +357,7 @@ class all_demons:
                             print "Error: find_base_ten_demons() I thought I found a fusion but I was wrong :(. Please redo"
                             print "lr ",lr," hfr ",half_found_race," s.race ",s.race, " or ",other_races
                             print "rr ",rr
+                            self.generation_error = True
                             
                         least = -1
                         for ind in range(len(initial_ten)):
@@ -363,13 +368,14 @@ class all_demons:
                             self.add_demon(nd)
                             self.spare_levels.remove(initial_ten[least])
                             del initial_ten[least]
-                            demon_initial_ten.append(nd)
+                            self.initial_ten_demons.append(nd)
                             
                         else: #
                             #find a level between lower of race and current demon's level in spare_levels
                             viable = filter(lambda x: x > lr and x < s.level and x > initial_ten[-1], self.spare_levels)
                             if not viable:
                                 print "Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name
+                                self.generation_error = True
                             else:
                                 ri = viable[random.randint(0,len(viable)-1)]
                                 self.add_demon(demon(ri,self.grab_name(), chosen_race))
@@ -380,6 +386,7 @@ class all_demons:
                         
                         if len(viable) < 2:
                             print "Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name
+                            self.generation_error = True
                         else:
                             random.shuffle(viable)
                             if len(rr) > 1:
@@ -390,17 +397,27 @@ class all_demons:
                             self.add_demon(demon(viable[1], self.grab_name(), chosen_race_pair[1]))
                             self.spare_levels.remove(viable[0])
                             self.spare_levels.remove(viable[1])
+        initial_ten_races = []
+        for dit in self.initial_ten_demons:
+            if dit.race not in initial_ten_races:
+                initial_ten_races.append(dit.race)
+            #print "Initial ten demon:",dit.level,raceref[dit.race],dit.name
         for it in initial_ten: #any remaining initial_ten
-            nd = demon(it,self.grab_name(),random.randint(race_min,race_max))
+            rand_r = random.randint(race_min,race_max)
+            while rand_r in initial_ten_races:
+                rand_r = random.randint(race_min,race_max)
+            initial_ten_races.append(rand_r)
+            nd = demon(it,self.grab_name(),rand_r)
             self.add_demon(nd)
             self.spare_levels.remove(it)
-            demon_initial_ten.append(nd)
+            self.initial_ten_demons.append(nd)
+            #print "Initial ten demon (rand):",it,raceref[rand_r],nd.name
+        #print "Initial ten races",initial_ten_races
         #Look at all of the base 10 and fuse them together. If there isn't a result then make a demon of the lowest level allowed. Hopefully that should fill in enough low level slots for fill_demon_slots() to finish it off.
-        #print "Assertion this is ten:",len(demon_initial_ten)
-        for i in range(len(demon_initial_ten)-1):
-            for j in range(i+1,len(demon_initial_ten)):
-                if fusion_result[demon_initial_ten[i].race][demon_initial_ten[j].race] > 0 and not self.fuse_demon(demon_initial_ten[i],demon_initial_ten[j],allow_underfuse=False):
-                    self.add_demon(demon(self.spare_levels[0],self.grab_name(),fusion_result[demon_initial_ten[i].race][demon_initial_ten[j].race]))
+        for i in range(len(self.initial_ten_demons)-1):
+            for j in range(i+1,len(self.initial_ten_demons)):
+                if fusion_result[self.initial_ten_demons[i].race][self.initial_ten_demons[j].race] > 0 and not self.fuse_demon(self.initial_ten_demons[i],self.initial_ten_demons[j],allow_underfuse=True):
+                    self.add_demon(demon(self.spare_levels[0],self.grab_name(),fusion_result[self.initial_ten_demons[i].race][self.initial_ten_demons[j].race]))
                     del self.spare_levels[0]
     #Takes "spare_levels" and fills in each of the demons in randomly.
     #It prioritizes fusion results of demons that already exist
@@ -470,7 +487,6 @@ class all_demons:
                             existing_fusion_combos.append((nd,new_d))
                     
             #else don't make a new demon. There's already a minfuse of the demon pair.
-            
             #Before we loop again, make another demon if the lowest level in spare_levels is less than this demon pair.
             #This is so levels don't get stranded behind
             if self.spare_levels and self.spare_levels[0] < new_d_level:
@@ -484,6 +500,7 @@ class all_demons:
                     for j in range(i+1,len(d1s)):
                         if not done and fusion_result[d1s[i].race][d1s[j].race] > 0 and not self.fuse_demon(d1s[i],d1s[j],allow_underfuse=False):
                             self.add_demon(demon(self.spare_levels[0],self.grab_name(),fusion_result[d1s[i].race][d1s[j].race]))
+                            #print "Straggled level",self.spare_levels[0],"- Using",d1s[i].level,raceref[d1s[i].race],"x",d1s[j].level,raceref[d1s[j].race],"- result race:",raceref[fusion_result[d1s[i].race][d1s[j].race]]
                             done = True
                             del self.spare_levels[0]
                 
@@ -493,6 +510,7 @@ class all_demons:
                     #del self.spare_levels[0]
                 if not done:
                     print "Error in fill_demon_slots(). Could not find any demon that could be made at level",self.spare_levels[0]
+                    self.generation_error=True
                     unfusable_levels.append(self.spare_levels[0])
                     del self.spare_levels[0]
         #if existing_fusion_combos isn't empty that's fine and even preferred
@@ -525,11 +543,25 @@ class all_demons:
         if allow_underfuse and ret_demon is None and high_demon is not None:
             return high_demon
         return ret_demon
-    def generate(self):
+    def generate(self, generation_attempts=100):
+        if generation_attempts == 0:
+            print "Failed to generate fusion logic."
+            return -1
+        backup_names = copy.deepcopy(self.spare_names)
+        backup_levels = copy.deepcopy(self.spare_levels)
         ret1 = self.randomize_elemental_results()
         ret2 = self.randomize_elementals_mitamas(ret1)
+        if ret2 == 0:
+            print "Error(s) in generation. Regenerating..."
+            self.__init__(backup_levels,backup_names)
+            return self.generate(generation_attempts-1)
         self.find_base_ten_demons(ret2)
         self.fill_demon_slots()
+        if self.generation_error:
+            print "Error(s) in generation. Regenerating..."
+            self.__init__(backup_levels,backup_names)
+            return self.generate(generation_attempts-1)
+        return 0
     
 class demon:
     def __init__(self, level, name, race):
