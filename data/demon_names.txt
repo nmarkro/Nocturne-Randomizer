@@ -40,7 +40,7 @@ Erthys
 Saki Mitama
 Kusi Mitama
 Nigi Mitama
-Nigi Mitama
+Ara Mitama
 Efreet
 Purski
 Onkot
@@ -73,7 +73,7 @@ Berith
 Eligor
 Forneus
 Yurlungur
-Quetzalcoatl
+Quetzacoatl
 Raja Naga
 Mizuchi
 Naga
@@ -191,7 +191,7 @@ Phantom
 ?
 Dante
 Metatron
-Beelzebub
+Beelzebub (Fly)
 Pale Rider
 White Rider
 Red Rider
@@ -204,7 +204,7 @@ Trumpeter
 Futomimi
 Sakahagi
 Black Frost
-?
+Beelzebub
 ?
 ?
 ?
