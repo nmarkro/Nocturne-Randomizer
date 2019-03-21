@@ -163,8 +163,8 @@ class all_demons:
         return level
     def all_reverse_races(self,demon1):
         reverse_races = []
-        for i in range(race_max):
-            for j in range(race_max):
+        for i in range(race_max+1):
+            for j in range(race_max+1):
                 if fusion_result[i][j] == demon1.race:
                     reverse_races.append((i,j))
         return reverse_races
