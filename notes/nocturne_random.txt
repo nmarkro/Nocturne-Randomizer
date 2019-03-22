@@ -41,7 +41,7 @@ Demon layout (3Ch long)
 	28h						Skill 4 (2 bytes)
 	2Ah						Skill 5 (2 bytes)
 	2Ch						Skill 6 (2 bytes)
-	2Eh-35h
+	2Eh-35h					?
 	36h						Macca (2 bytes)
 	38h						EXP (2 bytes)
 		
@@ -60,10 +60,11 @@ Skills layout is 66h long
 	
 	each skill is 4h long
 	00h						Level learned (0 means innate)
-	01h						Enabler? (can be 1 or 6)
+	01h						Type? (1 = learned normally, 6 = evolution only)
 	02h						Skill ID (2 bytes)
 	
-	the 6 for enabler seems to only be on special fuse or evolutions
+	if type == 5 then the skill id is used for evolution (demon id)
+	if type == 7 then the skill is the "body is changing" event (i think)
 
 battle layout is 26h long
 	00h 					Boss Identifier (2 bytes)
@@ -74,7 +75,7 @@ battle layout is 26h long
 	06h						Demon 1 ID (2 bytes)
 	08h 					Demon 2 ID (2 bytes)
 	....
-	not sure max # of demons yet (10 i think)
+	not sure max # of demons yet (9)
 	1Ch						Battle arena (4 bytes)
 	20h						Who gets first turn (2 bytes?)
 		0Dh = MC
@@ -202,3 +203,22 @@ Forneus unlocks terminals (I think this breaks triggering Specter 1)
 	to
 		li a0, 0x8
 		0x24040008
+
+Special Fusions are at 0x0032DB78
+	6 bytes long?
+	00h 	Demon1 (2 byte)
+	02h 	Demon2 (2 byte)
+	04h 	Result (2 byte)
+
+fusion func at 001fe690?
+z_un_001fe1a0 checks special fusions?
+z_un_001fdde8 checks demon race?
+
+fusion table is at 0x0022E270
+
+write 0x012E to 0x002B0DB0 for Preta Spyglass
+
+fix shady broker pisaca
+	change "1D 00 D0 00 1D 00 A7 00" at 0x91C2DE20 to "1D 00 A7 00 1D 00 A7 00"
+		OR
+	change demon at demon_id 208 to match demon_id 167

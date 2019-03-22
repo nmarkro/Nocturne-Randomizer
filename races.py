@@ -111,20 +111,20 @@ class all_demons:
     def print_elemental_results(self):
         for i in range(len(self.elemental_results)):
             if self.elemental_results[i] == race_erthys:
-                print raceref[i],"makes Erthys"
+                print(raceref[i],"makes Erthys")
             elif self.elemental_results[i] == race_aeros:
-                print raceref[i],"makes Aeros"
+                print(raceref[i],"makes Aeros")
             elif self.elemental_results[i] == race_aquans:
-                print raceref[i],"makes Aquans"
+                print(raceref[i],"makes Aquans")
             elif self.elemental_results[i] == race_flaemis:
-                print raceref[i],"makes Flaemis"
+                print(raceref[i],"makes Flaemis")
             elif self.elemental_results[i] == 0:
-                print raceref[i],"does not turn into an element"
+                print(raceref[i],"does not turn into an element")
     def grab_name(self):
         if len(self.spare_names) == 1:
             r=0
         elif len(self.spare_names) == 0:
-            print "Warning in grab_name() - Need name and there's no name left."
+            print("Warning in grab_name() - Need name and there's no name left.")
             return "UNKNOWN NAME"
         else:
             r = random.randint(0,len(self.spare_names)-1)
@@ -132,7 +132,7 @@ class all_demons:
         del self.spare_names[r]
         return name
     def grab_spare_level(self,low_level=0,high_level=99,get_next_past_cap=False):
-        viable = filter(lambda x: x > low_level and x < high_level, self.spare_levels)
+        viable = list(filter(lambda x: x > low_level and x < high_level, self.spare_levels))
         if not viable:
             if get_next_past_cap:
                 for i in self.spare_levels:
@@ -230,7 +230,7 @@ class all_demons:
         #this snippet is ugly but it was needed to get a good looking spread
         for i in range(4):
             if len(self.spare_levels) < 0:
-                print "Error: Not enough spare levels to use in randomize_elementals_mitamas()"
+                print("Error: Not enough spare levels to use in randomize_elementals_mitamas()")
                 self.generation_error=True
                 return 0
             r = random.randint(rand_divider,len(self.spare_levels)-1)
@@ -238,7 +238,7 @@ class all_demons:
                 r = random.randint(rand_divider,len(self.spare_levels)-1)
                 max_iterations-=1
                 if max_iterations == 0:
-                    print "Locked up :(. Please try again."
+                    print("Locked up :(. Please try again.")
                     return 0
             used_levels.append(self.spare_levels[r])
             del self.spare_levels[r]
@@ -250,7 +250,7 @@ class all_demons:
                 r = random.randint(0,rand_divider)
                 max_iterations-=1
                 if max_iterations == 0:
-                    print "Locked up :(. Please try again."
+                    print("Locked up :(. Please try again.")
                     return 0
             used_levels.append(self.spare_levels[r])
             del self.spare_levels[r]
@@ -261,7 +261,7 @@ class all_demons:
                 r = random.randint(0,rand_divider)
                 max_iterations-=1
                 if max_iterations == 0:
-                    print "Locked up :(. Please try again."
+                    print("Locked up :(. Please try again.")
                     return 0
             used_levels.append(self.spare_levels[r])
             del self.spare_levels[r]
@@ -298,7 +298,7 @@ class all_demons:
             #TODO - make sure these two are 3+ levels apart
             for j in range(2):
                 if (len(used_levels) == 0):
-                    print "Error: Not enough levels given in randomize_elementals_mitamas()"
+                    print("Error: Not enough levels given in randomize_elementals_mitamas()")
                     self.generation_error = True
                     return 0
                 r = random.randint(0,len(used_levels)-1)
@@ -307,12 +307,12 @@ class all_demons:
                 random_demons.append(d)
                 del used_levels[r]
         if not len(used_levels) == 0:
-            print used_levels
-            print "Warning: Unused levels in randomize_elementals_mitamas()"
+            print(used_levels)
+            print("Warning: Unused levels in randomize_elementals_mitamas()")
         return random_demons
     def find_base_ten_demons(self, supplied_demons):
         initial_ten = copy.deepcopy(self.spare_levels[:10])
-        #print "Initial initial ten",initial_ten
+        #print("Initial initial ten",initial_ten)
         #if any of the supplied demons are below any of the initial_ten, then put it in the initial_ten
         #each of the supplied demons above the initial ten need to be fusable from the initial_ten. It could be multiple steps but it might just be easiest to do one step
         sd_levels=[]
@@ -328,7 +328,7 @@ class all_demons:
             else:
                 i+=1
         initial_ten = initial_ten[:10-len(in_ten)]
-        #print "Adjusted Initial ten",initial_ten
+        #print("Adjusted Initial ten",initial_ten)
         
         for s in supplied_demons:
             in_ten_flag = False
@@ -354,9 +354,9 @@ class all_demons:
                         elif len(other_races) == 1:
                             chosen_race = other_races[0]
                         else:
-                            print "Error: find_base_ten_demons() I thought I found a fusion but I was wrong :(. Please redo"
-                            print "lr ",lr," hfr ",half_found_race," s.race ",s.race, " or ",other_races
-                            print "rr ",rr
+                            print("Error: find_base_ten_demons() I thought I found a fusion but I was wrong :(. Please redo")
+                            print("lr ",lr," hfr ",half_found_race," s.race ",s.race, " or ",other_races)
+                            print("rr ",rr)
                             self.generation_error = True
                             
                         least = -1
@@ -372,9 +372,9 @@ class all_demons:
                             
                         else: #
                             #find a level between lower of race and current demon's level in spare_levels
-                            viable = filter(lambda x: x > lr and x < s.level and x > initial_ten[-1], self.spare_levels)
+                            viable = list(filter(lambda x: x > lr and x < s.level and x > initial_ten[-1], self.spare_levels))
                             if not viable:
-                                print "Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name
+                                print("Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name)
                                 self.generation_error = True
                             else:
                                 ri = viable[random.randint(0,len(viable)-1)]
@@ -382,10 +382,10 @@ class all_demons:
                                 self.spare_levels.remove(ri)
                                 
                     else:
-                        viable = filter(lambda x: x > lr and x <s.level and x > initial_ten[-1], self.spare_levels)
+                        viable = list(filter(lambda x: x > lr and x <s.level and x > initial_ten[-1], self.spare_levels))
                         
                         if len(viable) < 2:
-                            print "Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name
+                            print("Error: find_base_ten_demons() could not find a fusion for LVL", s.level, raceref[s.race], s.name)
                             self.generation_error = True
                         else:
                             random.shuffle(viable)
@@ -401,7 +401,7 @@ class all_demons:
         for dit in self.initial_ten_demons:
             if dit.race not in initial_ten_races:
                 initial_ten_races.append(dit.race)
-            #print "Initial ten demon:",dit.level,raceref[dit.race],dit.name
+            #print("Initial ten demon:",dit.level,raceref[dit.race],dit.name)
         for it in initial_ten: #any remaining initial_ten
             rand_r = random.randint(race_min,race_max)
             while rand_r in initial_ten_races:
@@ -411,8 +411,8 @@ class all_demons:
             self.add_demon(nd)
             self.spare_levels.remove(it)
             self.initial_ten_demons.append(nd)
-            #print "Initial ten demon (rand):",it,raceref[rand_r],nd.name
-        #print "Initial ten races",initial_ten_races
+            #print("Initial ten demon (rand):",it,raceref[rand_r],nd.name)
+        #print("Initial ten races",initial_ten_races)
         #Look at all of the base 10 and fuse them together. If there isn't a result then make a demon of the lowest level allowed. Hopefully that should fill in enough low level slots for fill_demon_slots() to finish it off.
         for i in range(len(self.initial_ten_demons)-1):
             for j in range(i+1,len(self.initial_ten_demons)):
@@ -452,11 +452,11 @@ class all_demons:
                 new_d_level = self.grab_spare_level(min_lvl + logical_lowfuse_min, min_lvl + logical_lowfuse_max,get_next_past_cap=True)
                 '''
                 if not new_d_level: #if there was no level to grab in that range, ignore max cap
-                    print "Minor warning: Maxcap ignored in fill_demon_slots(). At 20+ish times in one seed logic should be tweaked."
+                    print("Minor warning: Maxcap ignored in fill_demon_slots(). At 20+ish times in one seed logic should be tweaked.")
                     new_d_level = self.grab_spare_level(min_lvl + logical_lowfuse_min)
                 if not new_d_level:
                     #This should almost always never happen. If it does it's probably bad.
-                    print "Warning: in fill_demon_slots() - Tried to make a new demon of race",raceref[new_d_race],"but there were no levels left and there are also no demons of that race. This should only be super rare. If you see this outside of one in a million, then fusion logic either needs to be tweaked or it's bugged."
+                    print("Warning: in fill_demon_slots() - Tried to make a new demon of race",raceref[new_d_race],"but there were no levels left and there are also no demons of that race. This should only be super rare. If you see this outside of one in a million, then fusion logic either needs to be tweaked or it's bugged.")
                 else:
                 '''
                 if new_d_level:
@@ -472,10 +472,10 @@ class all_demons:
                 min_lvl = max(result_d.level, d1.level, d2.level)
                 new_d_level = self.grab_spare_level(min_lvl + logical_lowfuse_min, min_lvl + logical_lowfuse_max, get_next_past_cap=True)
                 '''if not new_d_level: #ignore max cap if one in the range wasn't found
-                    print "Minor warning: Maxcap ignored in fill_demon_slots()"
+                    print("Minor warning: Maxcap ignored in fill_demon_slots()")
                     new_d_level = self.grab_spare_level(min_lvl + logical_lowfuse_min)
                 if not new_d_level:
-                    print "Minor warning: In fill_demon_slots() - Tried to make a new demon of race",raceref[new_d_race],"but there were no levels left of ",len(self.spare_levels),". If number left is high then logic tweaking might be necessary."
+                    print("Minor warning: In fill_demon_slots() - Tried to make a new demon of race",raceref[new_d_race],"but there were no levels left of ",len(self.spare_levels),". If number left is high then logic tweaking might be necessary.")
                 else:
                 '''
                 if new_d_level:
@@ -500,7 +500,7 @@ class all_demons:
                     for j in range(i+1,len(d1s)):
                         if not done and fusion_result[d1s[i].race][d1s[j].race] > 0 and not self.fuse_demon(d1s[i],d1s[j],allow_underfuse=False):
                             self.add_demon(demon(self.spare_levels[0],self.grab_name(),fusion_result[d1s[i].race][d1s[j].race]))
-                            #print "Straggled level",self.spare_levels[0],"- Using",d1s[i].level,raceref[d1s[i].race],"x",d1s[j].level,raceref[d1s[j].race],"- result race:",raceref[fusion_result[d1s[i].race][d1s[j].race]]
+                            #print("Straggled level",self.spare_levels[0],"- Using",d1s[i].level,raceref[d1s[i].race],"x",d1s[j].level,raceref[d1s[j].race],"- result race:",raceref[fusion_result[d1s[i].race][d1s[j].race]])
                             done = True
                             del self.spare_levels[0]
                 
@@ -509,7 +509,7 @@ class all_demons:
                     #fiend_levels.append(self.spare_levels[0])
                     #del self.spare_levels[0]
                 if not done:
-                    print "Error in fill_demon_slots(). Could not find any demon that could be made at level",self.spare_levels[0]
+                    print("Error in fill_demon_slots(). Could not find any demon that could be made at level",self.spare_levels[0])
                     self.generation_error=True
                     unfusable_levels.append(self.spare_levels[0])
                     del self.spare_levels[0]
@@ -517,9 +517,9 @@ class all_demons:
         for fl in fiend_levels:
             self.add_demon(demon(fl,self.grab_name(),race_fiend))
         if self.spare_levels:
-            print "Warning in fill_demon_slots() - Couldn't generate all demons. Levels remaining:",self.spare_levels
-        #print "Unfusable levels:",unfusable_levels
-        #print "Fiend levels:",fiend_levels
+            print("Warning in fill_demon_slots() - Couldn't generate all demons. Levels remaining:",self.spare_levels)
+        #print("Unfusable levels:",unfusable_levels)
+        #print("Fiend levels:",fiend_levels)
     #allow_underfuse = True: If the race result is there, but the highest level of that race is below the level of the fusion result, then return the highest level. allow_underfuse = False: instead of returning highest level, return an empty result.
     #empty result is always None
     #does not do Elemental Fusions, but that's a separate part of logic anyway
@@ -545,20 +545,20 @@ class all_demons:
         return ret_demon
     def generate(self, generation_attempts=100):
         if generation_attempts == 0:
-            print "Failed to generate fusion logic."
+            print("Failed to generate fusion logic.")
             return -1
         backup_names = copy.deepcopy(self.spare_names)
         backup_levels = copy.deepcopy(self.spare_levels)
         ret1 = self.randomize_elemental_results()
         ret2 = self.randomize_elementals_mitamas(ret1)
-        if ret2 == 0:
-            print "Error(s) in generation. Regenerating..."
+        if ret2 == 0
+            print("Error(s) in generation. Regenerating...")
             self.__init__(backup_levels,backup_names)
             return self.generate(generation_attempts-1)
         self.find_base_ten_demons(ret2)
         self.fill_demon_slots()
         if self.generation_error:
-            print "Error(s) in generation. Regenerating..."
+            print("Error(s) in generation. Regenerating...")
             self.__init__(backup_levels,backup_names)
             return self.generate(generation_attempts-1)
         return 0
@@ -677,14 +677,14 @@ def fuse_all(pairs):
                 counts[result][0] = counts[result][0] + 1
     return counts
 '''
-random.seed()
+# random.seed()
 
-a = all_demons(demon_levels, demon_names)
-a.generate()
-for d in a.demons:
-    print d.str()
-a.print_elemental_results()
-#print "Spare levels: ", a.spare_levels
+# a = all_demons(demon_levels, demon_names)
+# a.generate()
+# for d in a.demons:
+#     print(d.str())
+# a.print_elemental_results()
+# print("Spare levels: ", a.spare_levels)
 
 #randomize the races that produces elementals. - Done randomize_elemental_results()
 
@@ -699,4 +699,4 @@ a.print_elemental_results()
 #def randomize_fusions(levels, names):
     
 
-#print fuse_all(pair_races(demon_levels,demon_names))
+#print(fuse_all(pair_races(demon_levels,demon_names)))

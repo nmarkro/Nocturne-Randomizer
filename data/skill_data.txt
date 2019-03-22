@@ -4,21 +4,11 @@
 0BE Deathtouch 1 1
 0BF Mana Drain 5 1
 0C0 Life Drain 7 1
-104 Death Flies 0 1
-0EB Fire of Sinai 0 1
 10A Stinger 100 1
 10D Showtime 100 1
 11E Beast Roar 100 1
-04F Pestilence 0 1
 117 Meditation 100 1
 093 Freikugel 100 1
-0D0 Sol Niger 0 1
-0F2 God's Curse 0 1
-0F3 Hells Call 0 1
-0F1 Vast Light 0 1
-0DD Infinite Light 0 1
-111 High King 0 1
-110 Root of Evil 0 1
 183 Seduce 2 2
 181 Scout 3 2
 188 Beseech 3 2
@@ -55,7 +45,6 @@
 105 Soul Divide 100 1
 140 Anti Curse 3 0
 14A Void Curse 6 0
-0C9 Bael's Bane 0 1
 020 Mudo 3 1
 021 Mudoon 6 1
 022 Mamudo 6 1
@@ -73,7 +62,6 @@
 012 Maziodyne 10 1
 0B6 Shock 5 1
 0B7 Bolt Storm 9 1
-10B Round Trip 0 1
 137 Elec Boost 6 0
 13C Anti Elec 4 0
 146 Void Elec 7 0
@@ -158,7 +146,6 @@
 00C Mabufudyne 10 1
 0B4 Ice Breath 5 1
 0B5 Glacial Blast 8 1
-0F4 Icy Death 0 1
 136 Ice Boost 6 0
 13B Anti Ice 4 0
 145 Void Ice 7 0
@@ -180,7 +167,6 @@
 0F9 Wild Dance 100 1
 142 Anti Mind 3 0
 14C Void Mind 6 0
-10F Evil Gleam 0 1
 03B Shibaboo 4 1
 0D3 Binding Cry 6 1
 0D1 Stun Gaze 4 1
@@ -233,9 +219,6 @@
 143 Void Phys 10 0
 14D Phys Drain 11 0
 152 Phys Repel 12 0
-099 Foul Havoc 0 1
-0F5 Mirage 0 1
-0A8 Tentacle 0 1
 047 Analyze 3 0
 0E0 Focus 5 1
 048 Trafuri 5 1
@@ -268,16 +251,6 @@
 128 Fast Retreat 100 0
 168 Never Yield 100 0
 169 Son's Oath 100 0
-0E1 Retreat 0 0 
-0E2 Gathering 0 0
-0E5 Laughter 0 0
-0E3 Dark Howl 0 0
-0E8 Foul Union 0 0
-0E9 Replicate 0 0
-0EC Conjutation 0 0
-0EA Aurora 0 0
-100 Domination 0 0
-0E6 Divine Will 0 0
 035 Sukunda 1 1
 034 Tarunda 2 1
 036 Rakunda 2 1
@@ -298,7 +271,3 @@
 109 Provoke 100 1
 112 Holy Star 100 1
 114 Red Capote 100 1
-0DC Dragon Eye 0 1
-0DB Beast Eye 0 1
-115 Startle 0 1
-11C Hell Throttle 0 1
