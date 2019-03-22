@@ -551,7 +551,7 @@ class all_demons:
         backup_levels = copy.deepcopy(self.spare_levels)
         ret1 = self.randomize_elemental_results()
         ret2 = self.randomize_elementals_mitamas(ret1)
-        if ret2 == 0
+        if ret2 == 0:
             print("Error(s) in generation. Regenerating...")
             self.__init__(backup_levels,backup_names)
             return self.generate(generation_attempts-1)
