@@ -19,6 +19,15 @@ phys_invalid_demons = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274
 # demons/bosses that are normally in the hospital/shibuya
 base_demons = [61, 137, 92, 97, 131, 91, 126, 103, 135, 136]
 
+shady_broker = {
+    167: 208,        # Pisaca
+    124: 209,        # Nue
+    144: 210,        # Arahabaki
+    131: 211,        # Preta
+    122: 212,        # Mothman
+    105: 213,        # Girimehkala
+}
+
 def load_demons(rom):
     demon_offset = 0x0024A7F0
 
@@ -34,6 +43,9 @@ def load_demons(rom):
 
         # skip entry if it's a garbage/unknown demon
         if race_id == 0 or demon_name =='?':
+            continue
+
+        if demon_id in shady_broker.values():
             continue
 
         # Beelzebub and Beelzebub (Fly) share the same demon_id
@@ -64,6 +76,9 @@ def load_demons(rom):
         # keep track of phys invalid demons and demons in the hospital for "Easy Hospital"
         demon.phys_inv = demon_id in phys_invalid_demons
         demon.base_demon = demon_id in base_demons
+
+        if demon_id in shady_broker.keys():
+            demon.shady_broker = shady_broker[demon_id]
 
         demon.offset = demon_offset
 
@@ -196,35 +211,42 @@ def load_boss_battles(rom):
                 item_drop = 0
             battle.item_drop = item_drop
 
+def write_demon(rom, demon, offset):
+    rom.seek(offset)
+
+    rom.write_byte(demon.race, rom.w_offset + 0x10)
+    rom.write_byte(demon.level, rom.w_offset + 0x11)
+    rom.write_halfword(demon.hp, rom.w_offset + 0x12)
+    rom.write_halfword(demon.hp, rom.w_offset + 0x14)
+    rom.write_halfword(demon.mp, rom.w_offset + 0x16)
+    rom.write_halfword(demon.mp, rom.w_offset + 0x18)
+
+    stats = struct.pack('<BBBBBB', demon.stats[0], 0x00, demon.stats[1], demon.stats[2], demon.stats[3], demon.stats[4])
+    rom.write(stats, rom.w_offset + 0x1C)
+
+    rom.write_halfword(demon.macca_drop, rom.w_offset + 0x36)
+    rom.write_halfword(demon.exp_drop, rom.w_offset + 0x38)
+
+    # don't change boss ai or skills
+    if not demon.is_boss:
+        rom.seek(offset + 0x22)
+        for i in range(8):
+            if i < len(demon.battle_skills):
+                skill = demon.battle_skills[i]
+                rom.write_halfword(skill)
+            else:
+                rom.write_halfword(0)
+
+        write_skills(rom, demon)
+        write_ai(rom, demon)
+
 def write_demons(rom, new_demons):
     for demon in new_demons:
-        rom.seek(demon.offset)
+        write_demon(rom, demon, demon.offset)
 
-        rom.write_byte(demon.race, rom.w_offset + 0x10)
-        rom.write_byte(demon.level, rom.w_offset + 0x11)
-        rom.write_halfword(demon.hp, rom.w_offset + 0x12)
-        rom.write_halfword(demon.hp, rom.w_offset + 0x14)
-        rom.write_halfword(demon.mp, rom.w_offset + 0x16)
-        rom.write_halfword(demon.mp, rom.w_offset + 0x18)
-
-        stats = struct.pack('<BBBBBB', demon.stats[0], 0x00, demon.stats[1], demon.stats[2], demon.stats[3], demon.stats[4])
-        rom.write(stats, rom.w_offset + 0x1C)
-
-        rom.write_halfword(demon.macca_drop, rom.w_offset + 0x36)
-        rom.write_halfword(demon.exp_drop, rom.w_offset + 0x38)
-
-        # don't change boss ai or skills
-        if not demon.is_boss:
-            rom.seek(demon.offset + 0x22)
-            for i in range(8):
-                if i < len(demon.battle_skills):
-                    skill = demon.battle_skills[i]
-                    rom.write_halfword(skill)
-                else:
-                    rom.write_halfword(0)
-
-            write_skills(rom, demon)
-            write_ai(rom, demon)
+        if demon.shady_broker is not None:
+            shady_broker_offset = 0x0024A7B4 + (demon.shady_broker)*0x3C
+            write_demon(rom, demon, shady_broker_offset)
 
 def write_skills(rom, demon):
     for i in range(len(demon.skills)):

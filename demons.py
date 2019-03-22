@@ -20,6 +20,7 @@ class Demon(object):
         self.is_boss = None
         self.phys_inv = None
         self.base_demon = None
+        self.shady_broker = None
 
 def add_demon(ind, name):
     x = Demon(name)

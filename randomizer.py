@@ -410,17 +410,31 @@ def randomize_battles(demon_map):
     offset = battle_offset
     for i in range(N_BATTLES):
         is_boss = rom.read_halfword(offset) == 0x01FF
-        if is_boss:
-            offset += 0x26
-            continue
         offset += 6
-        # max # of demons is 9
-        for j in range(0, 18, 2):
-            old_demon = rom.read_halfword(offset + j)
-            if old_demon > 0:
-                new_demon = demon_map.get(old_demon)
-                if new_demon:
-                    rom.write_halfword(new_demon, offset + j)
+        # check if it the battle is a scripted fight or not
+        if is_boss:
+            for j in range(0, 18, 2):
+                old_demon = rom.read_halfword(offset + j)
+                if old_demon > 0:
+                    try:
+                        demon = demons.lookup(old_demon)
+                    except KeyError:
+                        break
+                    # don't change any of the early scripted fights
+                    if not demon.is_boss or demon.name not in ["Will o' Wisp", "Kodama", "Preta"]:
+                        new_demon = demon_map.get(old_demon)
+                        if new_demon:
+                            rom.write_halfword(new_demon, offset + j)
+                    else:
+                        break
+        else:
+            # max # of demons is 9
+            for j in range(0, 18, 2):
+                old_demon = rom.read_halfword(offset + j)
+                if old_demon > 0:
+                    new_demon = demon_map.get(old_demon)
+                    if new_demon:
+                        rom.write_halfword(new_demon, offset + j)
         offset += 0x20
 
 

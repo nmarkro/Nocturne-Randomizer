@@ -217,3 +217,8 @@ z_un_001fdde8 checks demon race?
 fusion table is at 0x0022E270
 
 write 0x012E to 0x002B0DB0 for Preta Spyglass
+
+fix shady broker pisaca
+	change "1D 00 D0 00 1D 00 A7 00" at 0x91C2DE20 to "1D 00 A7 00 1D 00 A7 00"
+		OR
+	change demon at demon_id 208 to match demon_id 167
