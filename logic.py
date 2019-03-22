@@ -162,7 +162,7 @@ def init_magatamas(world):
         m = Magatama(name, resistances)
         world.magatamas[name] = m
 
-    add_magatama('Marogarah', [], world)
+    #add_magatama('Marogarah', [], world)
     add_magatama('Wadatsumi', ['Ice'], world)
     add_magatama('Ankh', ['Expel'], world)
     add_magatama('Iyomante', ['Mind'], world)
@@ -185,7 +185,7 @@ def init_magatamas(world):
     add_magatama('Gundari', ['Force'], world)
     add_magatama('Sophia', ['Expel', 'Death'], world)
     add_magatama('Kailash', [], world)
-    add_magatama('Gaea', ['Phys'], world)
+    #add_magatama('Gaea', ['Phys'], world)
 
 
 # Resist/Null/Absorb/Repel Phys to leave out of SMC
@@ -364,11 +364,11 @@ def randomize_world(world, logger):
     randomize_bosses(boss_pool, check_pool, logger)
 
     # Remove the starting Magatama and Gaea (24 st magatama)
-    marogarah = world.get_magatama('Marogarah')
-    state.get_magatama(marogarah.name)
-    magatama_pool.remove(marogarah)
-    gaea = world.get_magatama('Gaea')
-    magatama_pool.remove(gaea)
+    # marogarah = world.get_magatama('Marogarah')
+    # state.get_magatama(marogarah.name)
+    # magatama_pool.remove(marogarah)
+    # gaea = world.get_magatama('Gaea')
+    # magatama_pool.remove(gaea)
     # shuffle magatamas for more random rewards
     random.shuffle(magatama_pool)
 
@@ -453,8 +453,3 @@ def randomize_world(world, logger):
         else:
             logger.info("Boss " + boss.name + " is at check " + check.name)
     return world
-
-
-if __name__ == '__main__':
-    world = create_world()
-    world = randomize_world(world)

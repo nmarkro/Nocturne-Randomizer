@@ -354,8 +354,31 @@ def remove_shop_magatamas(rom):
     rom.write_byte(0, 0x00230A30)
 
 def patch_visible_skills(rom):
-    patch = 0x0640003D                  # bltz s2, 0x002383C8
-    rom.write_word(patch, 0x001392D0)   # replaces bnez s2, 0x002383C8
+    # makes learnable skills always visible
+    # code from Zombero's hardtype romhack
+    patch = 0x0640003D                      # bltz s2, 0x002383C8
+    rom.write_word(patch, 0x001392D0)       # replaces bnez s2, 0x002383C8
+
+def patch_magic_pierce(rom):
+    # makes the pierce skill work on magic
+    # code from Zombero's hardtype romhack
+    hook1 = 0x080BF8B4                      # j 0x2FE2D0 (free space)
+    hook2 = 0x3C04003E                      # lui a0, 0x003E
+    rom.write_word(hook1, 0x00166B80)       # replaces addiu,fp,0x7998
+    rom.write_word(hook2, 0x00166B84)       # replaces sll v0,v0,0x02
+    # function in free space
+    rom.write_word(0x00111080, 0x1FF2D0)    # sll v0,s1,0x02
+    rom.write_word(0x00441021, 0x1FF2D4)    # addu v0, a0
+    rom.write_word(0x080996E2, 0x1FF2D8)    # j 0x265B88
+
+def patch_stock_aoe_healing(rom):
+    # makes aoe healing affect the stock
+    # code from Zombero's hardtype romhack
+    nop = 0x00000000                        # nop
+    patch = 0x3042FFFF                      # andi v0,0xFFFF
+    rom.write_word(nop, 0x001420C4)         # replaces beqz v1,0x002410E0
+    rom.write_word(nop, 0x00191948)         # replaces beqz v0,0x0029096C
+    rom.write_word(patch, 0x0012E600)       # replaces andi v0,0x0002
 
 def fix_elemental_fusion_table(rom, demon_generator):
     fusion_table_offset = 0x0022E270
@@ -371,9 +394,7 @@ def fix_elemental_fusion_table(rom, demon_generator):
     # make all races not fuse into elementals
     for i in range(32):
         rom.write_byte(0, fusion_table_offset + i + (i*32))
-
-    demon_generator.print_elemental_results()
-
+    
     # use the generated elemental results to change the fusion table
     for race, elemental in zip(races.raceref, demon_generator.elemental_results):
         if elemental > 0:
