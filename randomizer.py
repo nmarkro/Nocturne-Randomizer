@@ -210,8 +210,8 @@ def randomize_skills(new_demon, force_skills=None):
     new_battle_skills = []
     is_pixie = bool(new_demon.name == "Pixie")
 
-    starting_skills = random.randint(3, 5)
-    total_skills = starting_skills + random.randint(3, 6)
+    starting_skills = random.randint(2, 4)
+    total_skills = starting_skills + random.randint(4, 6)
     level = 0
 
     skill_pool = list(skills.where())
@@ -257,7 +257,7 @@ def randomize_skills(new_demon, force_skills=None):
     for i in range(total_skills):
         chosen_skill = chosen_skills.pop()
 
-        if chosen_skill.skill_type == 1 and len(new_battle_skills) < 6:
+        if chosen_skill.skill_type == 1 and len(new_battle_skills) < 8:
             new_battle_skills.append(chosen_skill.ind)
 
         if len(new_skills) >= starting_skills:
@@ -570,9 +570,6 @@ def main(rom_path, output_path, text_seed=None):
     world = logic.create_world()
     world = logic.randomize_world(world, logger)
 
-    print('randomizing magatamas')
-    new_magatamas = randomize_magatamas()
-
     print('randomizing demons')
     # generate demon levels and races making sure all demons are fuseable
     demon_generator = races.all_demons(races.demon_levels, races.demon_names)
@@ -591,6 +588,10 @@ def main(rom_path, output_path, text_seed=None):
     new_demons.extend(new_bosses)
     if config_make_logs:
         write_demon_log('logs/random_demons.txt', new_demons)
+
+    # magatamas have to be randomized AFTER boss battles to correctly rebalance their levels
+    print('randomizing magatamas')
+    new_magatamas = randomize_magatamas()
 
     # make the pierce skill work on magic
     nocturne.patch_magic_pierce(rom)

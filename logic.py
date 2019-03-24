@@ -189,7 +189,7 @@ def init_magatamas(world):
 
 
 # Resist/Null/Absorb/Repel Phys to leave out of SMC
-phys_invalid_bosses = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
+PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
 
 def create_areas(world):
     def add_area(name, world):
@@ -206,7 +206,7 @@ def create_areas(world):
         world.checks[name] = c
 
         b = Boss(name)
-        b.phys_invalid = name in phys_invalid_bosses
+        b.phys_invalid = name in PHYS_INVALID_BOSSES
         world.bosses[name] = b
 
     smc = add_area('SMC', world)
@@ -313,7 +313,7 @@ def create_areas(world):
 
 
 # Bosses not to randomize
-banned_bosses = ['Ongyo-Ki', 'Specter 1', 'Specter 2', 'Specter 3', 'Dante 1', 'Dante 2', 'Ahriman', 'Noah', 'Thor 2', 'Baal Avatar', 'Kagutsuchi', 'Lucifer']
+BANNED_BOSSES = ['Ongyo-Ki', 'Specter 1', 'Specter 2', 'Specter 3', 'Dante 1', 'Dante 2', 'Ahriman', 'Noah', 'Thor 2', 'Baal Avatar', 'Kagutsuchi', 'Lucifer']
 
 def create_world():
     world = World()
@@ -351,7 +351,7 @@ def randomize_world(world, logger):
     magatama_pool = world.get_magatamas()
     boss_pool = world.get_bosses()
     # Remove banned bosses from randomized pool
-    for boss_name in banned_bosses:
+    for boss_name in BANNED_BOSSES:
         for boss in boss_pool:
             if boss.name == boss_name:
                 boss_pool.remove(boss)
@@ -406,7 +406,7 @@ def randomize_world(world, logger):
             #logger.info("Re-randomizing unchecked bosses\n")
             new_boss_pool = []
             for check in check_pool:
-                if check.boss.name not in banned_bosses:
+                if check.boss.name not in BANNED_BOSSES:
                     new_boss_pool.append(check.boss)
                     check.boss = None
             randomize_bosses(new_boss_pool, check_pool, logger)

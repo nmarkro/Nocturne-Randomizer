@@ -14,12 +14,12 @@ N_DEMONS = 383
 N_MAGATAMAS = 25
 
 # demons/bosses that absorb/repel/null phys
-phys_invalid_demons = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274, 276, 277, 333, 334, 352]
+PHYS_INVALID_DEMONS = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274, 276, 277, 333, 334, 352]
 
 # demons/bosses that are normally in the hospital/shibuya
-base_demons = [61, 137, 92, 97, 131, 91, 126, 103, 135, 136]
+BASE_DEMONS = [61, 137, 92, 97, 131, 91, 126, 103, 135, 136]
 
-shady_broker = {
+SHADY_BROKER = {
     167: 208,        # Pisaca
     124: 209,        # Nue
     144: 210,        # Arahabaki
@@ -45,7 +45,8 @@ def load_demons(rom):
         if race_id == 0 or demon_name =='?':
             continue
 
-        if demon_id in shady_broker.values():
+        # skip over the shady broker versions of demons
+        if i+1 in SHADY_BROKER.values():
             continue
 
         # Beelzebub and Beelzebub (Fly) share the same demon_id
@@ -67,18 +68,18 @@ def load_demons(rom):
             if skill > 0:
                 s.append(skill)
 
-        # battle skills are the skills that show up when you analyze enemy demons (they also show up in demon ai)
+        # battle skills are the skills that show up when you analyze enemy demons (used for demon ai later)
         demon.battle_skills = s
         demon.skills = load_demon_skills(rom, demon_id, level)
 
         demon.is_boss = bool(i >= 255)
 
-        # keep track of phys invalid demons and demons in the hospital for "Easy Hospital"
-        demon.phys_inv = demon_id in phys_invalid_demons
-        demon.base_demon = demon_id in base_demons
+        # keep track of phys invalid demons and demons in the hospital for "Easy Hospital" and early buff/debuff distribution
+        demon.phys_inv = demon_id in PHYS_INVALID_DEMONS
+        demon.base_demon = demon_id in BASE_DEMONS
 
-        if demon_id in shady_broker.keys():
-            demon.shady_broker = shady_broker[demon_id]
+        if demon_id in SHADY_BROKER.keys():
+            demon.shady_broker = SHADY_BROKER[demon_id]
 
         demon.offset = demon_offset
 
@@ -104,18 +105,20 @@ def load_demon_skills(rom, demon_id, level):
     while True:
         # level at which they learn the skill 
         learn_level = rom.read_byte()
-        # lmao idk what this is, has something to do with evolutions maybe?
+        # magic_byte indicates what event happens at learn_level
         magic_byte = rom.read_byte()
         skill_id = rom.read_halfword()
 
         if magic_byte == 0 or count >= 23:
             break
 
+        # skip the evolution message
         if magic_byte == 7:
             continue
 
         s = {
             'level': max(0, learn_level - level),
+            # disregard magic_bytes currently since we are removing evolution demons
             'magic_byte': 1,
             'skill_id': skill_id,
             'offset': offset,

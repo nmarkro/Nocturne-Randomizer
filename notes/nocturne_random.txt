@@ -95,6 +95,8 @@ AI layout is A4h long
 		00h 				Odds (each set of skills adds up to 100) (2 bytes?)
 		02h                 Skill ID (2 bytes)
 								Basic attack is 0x8000
+								Summon is 0x90XX
+								xx being the demon_id that is summoned 
 		rest is 0x00 filled
 
 
