@@ -595,6 +595,8 @@ def main(rom_path, output_path, text_seed=None):
 
     # replace the pazuzu mada summons
     nocturne.fix_mada_summon(rom, new_demons)
+    # fix the magatama drop on the fused versions of specter 1
+    nocturne.fix_specter_1_reward(rom)
 
     print("copying iso")
     shutil.copyfile(rom_path, output_path)
