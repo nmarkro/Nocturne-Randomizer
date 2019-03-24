@@ -106,6 +106,10 @@ def load_demon_skills(rom, demon_id, level):
         # level at which they learn the skill 
         learn_level = rom.read_byte()
         # magic_byte indicates what event happens at learn_level
+        # 0x01 = skill learned normally
+        # 0x05 = skill learned through evolution only
+        # 0x06 = demon evolves
+        # 0x07 = "demon body is changing" text thing
         magic_byte = rom.read_byte()
         skill_id = rom.read_halfword()
 

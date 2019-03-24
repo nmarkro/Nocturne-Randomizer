@@ -329,11 +329,8 @@ def randomize_bosses(boss_pool, check_pool, logger):
     while boss_pool:
         boss = boss_pool.pop()
         chosen_check = None
-        for check in check_pool:
-            if check.boss is None:
-                if check.can_place(boss):
-                    chosen_check = check
-                    break
+        candidates = [c for c in check_pool if c.boss is None and c.can_place(boss)]
+        chosen_check = random.choice(candidates)
         # can't place boss yet, re-add to the beginning of the boss pool
         if chosen_check is None:
             boss_pool.insert(0, boss)
@@ -352,13 +349,11 @@ def randomize_world(world, logger):
     boss_pool = world.get_bosses()
     # Remove banned bosses from randomized pool
     for boss_name in BANNED_BOSSES:
-        for boss in boss_pool:
-            if boss.name == boss_name:
-                boss_pool.remove(boss)
-                check = world.get_check(boss.name)
-                check.boss = boss
-                boss.check = check
-                break
+        boss = next((b for b in boss_pool if b.name == boss_name), None)
+        boss_pool.remove(boss)
+        check = world.get_check(boss.name)
+        check.boss = boss
+        boss.check = check
     # Do the initial randomization of bosses
     logger.info('Randomizing bosses')
     randomize_bosses(boss_pool, check_pool, logger)
@@ -419,10 +414,8 @@ def randomize_world(world, logger):
         while not can_progress:
             for magatama in magatama_pool:
                 state.get_magatama(magatama.name)
-                for check in check_pool:
-                    if check.can_reach(state) and check.boss.can_beat(state):
-                        can_progress = True
-                        break
+                completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state)]
+                can_progress = bool(completeable_checks is not None)
                 if not can_progress:
                     state.remove_magatama(magatama.name)
                 else:

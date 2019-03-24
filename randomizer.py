@@ -72,17 +72,13 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         element = demons.lookup(element)
         # find the element in generated demons
         chosen_demon = None
-        for d in demon_gen.demons:
-            if d.name == element.name:
-                # choose a demon in demon pool that is the same level as the generated demon
-                while chosen_demon is None:
-                    demon = random.choice(list(demons.where(level=d.level)))
-                    if demon in demon_pool:
-                        chosen_demon = demon
-                        demon_pool.remove(demon)
-                break
+        d = next((d for d in demon_gen.demons if d.name == element.name), None)
+        # choose a demon in demon pool that is the same level as the generated demon
+        candidates = [c for c in demon_pool if c.level == d.level]
+        chosen_demon = random.choice(candidates)
         # find the elemental in the map and swap
         if chosen_demon:
+            demon_pool.remove(chosen_demon)
             for key, value in demon_map.items():
                 if value == element.ind:
                     demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
@@ -94,17 +90,13 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         mitama = demons.lookup(mitama)
         # find the mitama in generated demons
         chosen_demon = None
-        for d in demon_gen.demons:
-            if d.name == mitama.name:
-                # choose a demon in demon pool that is the same level as the generated demon
-                while chosen_demon is None:
-                    demon = random.choice(list(demons.where(level=d.level)))
-                    if demon in demon_pool:
-                        chosen_demon = demon
-                        demon_pool.remove(demon)
-                break
+        d = next((d for d in demon_gen.demons if d.name == mitama.name), None)
+        # choose a demon in demon pool that is the same level as the generated demon
+        candidates = [c for c in demon_pool if c.level == d.level]
+        chosen_demon = random.choice(candidates)
         # find the mitama in the map and swap
         if chosen_demon:
+            demon_pool.remove(chosen_demon)
             for key, value in demon_map.items():
                 if value == mitama.ind:
                     demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
@@ -113,11 +105,7 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
             print("Error finding mutation for " + mitama.name)
 
     # get the fiends beforehand and shuffle since there isn't a direct connection beyond demon race 
-    generated_fiends = []
-    for d in demon_gen.demons:
-        race = races.raceref[d.race]
-        if race == "Fiend":
-            generated_fiends.append(d)
+    generated_fiends = [d for d in demon_gen.demons if races.raceref[d.race] == "Fiend"]
     random.shuffle(generated_fiends)
     for fiend in all_fiends:
         # even more of the same but for fiends
@@ -125,14 +113,12 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         # use one of the randomly selected fiends
         chosen_demon = None
         gen_fiend = generated_fiends.pop()
-        while chosen_demon is None:
-            # choose a demon in demon pool that is the same level as the generated demon
-            demon = random.choice(list(demons.where(level=gen_fiend.level)))
-            if demon in demon_pool:
-                chosen_demon = demon
-                demon_pool.remove(demon)
+        # choose a demon in demon pool that is the same level as the generated demon
+        candidates = [c for c in demon_pool if c.level == gen_fiend.level]
+        chosen_demon = random.choice(candidates)
         # find the fiend in the map and swap
         if chosen_demon:
+            demon_pool.remove(chosen_demon)
             for key, value in demon_map.items():
                 if value == fiend.ind:
                     demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
@@ -329,27 +315,22 @@ def randomize_demons(demon_map, generated_demons, exp_mod=1):
         assigned_new_race = False
         # don't change elemental race
         if new_demon.race == 7:
-            for d in generated_demons:
-                race = races.raceref[d.race]
-                if race == new_demon.name:
-                    generated_demons.remove(d)
-                    assigned_new_race = True
-                    break
+            d = next((d for d in generated_demons if races.raceref[d.race] == new_demon.name), None)
+            if d:
+                generated_demons.remove(d)
+                assigned_new_race = True
         # don't change mitama race
         elif new_demon.race == 8:
-            for d in generated_demons:
-                if d.name == new_demon.name:
-                    generated_demons.remove(d)
-                    assigned_new_race = True
-                    break
+            d = next((d for d in generated_demons if d.name == new_demon.name), None)
+            if d:
+                generated_demons.remove(d)
+                assigned_new_race = True
         # don't change fiend race
         elif new_demon.race == 38:
-            for d in generated_demons:
-                race = races.raceref[d.race]
-                if race == "Fiend" and old_demon.level == d.level:
-                    generated_demons.remove(d)
-                    assigned_new_race = True
-                    break
+            d = next((d for d in generated_demons if races.raceref[d.race] == "Fiend" and d.level == old_demon.level), None)
+            if d:
+                generated_demons.remove(d)
+                assigned_new_race = True
         # change the race based on the generated demons
         else:
             for d in generated_demons:
@@ -453,10 +434,7 @@ def randomize_boss_battles(world):
     for battle in boss_battles.where():
         old_boss_battle = battle.boss
         new_boss_battle = None
-        for check in world.get_checks():
-            if check.name == old_boss_battle:
-                new_boss = check.boss
-                break
+        new_boss = next((c.boss for c in world.get_checks() if c.name == old_boss_battle), None)
         if new_boss is not None:
             new_boss_battle = list(boss_battles.where(boss = new_boss.name))[0]
             old_boss_demon = None
@@ -518,10 +496,9 @@ def randomize_boss_battles(world):
             # should move this to nocturne.py to stay consistent with other writes
             reward = 0
             if new_boss.reward is not None:
-                for magatama in magatamas.where():
-                    if magatama.name == new_boss.reward.name:
-                        reward = magatama.ind + 320
-                        magatama.level = min(magatama.level, round(balanced_demon.level/2))
+                magatama = next((m for m in magatamas.where() if m.name == new_boss.reward.name), None)
+                reward = magatama.ind + 320
+                magatama.level = min(magatama.level, round(balanced_demon.level/2))
 
             offset = battle.offset
             rom.write_halfword(reward, offset + 0x02)
