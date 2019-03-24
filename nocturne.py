@@ -46,9 +46,6 @@ def load_demons(rom):
             continue
 
         # skip over the shady broker versions of demons
-        if i+1 in SHADY_BROKER.values():
-            continue
-
         # Beelzebub and Beelzebub (Fly) share the same demon_id
         if demon_name == 'Beelzebub':
             demon_id += 1000
@@ -254,6 +251,8 @@ def write_demons(rom, new_demons):
         if demon.shady_broker is not None:
             shady_broker_offset = 0x0024A7B4 + (demon.shady_broker)*0x3C
             write_demon(rom, demon, shady_broker_offset)
+            # set the race_id back to 0 on the shady_broker demons to disable them from fusions and stuff
+            rom.write_byte(0, shady_broker_offset + 0x10)
 
 def write_skills(rom, demon):
     for i in range(len(demon.skills)):
