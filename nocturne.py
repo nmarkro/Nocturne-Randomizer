@@ -439,11 +439,8 @@ def fix_mada_summon(rom, new_demons):
     if mada and candidates:
         rom.write_byte(random.choice(candidates), pazuzu_summon_offset)
 
-def fix_specter_1_reward(rom):
-    specter_1_reward_offset = 0x002B02DA
+def fix_specter_1_reward(rom, reward):
     fused_reward_offsets = [0x002B2842, 0x002B2868, 0x002B288E]
-
-    reward = rom.read_halfword(specter_1_reward_offset)
     for offset in fused_reward_offsets:
         rom.write_halfword(reward, offset)
 
