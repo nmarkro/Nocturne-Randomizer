@@ -31,6 +31,7 @@ config_always_go_first = True               # Always go first in randomized boss
 config_give_pixie_estoma_riberama = True    # Give pixie estoma and riberama
 config_early_spyglass = True                # Adds the Spyglass as a drop on the 3x Preta fight
 config_visible_skills = True                # Make all learnable skills visable
+config_preserve_boss_arenas = False        # Make randomized bosses apear in their normal battle arena
 
 
 def init_rom_data(rom_path):
@@ -505,7 +506,8 @@ def randomize_boss_battles(world):
             rom.write_halfword(new_boss_battle.phase_value, offset + 0x04)
             for i in range(len(new_boss_battle.data)):
                 rom.write_halfword(new_boss_battle.data[i], offset + 0x06 + (i * 2))
-            rom.write_word(new_boss_battle.arena, offset + 0x1C)
+            if config_preserve_boss_arenas:
+                rom.write_word(new_boss_battle.arena, offset + 0x1C)
             if config_always_go_first:
                 rom.write_halfword(0x0D, offset + 0x20)
             else:
