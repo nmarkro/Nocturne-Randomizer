@@ -328,13 +328,12 @@ def randomize_bosses(boss_pool, check_pool, logger):
     random.shuffle(boss_pool)
     while boss_pool:
         boss = boss_pool.pop()
-        chosen_check = None
         candidates = [c for c in check_pool if c.boss is None and c.can_place(boss)]
-        chosen_check = random.choice(candidates)
         # can't place boss yet, re-add to the beginning of the boss pool
-        if chosen_check is None:
+        if not candidates:
             boss_pool.insert(0, boss)
             continue
+        chosen_check = random.choice(candidates)
         boss.check = chosen_check
         chosen_check.boss = boss
         logger.info("Placing " + boss.name + " at check: " + chosen_check.name)
@@ -415,7 +414,7 @@ def randomize_world(world, logger):
             for magatama in magatama_pool:
                 state.get_magatama(magatama.name)
                 completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state)]
-                can_progress = bool(completeable_checks is not None)
+                can_progress = bool(completeable_checks)
                 if not can_progress:
                     state.remove_magatama(magatama.name)
                 else:

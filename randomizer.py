@@ -436,7 +436,7 @@ def randomize_boss_battles(world):
         new_boss_battle = None
         new_boss = next((c.boss for c in world.get_checks() if c.name == old_boss_battle), None)
         if new_boss is not None:
-            new_boss_battle = list(boss_battles.where(boss = new_boss.name))[0]
+            new_boss_battle = next(boss_battles.where(boss = new_boss.name))
             old_boss_demon = None
             new_boss_demon = None
             for d in battle.data:
