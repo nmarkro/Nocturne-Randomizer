@@ -427,6 +427,14 @@ def fix_elemental_fusion_table(rom, demon_generator):
             race_table_offset = fusion_table_offset + (race_id * 32)
             rom.write_byte(elem_table_ids[elemental], race_table_offset + race_id)
 
+def fix_mada_summon(rom, new_demons):
+    # replace the pazuzu mada summons in it's ai with a demon that is equal or less in level than mada
+    pazuzu_summon_offset = 0x002A6F86
+    mada = next((d for d in new_demons if d.name == "Mada (Boss)"), None)
+    candidates = [d.ind for d in new_demons if d.level <= mada.level and not d.is_boss]
+    if mada and candidates:
+        rom.write_byte(random.choice(candidates), pazuzu_summon_offset)
+
 def load_all(rom):
     load_demons(rom)
     load_races()

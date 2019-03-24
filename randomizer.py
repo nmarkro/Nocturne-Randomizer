@@ -616,6 +616,9 @@ def main(rom_path, output_path, text_seed=None):
     if config_visible_skills:
         nocturne.patch_visible_skills(rom)
 
+    # replace the pazuzu mada summons
+    nocturne.fix_mada_summon(rom, new_demons)
+
     print("copying iso")
     shutil.copyfile(rom_path, output_path)
     print("writing new binary")
