@@ -45,7 +45,6 @@ def load_demons(rom):
         if race_id == 0 or demon_name =='?':
             continue
 
-        # skip over the shady broker versions of demons
         # Beelzebub and Beelzebub (Fly) share the same demon_id
         if demon_name == 'Beelzebub':
             demon_id += 1000
