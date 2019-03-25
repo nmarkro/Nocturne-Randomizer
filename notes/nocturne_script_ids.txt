@@ -1,0 +1,156 @@
+BF scripts by IDs.
+Set flags are in hex.
+They show up disassesmbled as:
+	# 0186:00BA # PUSHIS	0083
+	# 0187:00BB # COMM		0008
+And assembled as:
+	1D 00 83 00
+	08 00 08 00
+
+(optional) - probably better worded as conditional
+
+Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax specific scripts I haven't gone through yet which are 710-755.
+
+550 Isamu calls in intro
+	Flags - 0
+601 Literal intro
+	Goes to 550, instead we want it to go to 618
+	Flags - 12, 8B0 (optional, NG+?)
+602 Intro Yoyogi Park Hijiri
+	Flags - 1
+603 Intro Chiaki
+	No Flags
+604 Intro finding Isamu
+	Flags - 3
+605 Intro Chiaki & Isamu (card)
+	Flags - 5, 3D0
+614 Just before waking up
+	No Flags
+615 Intro Hikawa
+	Flags - 42A, 6
+616 World Ends
+	No Flags
+617 Intro getting magatama'd
+	No Flags
+618 Waking up in bed
+	No Flags
+619 Hikawa1
+	Flags - 7, 446	
+621 Chiaki in Shibuya
+	Flags - 9, 
+623 Hikawa2
+	Flags - B, D, 5B (optional, NG+?)
+628 Isamu smacked in Ikebukuro
+	Flags - 22
+629 Gozu Tennoh 1st (+2 demons)
+	Opens Ginza -> East Nihilo
+	Flags - 1A, 867, 1B (optional), 1B (optional)
+632 In Nihilo w/Hijiri
+	Flags - F, 1F (optional), 1E (optional), 1F (optional), 1E (optional), 1D
+634 Defeating Ose
+	Flags - 16, 56C, 56D, 29
+635 Ikebukuro front w/Chiaki
+	Flags - 17, 19
+636 Gozu Tennoh 2nd - post Nihilo
+	Opens Ikebukuro back with 639
+	Flags - 26
+639 Kabukicho Prison Isamu scene
+	Flags - 23
+640 With Hijiri at Terminal - Multiple Uses (Ginza only?)
+	Flags - 2C, 2D (optional)
+644 Sakahagi scene - Introduction
+	Flags - 2E
+646 Asakusa Hijiri - Multiple uses
+	Flags - 34, 30, 31, 32, 33 (optional), 34, 35, 405
+650 Talking to Lucy in Obelisk
+	No Flags
+651 Saving Yuko in Obelisk (+2 demons)
+	Flags - 3E, 483, 36
+652 Post-Obelisk Hijiri
+	Flags - 40, 41
+655 Isamu in Amala Network 2
+	Flags - 63 (optional), 44, 45 (optional)
+656 Hijiri after Amala Network 2
+	Flags - 46 (optional), 46 (optional), 5A (optional), 5A (optional), 3B
+657 Yuko in Yoyogi (Yoyogi Key)
+	Flags - 48 and 3DD (optional), 4C (optional)
+658 Sakahagi + Girimehkala Fight
+	Flags - 47, 4A, 3DA, 908, 49
+659 Giving Yuko thing back in Yoyogi
+	Flags - 4B, 75D, 4E (optional)
+660 Hijiri - One of his Asakusa things
+	Flags - 4D
+661 Gozu Tenno 3rd - Chiaki growing arm
+	Flags - 4F, 861, 599, 570, 59D, 59E, 54E, 862
+662 Asakusa going into Amala Network 3
+	Flags - 52, 53 (optional), 44 (optional), 3A (optional)
+670 Isamu dumping Hijiri in Amala Temple
+	Flags - 60 (optional), 51, 864, 60 (optional)
+671 Isamu turning into Noah
+	Flags - 54
+672 Mifunashiro boss decision
+	Flags - 55, 81 (optional)
+673 Mifunashiro post-boss
+	Opens Yurakucho Tunnel
+	Flags - 56, 903, 4CE, 4CF
+674 Diet Building Yuko & Hijiri
+	Flags - 904 (Samael Probably), 72 (optional), 73, 3DA, 870, 76 (optional), 70 (optional), 71 (optional)
+677 Beating Noah
+	Flags - 61, 3E0
+678 Beating Ahriman
+	Flags - 74, 3DF
+679 Beating Baal
+	Flags - 84, 3DE
+680 Encountering Noah
+	Flags - 62
+681 Encountering Ahriman
+	Flags - 74 (optional), 75, 75, 74
+682 Encountering Baal
+	Flags - 83
+684 Yosuga Ending
+	No Flags
+686 Shijima Ending
+	No Flags
+688 Musubi Ending
+	No Flags
+692 Clear data save
+	No Flags
+693 Neutral Ending
+	Flags - 27
+694 Demon Ending
+	No Flags
+697 Hijiri in Ikebukuro
+	Opens Asakusa Tunnel with either 655 or 656
+	Flags - 57, 59 (optional)
+700 Blank
+	No Flags
+701 Yuko in Yoyogi Park (Yoyogi Key) [Dupe?]
+	No Flags
+702 Mifunashiro boss decision [Dupe?]
+	No Flags
+703 Amala Temple dumping Hijiri
+	Flags - 96, 868 (twice?), 54F
+704 Kagutsuchi Intro [Dupe?]
+	Flags - 92 (optional), 91 (optional), 93 (optional)
+705 Going to Kagutsuchi - Demon Ending?
+	Flags - 97 (x5)
+799 WHITE
+	No Flags
+800 Mido
+	Flags - A, 28 (optional), 28 (optional), 25 (optional), A4 (optional), A3 & 3DC (optional), A2 (optional)
+801 Heal Spot
+	Flags - A1 (twice)
+802 Manikin Shop - Gay (maybe other shops too?)
+	Flags - 12F (a bunch), 37 (optional), 39 (optional), 38
+803 Rag's
+	Flags - A0
+804 Terminal
+	No Flags
+805 Small Terminal
+	No Flags
+806 Small Terminal Amala Network
+	No Flags
+807 Normal Fusion
+	No Flags
+809 Evolution
+	No Flags
