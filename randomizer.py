@@ -31,7 +31,7 @@ config_always_go_first = True               # Always go first in randomized boss
 config_give_pixie_estoma_riberama = True    # Give pixie estoma and riberama
 config_early_spyglass = True                # Adds the Spyglass as a drop on the 3x Preta fight
 config_visible_skills = True                # Make all learnable skills visable
-config_preserve_boss_arenas = False        # Make randomized bosses apear in their normal battle arena
+config_preserve_boss_arenas = False         # Make randomized bosses apear in their normal battle arena
 
 
 def init_rom_data(rom_path):
@@ -144,9 +144,6 @@ def generate_skill_permutation(balance_by_rank = True, keep_pierce = False):
                 skill_id = 1
         # treak attack/passive/recruitment skills differently 
         skill_id += skill.skill_type * 1000
-        # don't shuffle banned skills
-        # if skill_id <= 0:
-        #    skill_id = skill.ind
         if keep_pierce:
             if skill.ind == 357:
                 skill_id = skill.ind

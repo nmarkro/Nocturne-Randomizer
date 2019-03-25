@@ -45,9 +45,9 @@ def load_demons(rom):
         if race_id == 0 or demon_name =='?':
             continue
 
-        # Beelzebub and Beelzebub (Fly) share the same demon_id
+        # Beelzebub (Human) and Beelzebub (Fly) share the same demon_id for some reason, so separate them
         if demon_name == 'Beelzebub':
-            demon_id += 1000
+            demon_id = 207
 
         demon = demons.add_demon(demon_id, demon_name)
         demon.race = race_id
@@ -89,10 +89,6 @@ def load_demon_skills(rom, demon_id, level):
     demon_skills = []
 
     rom.save_offsets()
-
-    # Beelzebub check
-    if demon_id > 1000:
-        demon_id -= 1000
 
     offset = skill_offset + (demon_id * 0x66)
     rom.seek(offset + 0x0A)

@@ -266,7 +266,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_boss('Mithra'),
-        lambda state: state.has_resistance('Expel') or state.has_resistance('Death') or state.has_resistance('Mind')
+        lambda state: state.has_resistance('Expel') or state.has_resistance('Death') #or state.has_resistance('Mind')
     )
     set_rule(
         world.get_boss('Samael'),
