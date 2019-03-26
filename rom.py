@@ -10,8 +10,9 @@ class Rom(object):
     def __init__(self, rom_path):
         with open(rom_path, 'rb') as file:
             file.seek(BINARY_ADDR)
-            self.rom_data = file.read(BINARY_SIZE)
-        self.buffer = bytearray(self.rom_data)
+            #self.rom_data = file.read(BINARY_SIZE)
+            self.buffer = bytearray(file.read(BINARY_SIZE))
+        #self.buffer = bytearray(self.rom_data)
         self.w_offset = 0
         self.r_offset = 0
         self.stack = []
@@ -37,8 +38,10 @@ class Rom(object):
             self.w_offset = self.r_offset
             self.r_offset += n
         assert(offset >= 0)
-        assert(offset + n <= len(self.rom_data))
-        return self.rom_data[offset : offset + n]
+        # assert(offset + n <= len(self.rom_data))
+        # return self.rom_data[offset : offset + n]
+        assert(offset + n <= len(self.buffer))
+        return self.buffer[offset : offset + n]
 
     def read_byte(self, offset = -1):
         return ord(self.read(1, offset))
@@ -54,7 +57,8 @@ class Rom(object):
             offset = self.w_offset
             self.w_offset += len(data)
         assert(offset >= 0)
-        assert(offset + len(data) <= len(self.rom_data))
+        # assert(offset + len(data) <= len(self.rom_data))
+        assert(offset + len(data) <= len(self.buffer))
         for i in range(len(data)):
             self.buffer[offset + i] = data[i]
 

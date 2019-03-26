@@ -4,14 +4,17 @@ import struct
 import re
 import random
 
-import demons
-import skills
-import magatamas
-import boss_battles
 import races
+from base_classes import Demon, Skill, Magatama, Battle
 
 N_DEMONS = 383
 N_MAGATAMAS = 25
+N_BATTLES = 1270
+
+all_demons = {}
+all_magatamas = {}
+all_battles = {}
+all_skills = {}
 
 # demons/bosses that absorb/repel/null phys
 PHYS_INVALID_DEMONS = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274, 276, 277, 333, 334, 352]
@@ -49,7 +52,11 @@ def load_demons(rom):
         if demon_name == 'Beelzebub':
             demon_id = 207
 
-        demon = demons.add_demon(demon_id, demon_name)
+        demon = Demon(demon_id, demon_name)
+        demon.offset = demon_offset
+        demon.skill_offset = 0x00234CF4 + (demon_id * 0x66)
+        demon.ai_offset = 0x002999E4 + (demon_id * 0xA4)
+
         demon.race = race_id
         demon.level = level
         demon.hp = hp
@@ -66,7 +73,7 @@ def load_demons(rom):
 
         # battle skills are the skills that show up when you analyze enemy demons (used for demon ai later)
         demon.battle_skills = s
-        demon.skills = load_demon_skills(rom, demon_id, level)
+        demon.skills = load_demon_skills(rom, demon.skill_offset, level)
 
         demon.is_boss = bool(i >= 255)
 
@@ -77,21 +84,22 @@ def load_demons(rom):
         if demon_id in SHADY_BROKER.keys():
             demon.shady_broker = SHADY_BROKER[demon_id]
 
-        demon.offset = demon_offset
+        all_demons[demon_id] = demon
 
+def lookup_demon(ind):
+    return all_demons.get(ind)
+
+race_names = []
 def load_races():
-    race_names = open('data/race_names.txt', 'r').read().strip()
-    demons.race_names = race_names.split('\n')
+    names = open('data/race_names.txt', 'r').read().strip()
+    names = names.split('\n')
+    race_names.extend(names)
 
-def load_demon_skills(rom, demon_id, level):
-    skill_offset = 0x00234CF4
-
+def load_demon_skills(rom, skill_offset, level):
     demon_skills = []
 
     rom.save_offsets()
-
-    offset = skill_offset + (demon_id * 0x66)
-    rom.seek(offset + 0x0A)
+    rom.seek(skill_offset + 0x0A)
 
     count = 0
     while True:
@@ -117,7 +125,6 @@ def load_demon_skills(rom, demon_id, level):
             # disregard magic_bytes currently since we are removing evolution demons
             'magic_byte': 1,
             'skill_id': skill_id,
-            'offset': offset,
         }
 
         for skill in demon_skills:
@@ -129,7 +136,6 @@ def load_demon_skills(rom, demon_id, level):
 
     rom.load_offsets()
     return demon_skills
-
 
 def load_skills(rom):
     skill_data = open('data/skill_data.txt', 'r').read().strip()
@@ -143,8 +149,13 @@ def load_skills(rom):
         rank = int(skill_data[i][3])
         skill_type = int(skill_data[i][4])
 
-        skill = skills.add_skill(skill_id, name, rank)
+        skill = Skill(skill_id, name, rank)
         skill.skill_type = skill_type
+
+        all_skills[skill_id] = skill
+
+def lookup_skill(ind):
+    return all_skills.get(ind)
 
 def load_magatamas(rom):
     magatama_offset = 0x0023AE3A
@@ -154,61 +165,85 @@ def load_magatamas(rom):
 
     rom.seek(magatama_offset)
     for i in range(N_MAGATAMAS):
-        magatama_name = magatama_names[i]
+        m_name = magatama_names[i]
 
-        magatama_offset = rom.r_offset
+        m_offset = rom.r_offset
         _, strength, _, magic, vitality, agility, luck, _, skills = struct.unpack('<14sBBBBBB14s32s', rom.read(0x42))
 
-        magatama = magatamas.add_magatama(i, magatama_name)
-        magatama.stats = [strength, magic, vitality, agility, luck]
+        m = Magatama(m_name)
+        m.ind = i
+        m.stats = [strength, magic, vitality, agility, luck]
         
-        magatama.level = None
+        m.level = None
 
         s = []
         for j in range(0, len(skills), 4):
             level, skill_id = struct.unpack('<HH', skills[j : j + 4])
 
-            if magatama.level is None:
-                magatama.level = level
+            if m.level is None:
+                m.level = level
 
             if skill_id > 0:
                 skill = {
-                    'level': level - magatama.level,
+                    'level': level - m.level,
                     'skill_id': skill_id,
                 }
                 s.append(skill)
-        magatama.skills = s
-        magatama.offset = magatama_offset
+        m.skills = s
+        m.offset = m_offset
+        all_magatamas[m.name] = m
 
-def load_boss_battles(rom):
-    boss_data = open('data/boss_data.txt', 'r').read().strip()
-    pattern = re.compile(r"(\d+) ([\w\d\- ]+)")
+def load_battles(rom):
+    offset = 0x002AFFE0
 
-    boss_data = list(map(lambda s: re.search(pattern, s), boss_data.split('\n')))
+    for i in range(N_BATTLES):
+        enemies = []
 
-    for i in range(len(boss_data)):
-        offset = int(boss_data[i][1])
-        rom.seek(offset)
-        boss = boss_data[i][2]
-        is_boss, item_drop, phase_value, demons, arena, first_turn, reinforcement_value, music = struct.unpack('<HHH22sIHHH', rom.read(0x26))
+        for j in range(0, 18, 2):
+            enemy_id = rom.read_halfword(offset + 6 + j)
+            enemies.append(enemy_id)
 
-        if is_boss == 0x01FF:
-            data = []
-            for j in range(0, 18, 2):
-                demon_id = struct.unpack('<H', demons[j : j + 2])[0]
-                data.append(demon_id)
+        battle = Battle(offset)
+        battle.enemies = enemies
+        battle.is_boss = rom.read_halfword(offset) == 0x01FF
+        battle.drop = rom.read_halfword(offset + 2)
+        battle.phase_value = rom.read_halfword(offset + 4)
+        battle.arena = rom.read_word(offset + 0x1C)
+        battle.goes_first = rom.read_halfword(offset + 0x20)
+        battle.reinforcement_value = rom.read_halfword(offset + 0x22)
+        battle.music = rom.read_halfword(offset + 0x24)
+        all_battles[offset] = battle
+        offset += 0x26
 
-            battle = boss_battles.add_battle(i, boss, offset)
-            battle.phase_value = phase_value
-            battle.data = data
-            battle.arena = arena
-            battle.first_turn = first_turn
-            battle.reinforcement_value = reinforcement_value
-            battle.music = music
-            # check if magatama
-            if item_drop > 0x140 and item_drop < 0x15A:
-                item_drop = 0
-            battle.item_drop = item_drop
+# def load_boss_battles(rom):
+#     boss_data = open('data/boss_data.txt', 'r').read().strip()
+#     pattern = re.compile(r"(\d+) ([\w\d\- ]+)")
+
+#     boss_data = list(map(lambda s: re.search(pattern, s), boss_data.split('\n')))
+
+#     for i in range(len(boss_data)):
+#         offset = int(boss_data[i][1])
+#         rom.seek(offset)
+#         boss = boss_data[i][2]
+#         is_boss, item_drop, phase_value, demons, arena, first_turn, reinforcement_value, music = struct.unpack('<HHH22sIHHH', rom.read(0x26))
+
+#         if is_boss == 0x01FF:
+#             data = []
+#             for j in range(0, 18, 2):
+#                 demon_id = struct.unpack('<H', demons[j : j + 2])[0]
+#                 data.append(demon_id)
+
+#             battle = boss_battles.add_battle(i, boss, offset)
+#             battle.phase_value = phase_value
+#             battle.data = data
+#             battle.arena = arena
+#             battle.first_turn = first_turn
+#             battle.reinforcement_value = reinforcement_value
+#             battle.music = music
+#             # check if magatama
+#             if item_drop > 0x140 and item_drop < 0x15A:
+#                 item_drop = 0
+#             battle.item_drop = item_drop
 
 def write_demon(rom, demon, offset):
     rom.seek(offset)
@@ -252,21 +287,17 @@ def write_demons(rom, new_demons):
 def write_skills(rom, demon):
     for i in range(len(demon.skills)):
         skill = demon.skills[i]
-        offset = (skill['offset'] + 0x0A) + (i * 0x04)
+        offset = (demon.skill_offset + 0x0A) + (i * 0x04)
         rom.seek(offset)
         rom.write_byte(skill['level'])
         rom.write_byte(skill['magic_byte'])
         rom.write_halfword(skill['skill_id'])
         
-    offset = demon.skills[0]['offset']
-
     for i in range(len(demon.skills), 23):
-        rom.write_word(0, offset + 0x0A + (i * 0x4))
+        rom.write_word(0, demon.skill_offset + 0x0A + (i * 0x4))
 
 def write_ai(rom, demon):
-    ai_offset = 0x002999E4
-
-    offset = (ai_offset + (demon.ind * 0xA4)) + 0x24
+    offset = demon.ai_offset + 0x24
 
     # todo: make generating odds more random
     total_odds = [
@@ -310,6 +341,19 @@ def write_magatamas(rom, new_magatams):
             s = magatama.offset + 0x22 + (i * 4)
             rom.write_halfword(skill['level'], s)
             rom.write_halfword(skill['skill_id'], s + 2)
+
+def write_battles(rom, new_battles, preserve_boss_arenas=False):
+    for b in new_battles:
+        if b.reward:
+            rom.write_halfword(b.reward, b.offset + 0x02)
+        rom.write_halfword(b.phase_value, b.offset + 0x04)
+        for i, e in enumerate(b.enemies):
+            rom.write_halfword(e, b.offset + 0x06 + (i * 2))
+        if preserve_boss_arenas:
+            rom.write_word(b.arena, b.offset + 0x1C)
+        rom.write_halfword(b.goes_first, b.offset + 0x20)
+        rom.write_halfword(b.reinforcement_value, b.offset + 0x22)
+        rom.write_halfword(b.music, b.offset + 0x24)
 
 def patch_easy_demon_recruits(rom):
     # patch the flag check during demon recruiting to use an always(?) zero flag as oppsed to the forneus flag
@@ -421,7 +465,7 @@ def fix_elemental_fusion_table(rom, demon_generator):
     # use the generated elemental results to change the fusion table
     for race, elemental in zip(races.raceref, demon_generator.elemental_results):
         if elemental > 0:
-            race_id = demons.race_names.index(race)
+            race_id = race_names.index(race)
             race_table_offset = fusion_table_offset + (race_id * 32)
             rom.write_byte(elem_table_ids[elemental], race_table_offset + race_id)
 
@@ -464,8 +508,9 @@ def load_all(rom):
     load_races()
     load_skills(rom)
     load_magatamas(rom)
-    load_boss_battles(rom)
+    load_battles(rom)
 
-def write_all(rom, demons, magatamas):
-    write_demons(rom, demons)
-    write_magatamas(rom, magatamas)
+def write_all(rom, world):
+    write_demons(rom, world.demons.values())
+    write_magatamas(rom, world.magatamas.values())
+    write_battles(rom, world.battles.values())

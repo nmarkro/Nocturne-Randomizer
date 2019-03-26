@@ -58,4 +58,4 @@ new e506 code:
         CALL_EVENT( 618 );          // Call "Wake up in SMC" event
     }
 
-write 0 to 0x45D3469A and 0x49CB58B6 to prevenet >12 stock
+write 0 to 0x45D3469A and 0x49CB58B6 to prevent >12 stock
