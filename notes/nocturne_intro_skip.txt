@@ -1,0 +1,56 @@
+flags to set:
+    18      in 601
+    2208    in 601      NG+ for first person camera?
+    1       in 602
+    3       in 604
+    5       in 605
+    976     in 605
+    1066    in 615
+    6       in 615
+
+use e506 for our hook
+call e506 from the start of e601
+call e618 from our hook to skip intro
+
+change "1D 00 59 02 08 00 C8 00" in e601.bf to "1D 00 FA 01 08 00 66 00"
+    PUSHIS  0259
+    COMM    00C8
+        to
+    PUSHIS  01FA (506d)
+    COMM    0066
+    0x4049A254 in the iso
+
+    change "1D 00 6F 00 1D 00 59 02 08 00 8F 00" to "1D 00 6F 00 1D 00 59 02 08 00 8F 00"
+
+write our new e506 to 0x3F1C7800
+
+replace all textboxes with 
+    PUSHIS  0000
+    COMM    000E
+just replace it from msg box open to msg box close
+    example: 08 00 01 00 1D 00 12 00 08 00 00 00 08 00 02 00
+    becomes: 1D 00 00 00 08 00 0E 00 1D 00 00 00 08 00 0E 00
+do this for every box except for the one at 0x82C in e618
+
+new e506 code:
+    void e506_main()
+    {
+        BIT_ON( 18 );
+        BIT_ON( 2208 );
+        BIT_ON( 1 );
+        BIT_ON( 3 );
+        BIT_ON( 5 );
+        BIT_ON( 976 );
+        BIT_ON( 1066 );
+        BIT_ON( 6 );
+        BIT_ON( 37 );
+        BIT_ON( 40 );
+        BIT_ON( 1087 );
+        BIT_ON( 1856 );
+        FUNCTION_0121( 0, 0 );
+        FUNCTION_0121( 1, 1 );
+        FUNCTION_0121( 2, 1 );
+        FUNCTION_0121( 3, 1 );
+        CALL_NEXT( 1, 15, 616 );
+        CALL_EVENT( 618 );
+    }
