@@ -434,16 +434,19 @@ def fix_mada_summon(rom, new_demons):
         rom.write_byte(random.choice(candidates), pazuzu_summon_offset)
 
 def fix_specter_1_reward(rom, reward):
+    # add rewards to each of the fused versions of specter 1
     fused_reward_offsets = [0x002B2842, 0x002B2868, 0x002B288E]
     for offset in fused_reward_offsets:
         rom.write_halfword(reward, offset)
 
 def patch_intro_skip(iso_file):
+    # overwrite an unused event script with ours
     e506_offset = 0x3F1C7800
     with open('patches/e506.bf', 'rb') as event_file:
         iso_file.seek(e506_offset)
         iso_file.write(event_file.read())
 
+    # hook the beginning of e601 to call our e506
     e601_hook_offset = 0x4049A254
     e601_hook = bytearray([0x1D, 0x00, 0xFA, 0x01, 0x08, 0x00, 0x66, 0x00])
     iso_file.seek(e601_hook_offset)

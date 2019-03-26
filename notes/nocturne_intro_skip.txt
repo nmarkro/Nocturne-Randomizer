@@ -35,7 +35,7 @@ do this for every box except for the one at 0x82C in e618
 new e506 code:
     void e506_main()
     {
-        BIT_ON( 18 );
+        BIT_ON( 18 );               // Set flags from skipped cutscenes
         BIT_ON( 2208 );
         BIT_ON( 1 );
         BIT_ON( 3 );
@@ -43,14 +43,16 @@ new e506 code:
         BIT_ON( 976 );
         BIT_ON( 1066 );
         BIT_ON( 6 );
-        BIT_ON( 37 );
-        BIT_ON( 40 );
-        BIT_ON( 1087 );
-        BIT_ON( 1856 );
-        FUNCTION_0121( 0, 0 );
+        BIT_ON( 37 );               // Sac Fusion
+        BIT_ON( 40 );               // Compendium
+        BIT_ON( 1086 );             // Yoyogi Park Terminal Vending Machine
+        FUNCTION_0070( 15, 1 );     // Sacred Water
+        BIT_ON( 1059 );             // SMC Vending Machine
+        FUNCTION_0070( 10, 1 );     // Soma
+        FUNCTION_0121( 0, 0 );      // Set Names
         FUNCTION_0121( 1, 1 );
         FUNCTION_0121( 2, 1 );
         FUNCTION_0121( 3, 1 );
-        CALL_NEXT( 1, 15, 616 );
-        CALL_EVENT( 618 );
+        CALL_NEXT( 1, 15, 616 );    // Place MC in SMC after event
+        CALL_EVENT( 618 );          // Call "Wake up in SMC" event
     }
