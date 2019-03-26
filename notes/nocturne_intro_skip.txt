@@ -20,8 +20,6 @@ change "1D 00 59 02 08 00 C8 00" in e601.bf to "1D 00 FA 01 08 00 66 00"
     COMM    0066
     0x4049A254 in the iso
 
-    change "1D 00 6F 00 1D 00 59 02 08 00 8F 00" to "1D 00 6F 00 1D 00 59 02 08 00 8F 00"
-
 write our new e506 to 0x3F1C7800
 
 replace all textboxes with 
