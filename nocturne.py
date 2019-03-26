@@ -215,36 +215,6 @@ def load_battles(rom):
         all_battles[offset] = battle
         offset += 0x26
 
-# def load_boss_battles(rom):
-#     boss_data = open('data/boss_data.txt', 'r').read().strip()
-#     pattern = re.compile(r"(\d+) ([\w\d\- ]+)")
-
-#     boss_data = list(map(lambda s: re.search(pattern, s), boss_data.split('\n')))
-
-#     for i in range(len(boss_data)):
-#         offset = int(boss_data[i][1])
-#         rom.seek(offset)
-#         boss = boss_data[i][2]
-#         is_boss, item_drop, phase_value, demons, arena, first_turn, reinforcement_value, music = struct.unpack('<HHH22sIHHH', rom.read(0x26))
-
-#         if is_boss == 0x01FF:
-#             data = []
-#             for j in range(0, 18, 2):
-#                 demon_id = struct.unpack('<H', demons[j : j + 2])[0]
-#                 data.append(demon_id)
-
-#             battle = boss_battles.add_battle(i, boss, offset)
-#             battle.phase_value = phase_value
-#             battle.data = data
-#             battle.arena = arena
-#             battle.first_turn = first_turn
-#             battle.reinforcement_value = reinforcement_value
-#             battle.music = music
-#             # check if magatama
-#             if item_drop > 0x140 and item_drop < 0x15A:
-#                 item_drop = 0
-#             battle.item_drop = item_drop
-
 def write_demon(rom, demon, offset):
     rom.seek(offset)
 
