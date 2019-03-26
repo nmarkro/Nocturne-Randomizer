@@ -49,6 +49,7 @@ new e506 code:
         FUNCTION_0070( 15, 1 );     // Sacred Water
         BIT_ON( 1059 );             // SMC Vending Machine
         FUNCTION_0070( 10, 1 );     // Soma
+        FUNCTION_0158( 4 );         // +4 Stock
         FUNCTION_0121( 0, 0 );      // Set Names
         FUNCTION_0121( 1, 1 );
         FUNCTION_0121( 2, 1 );
@@ -56,3 +57,5 @@ new e506 code:
         CALL_NEXT( 1, 15, 616 );    // Place MC in SMC after event
         CALL_EVENT( 618 );          // Call "Wake up in SMC" event
     }
+
+write 0 to 0x45D3469A and 0x49CB58B6 to prevenet >12 stock

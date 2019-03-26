@@ -452,6 +452,13 @@ def patch_intro_skip(iso_file):
     iso_file.seek(e601_hook_offset)
     iso_file.write(e601_hook)
 
+    # write 0 to the vanilla stock increases to prevent >12 stock
+    iso_file.seek(0x45D3469A)
+    iso_file.write(bytes(0))
+    iso_file.seek(0x49CB58B6)
+    iso_file.write(bytes(0))
+
+
 def load_all(rom):
     load_demons(rom)
     load_races()
