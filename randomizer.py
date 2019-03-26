@@ -609,6 +609,7 @@ def main(rom_path, output_path, text_seed=None):
     with open(output_path, 'r+b') as file:
         file.seek(0xFD009000)
         file.write(bytearray(rom.buffer))
+        nocturne.patch_intro_skip(file)
 
 
 if __name__ == '__main__':

@@ -7,6 +7,8 @@ flags to set:
     976     in 605
     1066    in 615
     6       in 615
+    37      Sac fusion
+    40      Compendium
 
 use e506 for our hook
 call e506 from the start of e601
@@ -22,7 +24,7 @@ change "1D 00 59 02 08 00 C8 00" in e601.bf to "1D 00 FA 01 08 00 66 00"
 
 write our new e506 to 0x3F1C7800
 
-replace all textboxes with 
+replace all textboxes with the wait function? (zeroing out doesn't work)
     PUSHIS  0000
     COMM    000E
 just replace it from msg box open to msg box close
