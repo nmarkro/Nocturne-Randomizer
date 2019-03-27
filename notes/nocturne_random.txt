@@ -224,3 +224,52 @@ fix shady broker pisaca
 	change "1D 00 D0 00 1D 00 A7 00" at 0x91C2DE20 to "1D 00 A7 00 1D 00 A7 00"
 		OR
 	change demon at demon_id 208 to match demon_id 167
+
+Encounter sets
+0x002BBDE0 = start of ecounter sets
+	0x1A4 long
+
+0x002D61E0 = start of encounter set area index tables
+    0x84 long
+    (area_index * 0x84) + (sub_area_index * 0x02)
+    ex: SMC post conception is at: 0x002D699C
+
+s1 = encounter set area index
+s2 = s1 << 0x03
+v0 = s2 - s1
+v1 = v0 << 0x04
+v1 = v1 - v0
+v1 = v1 << 0x02
+s0 = 0x003BADE0
+s0 = s0 + v1
+
+0x002FC03C = encounter set area index (RAM)
+
+area to set index table: 
+v0 = a1 (area index) << 0x05
+v0 += a1
+v0 = v0 << 0x02
+
+v1 = [s2 + 0x54] (sub area index (+ 1?))
+v0 = v0 << 0x01
+v0 += v1
+v0 = v0 << 0x01
+v0 += s0
+
+fix eligor summons:
+	fix yaka summons:
+	    0x288FA
+	    0x28932
+	    0x28982
+
+	fix dis summons:
+	    0x28ACE
+	    0x28B06
+	    0x28B82
+	    0x28D56 (from the incubus guy)
+
+	fix incubus summons:
+	    0x28CCE
+	    0x28D06
+
+	rom addr += 0x3F1800

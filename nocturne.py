@@ -449,6 +449,30 @@ def fix_mada_summon(rom, new_demons):
     if mada and candidates:
         rom.write_byte(random.choice(candidates), pazuzu_summon_offset)
 
+def fix_nihilo_summons(rom, new_demons):
+    # replace the demons summoned by the nihilo minibosses
+    def replace_summons(offsets, candidates):
+        replacement = random.choice(candidates)
+        for off in offsets:
+            rom.write_byte(replacement, off)
+        return replacement
+
+    yaka_summon_offsets = [0x0041A0FA, 0x0041A132, 0x0041A182]
+    dis_summon_offsets = [0x0041A2CE, 0x0041A306, 0x0041A382, 0x0041A556]
+    incubus_summon_offsets = [0x0041A4CE, 0x0041A506]
+
+    yaka_level = next((d.level for d in all_demons.values() if d.name == "Yaka"), None)
+    dis_level = next((d.level for d in all_demons.values() if d.name == "Dis"), None)
+    incubus_level = next((d.level for d in all_demons.values() if d.name == "Incubus"), None)
+
+    yaka_candidates = [d.ind for d in new_demons if d.level == yaka_level and not d.is_boss]
+    dis_candidates = [d.ind for d in new_demons if d.level == dis_level and not d.is_boss]
+    incubus_candidates = [d.ind for d in new_demons if d.level == incubus_level and not d.is_boss]
+
+    replace_summons(yaka_summon_offsets, yaka_candidates)
+    replace_summons(dis_summon_offsets, dis_candidates)
+    replace_summons(incubus_summon_offsets, incubus_candidates)
+
 def fix_specter_1_reward(rom, reward):
     # add rewards to each of the fused versions of specter 1
     fused_reward_offsets = [0x002B2842, 0x002B2868, 0x002B288E]
@@ -512,6 +536,8 @@ def write_all(rom, world):
 
     # replace the pazuzu mada summons
     fix_mada_summon(rom, world.demons.values())
+    # replace the demons summoned by the nihilo minibosses
+    fix_nihilo_summons(rom, world.demons.values())
     # fix the magatama drop on the fused versions of specter 1
     specter_1_reward = all_magatamas[world.get_boss("Specter 1").reward.name].ind
     specter_1_reward += 320
