@@ -518,8 +518,11 @@ def main(rom_path, output_path, text_seed=None):
 
     print('creating logical progression')
     # generate a world and come up with a logical boss and boss magatama drop progression
-    world = logic.create_world()
-    world = logic.randomize_world(world, logger)
+    # logic can sometimes get stuck shuffling bosses so keep generating until you get a valid world
+    world = None
+    while world is None:
+        world = logic.create_world()
+        world = logic.randomize_world(world, logger)
 
     print('randomizing demons')
     # generate demon levels and races making sure all demons are fuseable

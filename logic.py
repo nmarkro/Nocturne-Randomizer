@@ -11,7 +11,7 @@ def init_magatamas(world):
         m.resistances = resistances
         world.magatamas[name] = m
 
-    #add_magatama('Marogarah', [], world)
+    add_magatama('Marogareh', [], world)
     add_magatama('Wadatsumi', ['Ice'], world)
     add_magatama('Ankh', ['Expel'], world)
     add_magatama('Iyomante', ['Mind'], world)
@@ -34,7 +34,8 @@ def init_magatamas(world):
     add_magatama('Gundari', ['Force'], world)
     add_magatama('Sophia', ['Expel', 'Death'], world)
     add_magatama('Kailash', [], world)
-    #add_magatama('Gaea', ['Phys'], world)
+    add_magatama('Gaea', ['Phys'], world)
+    add_magatama('Masakados', [], world)
 
 
 # Resist/Null/Absorb/Repel Phys to leave out of SMC
@@ -175,14 +176,17 @@ def create_world():
 
     return world
 
-def randomize_bosses(boss_pool, check_pool, logger):
+def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
     random.shuffle(boss_pool)
     while boss_pool:
+        if attempts < 0:
+            raise Exception("Stuck: Could not randomize bosses")
         boss = boss_pool.pop()
         candidates = [c for c in check_pool if c.boss is None and c.can_place(boss)]
         # can't place boss yet, re-add to the beginning of the boss pool
         if not candidates:
             boss_pool.insert(0, boss)
+            attempts -= 1
             continue
         chosen_check = random.choice(candidates)
         boss.check = chosen_check
@@ -209,11 +213,13 @@ def randomize_world(world, logger):
     randomize_bosses(boss_pool, check_pool, logger)
 
     # Remove the starting Magatama and Gaea (24 st magatama)
-    # marogarah = world.get_magatama('Marogarah')
-    # state.get_magatama(marogarah.name)
-    # magatama_pool.remove(marogarah)
-    # gaea = world.get_magatama('Gaea')
-    # magatama_pool.remove(gaea)
+    marogareh = world.get_magatama('Marogareh')
+    state.get_magatama(marogareh.name)
+    magatama_pool.remove(marogareh)
+    gaea = world.get_magatama('Gaea')
+    magatama_pool.remove(gaea)
+    masakados = world.get_magatama('Masakados')
+    magatama_pool.remove(masakados)
     # shuffle magatamas for more random rewards
     random.shuffle(magatama_pool)
 
@@ -254,7 +260,11 @@ def randomize_world(world, logger):
                 if check.boss.name not in BANNED_BOSSES:
                     new_boss_pool.append(check.boss)
                     check.boss = None
-            randomize_bosses(new_boss_pool, check_pool, logger)
+            try:
+                randomize_bosses(new_boss_pool, check_pool, logger)
+            except:
+                print('Error generating world, trying again')
+                return None
             continue
         
         can_progress = False

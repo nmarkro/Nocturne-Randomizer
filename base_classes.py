@@ -55,12 +55,6 @@ class World(object):
                 self.magatamas[m.name].offset = m.offset
                 self.magatamas[m.name].stats = m.stats
                 self.magatamas[m.name].skills = m.skills
-            else:
-                new_maga = Magatama(m.name)
-                new_maga.offset = m.offset
-                new_maga.stats = m.stats
-                new_maga.skills = m.skills
-                self.magatamas[m.name] = new_maga
 
 class Area(object):
     def __init__(self, name):
