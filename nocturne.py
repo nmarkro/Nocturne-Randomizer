@@ -479,6 +479,11 @@ def fix_specter_1_reward(rom, reward):
     for offset in fused_reward_offsets:
         rom.write_halfword(reward, offset)
 
+def fix_angel_reward(rom, reward):
+    # fix the magatama drop for the optional angel fight
+    offset = 0x002B63C8
+    rom.write_halfword(reward, offset)
+
 def patch_intro_skip(iso_file):
     # overwrite an unused event script with ours
     e506_offset = 0x3F1C7800
@@ -497,7 +502,6 @@ def patch_intro_skip(iso_file):
     iso_file.write(bytes(0))
     iso_file.seek(0x49CB58B6)
     iso_file.write(bytes(0))
-
 
 def load_all(rom):
     load_demons(rom)
@@ -539,6 +543,14 @@ def write_all(rom, world):
     # replace the demons summoned by the nihilo minibosses
     fix_nihilo_summons(rom, world.demons.values())
     # fix the magatama drop on the fused versions of specter 1
-    specter_1_reward = all_magatamas[world.get_boss("Specter 1").reward.name].ind
-    specter_1_reward += 320
-    fix_specter_1_reward(rom, specter_1_reward)
+    specter_1_reward = world.get_boss("Specter 1").reward
+    if specter_1_reward:
+        specter_1_reward = all_magatamas[specter_1_reward.name].ind
+        specter_1_reward += 320
+        fix_specter_1_reward(rom, specter_1_reward)
+    # fix the magatama drop for the optional angel fight
+    futomimi_reward = world.get_check("Futomimi").boss.reward
+    if futomimi_reward:
+        futomimi_reward = all_magatamas[futomimi_reward.name].ind
+        futomimi_reward += 320
+        fix_angel_reward(rom, futomimi_reward)
