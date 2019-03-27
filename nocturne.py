@@ -206,7 +206,7 @@ def load_battles(rom):
         battle = Battle(offset)
         battle.enemies = enemies
         battle.is_boss = rom.read_halfword(offset) == 0x01FF
-        battle.drop = rom.read_halfword(offset + 2)
+        battle.reward = rom.read_halfword(offset + 2)
         battle.phase_value = rom.read_halfword(offset + 4)
         battle.arena = rom.read_word(offset + 0x1C)
         battle.goes_first = rom.read_halfword(offset + 0x20)
@@ -314,7 +314,8 @@ def write_magatamas(rom, new_magatams):
 
 def write_battles(rom, new_battles, preserve_boss_arenas=False):
     for b in new_battles:
-        if b.reward:
+        # only write magatama rewards
+        if 345 >= b.reward >= 320:
             rom.write_halfword(b.reward, b.offset + 0x02)
         rom.write_halfword(b.phase_value, b.offset + 0x04)
         for i, e in enumerate(b.enemies):

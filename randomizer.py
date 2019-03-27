@@ -478,13 +478,14 @@ def randomize_boss_battles(world):
             if config_always_go_first:
                 boss_battle.goes_first = 0x0D
 
-        reward = 0
+        # replace any vanilla magatama drops
+        if 345 >= boss_battle.reward >= 320:
+            boss_battle.reward = 0
         if new_boss.reward is not None:
             magatama = nocturne.all_magatamas[new_boss.reward.name]
-            reward = magatama.ind + 320
+            boss_battle.reward = magatama.ind + 320
             magatama.level = min(magatama.level, round(old_boss_demon.level/2))
 
-        boss_battle.reward = reward
         boss_battles.append(boss_battle)
 
     return boss_demons, boss_battles
@@ -583,7 +584,6 @@ def main(rom_path, output_path, text_seed=None):
     print("copying iso")
     #shutil.copyfile(rom_path, output_path)
     print("writing new binary")
-    #nocturne.write_all(rom, new_demons, new_magatamas)
     if config_write_binary:
         with open('rom/SLUS_209.11', 'wb') as file:
             file.write(bytearray(rom.buffer))
