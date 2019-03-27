@@ -4,6 +4,7 @@ import struct
 import re
 import random
 
+import randomizer
 import races
 from base_classes import Demon, Skill, Magatama, Battle
 
@@ -485,3 +486,33 @@ def write_all(rom, world):
     write_demons(rom, world.demons.values())
     write_magatamas(rom, world.magatamas.values())
     write_battles(rom, world.battles.values())
+
+    # make the pierce skill work on magic
+    patch_magic_pierce(rom)
+    # make aoe healing work on the stock demons
+    patch_stock_aoe_healing(rom)
+    # remove magatamas from shops since they are all tied to boss drops now
+    remove_shop_magatamas(rom)
+    # patch the fusion table using the generated elemental results
+    fix_elemental_fusion_table(rom, world.demon_generator)
+    if randomizer.config_fix_tutorial:
+        print("fixing tutorials")
+        patch_fix_tutorials(rom)
+    # this just doesn't work half the time :(
+    if randomizer.config_easy_recruits:
+        print("applying easy recruits patch")
+        patch_easy_demon_recruits(rom)
+    # add the spyglass to 3x preta fight and reduce it's selling price
+    if randomizer.config_early_spyglass:
+        print("applying early spyglass patch")
+        patch_early_spyglass(rom)
+    # make learnable skills always visible
+    if randomizer.config_visible_skills:
+        patch_visible_skills(rom)
+
+    # replace the pazuzu mada summons
+    fix_mada_summon(rom, world.demons.values())
+    # fix the magatama drop on the fused versions of specter 1
+    specter_1_reward = all_magatamas[world.get_boss("Specter 1").reward.name].ind
+    specter_1_reward += 320
+    fix_specter_1_reward(rom, specter_1_reward)

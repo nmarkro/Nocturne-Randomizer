@@ -240,7 +240,8 @@ def randomize_skills(new_demon, force_skills=None):
     for i in range(total_skills):
         chosen_skill = chosen_skills.pop()
 
-        if chosen_skill.skill_type == 1 and len(new_battle_skills) < 8:
+        # add skills that can be used in battle to battle_skills
+        if chosen_skill.skill_type == 1 and len(new_battle_skills) < 8 and chosen_skill.name not in ['Analyze', 'Trafuri', 'Beckon Call', 'Riberama', 'Lightoma', 'Liftoma', 'Estoma']:
             new_battle_skills.append(chosen_skill.ind)
 
         if len(new_skills) >= starting_skills:
@@ -432,6 +433,7 @@ def randomize_boss_battles(world):
         old_boss_demon = next((nocturne.lookup_demon(d) for d in old_boss.battle.enemies if d > 0), None)
         new_boss_demon = copy.copy(next((nocturne.lookup_demon(d) for d in new_boss.battle.enemies if d > 0), None))
 
+        # only rebalance bosses that change checks
         if old_boss is not new_boss:
             new_level = old_boss_demon.level
             if new_level < new_boss_demon.level:
@@ -478,9 +480,10 @@ def randomize_boss_battles(world):
             if config_always_go_first:
                 boss_battle.goes_first = 0x0D
 
-        # replace any vanilla magatama drops
+        # get rid of any vanilla magatama drops
         if 345 >= boss_battle.reward >= 320:
             boss_battle.reward = 0
+        # add our generated magatama drop
         if new_boss.reward is not None:
             magatama = nocturne.all_magatamas[new_boss.reward.name]
             boss_battle.reward = magatama.ind + 320
@@ -536,7 +539,7 @@ def main(rom_path, output_path, text_seed=None):
     print('randomizing battles')
     # mutate all the non-boss demons using demon_map 
     new_battles = randomize_battles(demon_map)
-    # rebalance and copy boss battles
+    # rebalance boss battles based on their check in the world
     new_bosses, new_boss_battles = randomize_boss_battles(world)
     new_demons.extend(new_bosses)
     new_battles.extend(new_boss_battles)
@@ -551,48 +554,23 @@ def main(rom_path, output_path, text_seed=None):
     world.add_demons(new_demons)
     world.add_battles(new_battles)
     world.add_magatamas(new_magatamas)
+    world.demon_generator = demon_generator
 
+    # write all changes to the binary buffer
     nocturne.write_all(rom, world)
 
-    # make the pierce skill work on magic
-    nocturne.patch_magic_pierce(rom)
-    # make aoe healing work on the stock demons
-    nocturne.patch_stock_aoe_healing(rom)
-    # remove magatamas from shops since they are all tied to boss drops now
-    nocturne.remove_shop_magatamas(rom)
-    # patch the fusion table using the generated elemental results
-    nocturne.fix_elemental_fusion_table(rom, demon_generator)
-    if config_fix_tutorial:
-        print("fixing tutorials")
-        nocturne.patch_fix_tutorials(rom)
-    # this just doesn't work half the time :(
-    if config_easy_recruits:
-        print("applying easy recruits patch")
-        nocturne.patch_easy_demon_recruits(rom)
-    # add the spyglass to 3x preta fight and reduce it's selling price
-    if config_early_spyglass:
-        print("applying early spyglass patch")
-        nocturne.patch_early_spyglass(rom)
-    # make learnable skills always visible
-    if config_visible_skills:
-        nocturne.patch_visible_skills(rom)
-
-    # replace the pazuzu mada summons
-    nocturne.fix_mada_summon(rom, new_demons)
-    # fix the magatama drop on the fused versions of specter 1
-    specter_1_reward = nocturne.all_magatamas[world.get_boss("Specter 1").reward.name].ind
-    specter_1_reward += 320
-    nocturne.fix_specter_1_reward(rom, specter_1_reward)
-
     print("copying iso")
-    #shutil.copyfile(rom_path, output_path)
-    print("writing new binary")
+    shutil.copyfile(rom_path, output_path)
     if config_write_binary:
+        print("writing new binary")
         with open('rom/SLUS_209.11', 'wb') as file:
             file.write(bytearray(rom.buffer))
     with open(output_path, 'r+b') as file:
+        print("writing changes")
+        # write the binary buffer on top of the old binary
         file.seek(0xFD009000)
         file.write(bytearray(rom.buffer))
+        # do any modifications that require editing more than the binary here
         nocturne.patch_intro_skip(file)
 
 

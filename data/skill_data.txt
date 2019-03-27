@@ -219,7 +219,7 @@
 143 Void Phys 10 0
 14D Phys Drain 11 0
 152 Phys Repel 12 0
-047 Analyze 3 0
+047 Analyze 3 1
 0E0 Focus 5 1
 048 Trafuri 5 1
 0DF Beckon Call 6 1
