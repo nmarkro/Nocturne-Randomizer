@@ -38,6 +38,12 @@ def init_rom_data(rom_path):
 
 
 def generate_demon_permutation(demon_gen, easy_hospital = False):
+    def swap_demon(d1, d2):
+        for key, value in demon_map.items():
+            if value == d1.ind:
+                demon_map[d2.ind], demon_map[key] = demon_map[key], demon_map[d2.ind]
+                return
+
     all_demons = [d for d in nocturne.all_demons.values() if not d.is_boss]
     all_base = [d for d in all_demons if d.base_demon]
     all_elements = [d for d in all_demons if d.race == 7]
@@ -58,16 +64,15 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
             if new_demon.phys_inv:
                 # choose a new demon from all non-hospital, non-phys invalid demons
                 new_choice = random.choice([d for d in demon_pool if not d.phys_inv])
+                swap_demon(demon, new_choice)
                 # get the index of the new choice for swaping
-                for key, value in demon_map.items():
-                    if value == new_choice.ind:
-                        # swap the two demons in the map
-                        demon_map[demon.ind], demon_map[key] = new_choice.ind, demon_map[demon.ind]
-                        break
+                # for key, value in demon_map.items():
+                #     if value == new_choice.ind:
+                #         # swap the two demons in the map
+                #         demon_map[demon.ind], demon_map[key] = new_choice.ind, demon_map[demon.ind]
+                #         break
 
     for element in all_elements:
-        # fix element permutations to fit generated level
-        element = nocturne.lookup_demon(element.ind)
         # find the element in generated demons
         chosen_demon = None
         d = next((d for d in demon_gen.demons if d.name == element.name), None)
@@ -77,15 +82,14 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         # find the elemental in the map and swap
         if chosen_demon:
             demon_pool.remove(chosen_demon)
-            for key, value in demon_map.items():
-                if value == element.ind:
-                    demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
+            swap_demon(element, chosen_demon)
+            # for key, value in demon_map.items():
+            #     if value == element.ind:
+            #         demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
         else:
             print("Error finding mutation for " + element.name)   
 
     for mitama in all_mitamas:
-        # do the same as above but for Mitamas
-        mitama = nocturne.lookup_demon(mitama.ind)
         # find the mitama in generated demons
         chosen_demon = None
         d = next((d for d in demon_gen.demons if d.name == mitama.name), None)
@@ -95,10 +99,11 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         # find the mitama in the map and swap
         if chosen_demon:
             demon_pool.remove(chosen_demon)
-            for key, value in demon_map.items():
-                if value == mitama.ind:
-                    demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
-                    break
+            swap_demon(mitama, chosen_demon)
+            # for key, value in demon_map.items():
+            #     if value == mitama.ind:
+            #         demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
+            #         break
         else:
             print("Error finding mutation for " + mitama.name)
 
@@ -106,8 +111,6 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
     generated_fiends = [d for d in demon_gen.demons if races.raceref[d.race] == "Fiend"]
     random.shuffle(generated_fiends)
     for fiend in all_fiends:
-        # even more of the same but for fiends
-        fiend = nocturne.lookup_demon(fiend.ind)
         # use one of the randomly selected fiends
         chosen_demon = None
         gen_fiend = generated_fiends.pop()
@@ -117,15 +120,16 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         # find the fiend in the map and swap
         if chosen_demon:
             demon_pool.remove(chosen_demon)
-            for key, value in demon_map.items():
-                if value == fiend.ind:
-                    demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
-                    break
+            swap_demon(fiend, chosen_demon)
+            # for key, value in demon_map.items():
+            #     if value == fiend.ind:
+            #         demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
+            #         break
         else:
             print("Error finding mutation for " + fiend.name)
 
     #for key, value in demon_map.items():
-    #    print(demons.lookup(key).name + " -> " + demons.lookup(value).name)
+    #    print(nocturne.lookup_demon(key).name + " -> " + nocturne.lookup_demon(value).name)
 
     return demon_map
 

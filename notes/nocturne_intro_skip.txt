@@ -9,6 +9,8 @@ flags to set:
     6       in 615
     37      Sac fusion
     40      Compendium
+    7       Skips Hijiri SMC Terminal event
+    1086    SMC terminal
 
 use e506 for our hook
 call e506 from the start of e601
@@ -43,6 +45,8 @@ new e506 code:
         BIT_ON( 976 );
         BIT_ON( 1066 );
         BIT_ON( 6 );
+        BIT_ON( 7 );                // Hijiri Cutscene Flag
+        BIT_ON( 1094 );             // SMC Terminal Flag
         BIT_ON( 37 );               // Sac Fusion
         BIT_ON( 40 );               // Compendium
         BIT_ON( 1086 );             // Yoyogi Park Terminal Vending Machine
