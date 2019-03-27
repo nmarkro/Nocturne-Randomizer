@@ -34,11 +34,11 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 	No Flags
 618 Waking up in bed
 	No Flags
-619 Hikawa1
+619 Hijiri 1
 	Flags - 7, 446	
 621 Chiaki in Shibuya
-	Flags - 9, 
-623 Hikawa2
+	Flags - 9
+623 Hijiri 2
 	Flags - B, D, 5B (optional, NG+?)
 628 Isamu smacked in Ikebukuro
 	Flags - 22
@@ -93,7 +93,7 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 673 Mifunashiro post-boss
 	Opens Yurakucho Tunnel
 	Flags - 56, 903, 4CE, 4CF
-674 Diet Building Yuko & Hijiri
+674 Diet Building Yuko & Hikawa
 	Flags - 904 (Samael Probably), 72 (optional), 73, 3DA, 870, 76 (optional), 70 (optional), 71 (optional)
 677 Beating Noah
 	Flags - 61, 3E0
@@ -119,7 +119,7 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 	Flags - 27
 694 Demon Ending
 	No Flags
-697 Hijiri in Ikebukuro
+697 Hikawa in Ikebukuro
 	Opens Asakusa Tunnel with either 655 or 656
 	Flags - 57, 59 (optional)
 700 Blank
@@ -134,6 +134,64 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 	Flags - 92 (optional), 91 (optional), 93 (optional)
 705 Going to Kagutsuchi - Demon Ending?
 	Flags - 97 (x5)
+710 
+	Flags - 10C and 10F and 3EA
+711
+	Flags - 10B
+712
+	Flags - 10D and 10E, 103, 104
+713
+	Flags - 11A
+714
+	Flags - 11B
+715
+	Flags - 11F, 11C
+716
+	Flags - 120, 11E
+717
+	Flags - 11F, 117 (a lot)
+719
+	Flags - 126 and 8C1
+720
+	Flags - 125 (x2)
+721
+	Flags - 12A (x4)
+722
+	Flags - 12D (a lot)
+723
+	Flags - 100
+726
+	Flags - 12C
+728
+	Flags - 11D, 101
+729
+	Flags - 105
+730
+	Flags - 111, 123, 124, 102, 110, 111, 123, 124, 110
+731
+	Flags - 3EB
+740
+	Flags - 108, 921 and 3E9
+741
+	Flags - 10A, 922 and 3E8
+742
+	Flags - 107, 923 and 3E7
+743
+	Flags - 112, 91E and 3E4
+744
+	Flags - 106, 91F and 3E3
+745
+	Flags - 109, 920 and 3E2
+746
+	Flags - 113, 91D and 3E1
+747
+	Flags - 116, 924 and 3E6
+748
+	Flags - 118, 925 and 3E5
+749
+	Flags - 114, 928
+750
+	Flags - 115, 91B
 799 WHITE
 	No Flags
 800 Mido
@@ -154,3 +212,138 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 	No Flags
 809 Evolution
 	No Flags
+f004 - Ikebukuro Area
+	Flags - 
+		(10A is Hell Biker beat flag)
+		75B - Hell Biker Flames (never really set)
+		754 - Hell Biker Run Away attempt
+		75F - Hell Biker Ran Away
+f011 - Yoyogi Park Station - Pre-Conception
+	Flags - 
+		43F
+		43E
+		740 - Talked to Station Guy
+f012 - ???
+	Flags - 
+		3EF - Afterlife Bell
+		7CB - "Event Test"
+		6DB - Berith (!?)
+f013 - ??? (super short, no unique text)
+	Flags - 
+		4C3, 4C2 - Does some camera movement if not set
+f014 - SMC Front (pre and post conception)
+	Flags - 
+		420 - Probably SMC intro screen
+		435 - Chiaki left (pre-conception SMC)
+		2 - Short Textless Event
+		(I kind of don't care about these)
+		5, 2, 423, 421, 5 and 6, 427, 425, 5, 433, 432, 428, 429, 431
+f015 - SMC Annex
+	Flags - 
+		769 - Forneus Fight Cutscene
+		8 - Set at end of Forneus Fight Cutscene
+		20 - Got Pixie
+		456 - Say no to pixie (1)
+		455 - Say no to pixie (2)
+		449 - Use Annex Gate Pass
+		443 - Say you can beat Forneus
+		444 - Get Macca from Forneus bet
+		440 - Gets set going into room id 006
+		44A - "You can hear something in the room" id 006
+		451 - Go into tutorial cutscene
+		3D1 - Get Annex Gate Pass from Hijiri
+		442 - Unlock basement door
+		21 - 3x Preta Fight
+		3D1 - Beat Pretas and get Annex Gate Pass
+		453 - Same as ^
+		476 and 403 - Leave SMC
+		757 - Black Rider
+f016 - Yoyogi Park
+	Flags - 
+		464 - Warped by Pixies 1
+		465 - Warp Pixie Cutscene 1
+		46B - Warped by High Pixies
+		46C - Same as ^
+		463 - Same as ^
+		46D - Same as ^
+		46E - Same as ^
+		472 - Same as ^
+		470 - Same as ^
+		466 - Warp High Pixie Cutscene 1
+		46F - Warped by High Pixies
+		471 - Same as ^
+		474 - Post-Sakahagi Fairies Cutscene
+		467 - Area 3 Cutscene (trashed platform)
+		460 - Pixie Departure/Stay Cutscene
+		930 - Depart with Pixie
+		46A - Stay with Pixie
+		759 - The Harlot
+f017
+	Flags - 480 and 48E, 9, 48D, 488, 482, 484, 486, 755 x3
+f018
+	Flags - 4A0, 4A1, 4A2, 4A3, 4A6, 4A4, 4CE, 4CF, 4AB, E, 4AA
+f019
+	Flags - 4C0 and 914, 4C5, 785, 4C7, 4C6, 528, 4DF, 784, 4CD, 4CC, 755 x3
+f020
+	Flags - 4E0, 4FF, 6C0, 6C1, 4E4, 6DC, 3D4, 6D6, 6C2, 6C3, 6C4, 6D2, 6D3, 4E5 and 90A, 6C5, 6C6, 6C7, 700, 6DA and 6C8, 6DC, 4E0, F, 4E3, 3D3 and 6D6, 4E7, 4EB, 4EA, 4E8, 4E9, 3D2, 3D5, 3D4, 4EC, 4E0, 4ED, 4EE, 4F0, 4F1, 4F2, 4F4, 4F9, 4F5, 4FA, 4F6, 4FB, 657, 656
+f021
+	Flags - 500 and 509, 75A, 50A, 50B, 507, 502, 508, 503, 3DB, 504, 505, 505 and 506
+f022
+	Flags - 520, 522, 523, 524, 525, 751, 52A, 75C and 526, 3D7, 528, 52B, 3D7, 529, 3D6, 756
+f023
+	Flags - 540 and 54A and 931 and 56C, 549, 550, 551, 54B and 54C and 54D, 912, 544, 543, 547, 753, 755
+f024
+	Flags - 572, 560, 563, 564, 562, 569, 565, 566, 568, 567 and 840, 56B, 2B, 2A, 561, 56A, 56E
+f025
+	Flags - 580, 3D8, 58D, 58E, 591, 590, 58F, 587, 588, 592, 583, 58B, 58C, 586, 584, 585, 58A, 593, 58B and 58C, 594, 595 and 59C and 863, 595, 596, 589, 3D9, 59B, 24, 59A
+f026
+	Flags - 5A0 and 5A9, 5A7, 5A5 and 5A4 and 5A2 and 5A7, 5A2 and 90F, 5A3, 5a2 and 90F, 5A4 and 90E, 5A5 and 910, 5A6 and 911
+f027 - Asakusa
+	Flags - 
+		5C8 (silent city message)
+		5C0 (set after silent city)
+		5C7 (after talking to puzzle boy once)
+		5C6 (completed puzzle)
+		755 (ran away from White Rider)
+		755 (ran away from White Rider)
+		755 (ran away from White Rider)
+		758 (ran away from Pale Rider)
+		Hua Po Flag - 1 bit lower than 59. Seems to be 58 but setting 58 is nowhere to be found that makes sense. Written address is 0x0124d4b
+f028
+	Flags - 5E0, 5EB, 5EC, 5FC, 42, 5ED, 5E1, 5E2, 5E3, 5E4, 5E5, 5EE, 5EF, 5F0, 5EF, 5E6, 5E7
+f029
+	Flags - 600 and 475
+f030
+	Flags - 621
+f031
+	Flags - 652, 64A, 645, 653, 64B, 651, 649, 645, 640, 650, 64E, 64F, 642 and 90B and 90C and 90D, 642
+f032
+	Flags - 92, 93, 91, 94, 95, 660, 675, 676, 904, 673 and 904
+f033
+	Flags - 680, 69E, 685 and 918, 688, 689, 690, 686 and 916, 694, 687, 68A, 68C, 68E, 68B, 68D, 68F, 692, 693, 69F (a lot), 697, 698, 699, 69A, 69B, 696 and 917, 69A and 696 and 917, 69B and 696 and 917, 695, 69D, 691, 919
+f034
+	Flags - 6A8 and 6B7, (6A9 6AA 6AB 6AC 6AD 6AE 6AF), (6A0 6A8 51 54), (6A9 6AA 6AB 6AC 6AD 6AE 6AF), (6A0 6A8 51 54 73), (6A9 6AA 6AB 6AC 6AD 6AE 6AF), (6A0 6A8 51 54 73 96), (6A9 6AA 6AB 6AD 6AE 6AF), 6A0 and 6A8, 63, 6A0, 6AC, 6B0, 6AE, 6AD, 6B1, 6AF, 6B5, 6B6, 6A0, 6A7 (a lot), 6B3, 6AA and 902, 6B4, 6AB and 901, 6A4, 6A6, 6A3, 6A5, 6A2, 6B2, 6A9 and 900
+f035
+	Flags - 6E0, 2F, 3F, 6E3 and 6E7 and 5C8, 6E2, 6E4, 6E8, 6E9, 6E5
+f036
+	Flags - 660, 672, 670, 92, 93, 91, 94, 7F5, 7F7, 7F6, 7F8
+f037
+	Flags - 660, 667, 666, 66F, 674, 671 and 909, 665, 66A, 66C, 66B 66D 66E 669, 668
+f038
+	Flags - 710, 715, 713, 714, 712, 711, 716, 717
+f039
+	Flags - 731, 732 and 91A, 733
+f040
+	Flags - 762, 783, 7A4, 7C5, 7E2, 75E, 750, 752, 7D3
+f041
+	Flags - 3E9, 760, 761, 762, 768, 7D3, 3EE, 8, 4C5, 3EE and 8 and 4C5, 8A0, (8A0 A01 A03 A05 A07 A09 A0B A0D A0F A11 A13 A15 A17 A19 A1B A1D A1F A21 A23 A25 A27 A29 A2B A2D A2F), A00, 764, A01, A02, 765, A03, 3EE, 567, 3EE and 567, A04, 766, A05, A06, 767, A07, 763, 133, 130, 13A
+f042
+	Flags - 3E8, 3E7, 3E8 and 3E7, 780, 781, 783, 782, 128, 78A, 78B, 7D3, 3EE, 6D6, 16, 642, 595, (3EE 6D6 16 642 595) x2, A08, 786, A09, A0A, 787, A0B, A0C, 788, A0D, A0E, 789, A0F, 134
+f043
+	Flags - 3E4, 3E2, 3E3, 3E4 and 3E2 and 3E3, 7A0, 7A1, 7A4, 7A2, 7A3, 12B, 7B8, 7B3, 7D3, 7BA, 7A6, 7B9 and 7AA, 7A7, 7A9, 7A8, 7B1, 7B2, 7BA, 7B3, 7B4, 7B5, 7BB, 3EE, 5A4, 5A2, 5A5, (3EE, 5A4, 5A2, 5A5), 5A6, 488, 59A, (3EE 5A6 488 59A), A10, 7AB, A11, A12, 7AC, A13, A14, 7AD, A15, A16, 7AE, A17, A18, 7AF, A19, A1A, 7B0, A1B, 7BB, 929, 131, 135, 136
+f044
+	Flags - 3EB, 3E1, 3E6, 3E5, (3EB 3E1 3E6 3E6), 7C0, 7C1, 7C2, 7C3, 7C4, 7C5, 7D3, 3EE, 621, 4A, (3EE 621 4A), 6A9, 6AA, 6AB, (3EE 6A9 6AA 6AB), A1C, 7C6, A1D, A1E, 7C7, A1F, A20, 7C8, A21, A22, 7C9, A23, A24, 7CA, A25, 7CC, 7CD, 7CE, 7D2, 7D0 and 927, 7D1, 7CF and 926, 7D4, 12E, 138
+f045
+	Flags - 3EA, 7E0, 7E1, 7E2, 7EE, 7EF, 3EE, 691, 671, (3EE 691 671), 75, 51, 83, (3EE 75 61 83), C0F, A26, 7E3, A27, A28, 7E4, A29, A2A, 7E5, A2B, A2C, 7E6, A2D, A2E, 7E7, A2F, 7ED, 20, 914 and 915, 7E9, 7EC, 7EB, 7EA, 139, 8C0, 7F0, 7F1, 7F2, 7F4, 7F3, 440
+f100 - Probably unused Ikebukuro Tunnel (text in Japanese)
+	Flags - 40, 54 and 55 and 56, 56, 57, 55, 54, 58
