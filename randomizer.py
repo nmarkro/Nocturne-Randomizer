@@ -433,15 +433,17 @@ def randomize_boss_battles(world):
         old_boss_demon = next((nocturne.lookup_demon(d) for d in old_boss.battle.enemies if d > 0), None)
         new_boss_demon = copy.copy(next((nocturne.lookup_demon(d) for d in new_boss.battle.enemies if d > 0), None))
 
-        # only rebalance bosses that change checks
+        new_level = old_boss_demon.level
+
+        new_hp = old_boss_demon.hp
+        new_mp = old_boss_demon.mp
+
+        new_exp = old_boss_demon.exp_drop
+        new_macca = old_boss_demon.macca_drop
+        
         if old_boss is not new_boss:
-            new_level = old_boss_demon.level
             if new_level < new_boss_demon.level:
                 new_level /= 2
-
-            new_hp = old_boss_demon.hp
-            new_mp = old_boss_demon.mp
-            
             # if the new boss is replacing the Sisters triple hp and mp 
             if old_boss_demon.name == "Atropos 2 (Boss)":
                 new_hp *= 3
@@ -454,31 +456,29 @@ def randomize_boss_battles(world):
             if new_boss_demon.name == "Mara (Boss)":
                 new_hp = round(new_hp / 2)
                 new_hp = min(new_hp, 4000)
-            new_exp = old_boss_demon.exp_drop
-            new_macca = old_boss_demon.macca_drop
-            balanced_demon = rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=config_exp_modifier, stat_mod=1)
-            boss_demons.append(balanced_demon)
-            # balance any extra demons that show up in the fight
-            extras = boss_extras.get(new_boss_demon.name)
-            if extras:
-                new_hp = -1
-                new_mp = -1
-                new_level = balanced_demon.level
-                stat_mod = 1
-                if new_boss_demon.name in ['White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)']:
-                    stat_mod = 0.1
-                    new_level = round(new_level * 0.6)
-                elif new_boss_demon.name == 'Albion (Boss)':
-                    stat_mod = 0.5
-                    new_level = round(new_level * 0.75)
-                elif new_boss_demon.name == "Atropos 2 (Boss)":
-                    new_hp = balanced_demon.hp
-                    new_mp = balanced_demon.mp
-                for d in extras:
-                    d = rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=config_exp_modifier, stat_mod=stat_mod)
-                    boss_demons.append(d)
             if config_always_go_first:
                 boss_battle.goes_first = 0x0D
+        balanced_demon = rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=config_exp_modifier, stat_mod=1)
+        boss_demons.append(balanced_demon)
+        # balance any extra demons that show up in the fight
+        extras = boss_extras.get(new_boss_demon.name)
+        if extras and old_boss is not new_boss:
+            new_hp = -1
+            new_mp = -1
+            new_level = balanced_demon.level
+            stat_mod = 1
+            if new_boss_demon.name in ['White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)']:
+                stat_mod = 0.1
+                new_level = round(new_level * 0.6)
+            elif new_boss_demon.name == 'Albion (Boss)':
+                stat_mod = 0.5
+                new_level = round(new_level * 0.75)
+            elif new_boss_demon.name == "Atropos 2 (Boss)":
+                new_hp = balanced_demon.hp
+                new_mp = balanced_demon.mp
+            for d in extras:
+                d = rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=config_exp_modifier, stat_mod=stat_mod)
+                boss_demons.append(d)
 
         # get rid of any vanilla magatama drops
         if 345 >= boss_battle.reward >= 320:

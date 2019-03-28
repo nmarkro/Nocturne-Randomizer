@@ -1,6 +1,5 @@
 flags to set:
     18      in 601
-    2208    in 601      NG+ for first person camera?
     1       in 602
     3       in 604
     5       in 605
@@ -38,7 +37,6 @@ new e506 code:
     void e506_main()
     {
         BIT_ON( 18 );               // Set flags from skipped cutscenes
-        BIT_ON( 2208 );
         BIT_ON( 1 );
         BIT_ON( 3 );
         BIT_ON( 5 );
