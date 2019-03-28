@@ -523,6 +523,8 @@ def write_all(rom, world):
     remove_shop_magatamas(rom)
     # patch the fusion table using the generated elemental results
     fix_elemental_fusion_table(rom, world.demon_generator)
+    # swap tyrant to vile for pale rider, the harlot, & trumpeter fusion
+    rom.write_byte(0x12, 0x22EDE3)
     if randomizer.config_fix_tutorial:
         print("fixing tutorials")
         patch_fix_tutorials(rom)
