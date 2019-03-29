@@ -27,86 +27,182 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 614 Just before waking up
 	No Flags
 615 Intro Hikawa
-	Flags - 42A, 6
+	Flags - 42A - Does not appear to be checked
+		6 - Checked in SMC scripts
 616 World Ends
 	No Flags
 617 Intro getting magatama'd
 	No Flags
 618 Waking up in bed
 	No Flags
-619 Hijiri 1
-	Flags - 7, 446	
+619 Hijiri in SMC
+	Flags - 
+		7 - Only checked here
+		446 - Does not appear to be checked
 621 Chiaki in Shibuya
-	Flags - 9
+	Flags - 
+		9 - Checked in Shibuya scripts
 623 Hijiri 2
-	Flags - B, D, 5B (optional, NG+?)
+	Flags - 
+		B - Only checked here
+		D - Checked nowhere
+		5B (optional, NG+?) - Only checked here
 628 Isamu smacked in Ikebukuro
-	Flags - 22
+	Flags - 
+		22 - Only checked here
 629 Gozu Tennoh 1st (+2 demons)
 	Opens Ginza -> East Nihilo
-	Flags - 1A, 867, 1B (optional), 1B (optional)
+	Flags - 
+		1A - Checked in 700 (?), Ginza scripts, Ginza Underpass scripts, Ikebukuro scripts, Mantra scripts, LoA 1 Scripts, 
+		867 - Checked Nowhere
+		1B (optional) - Checked Nowhere
 632 In Nihilo w/Hijiri
-	Flags - F, 1F (optional), 1E (optional), 1F (optional), 1E (optional), 1D
+	Flags - 
+		F - Checked 4x in East Nihilo
+		1F - Unchecked
+		1E - Unchecked
+		1D - Only checked here
 634 Defeating Ose
-	Flags - 16, 56C, 56D, 29
+	Flags - 
+		16 - Checked in e628, e700, Ginza Area, Ikebukuro Area, Shibuya, East Nihilo, Ginza Underpass, Ikebukuro, Mantra HQ, 2nd Kalpa
+		56C - Unchecked
+		56D - Unchecked
+		29 - Only checked here
 635 Ikebukuro front w/Chiaki
-	Flags - 17, 19
+	Flags - 
+		17 - Checked in e628, Mantra HQ
+		19 - Checked in e672 (Mifunashiro boss decision)
 636 Gozu Tennoh 2nd - post Nihilo
-	Opens Ikebukuro back with 639
-	Flags - 26
+	Flags - 
+		26 - Checked in e700, Ginza, Ikebukuro, Mantra HQ, 1st Kalpa
 639 Kabukicho Prison Isamu scene
-	Flags - 23
+	Flags - 
+		23 - Checked here and Kabukicho Prison
 640 With Hijiri at Terminal - Multiple Uses (Ginza only?)
-	Flags - 2C, 2D (optional)
+	Flags - 
+		2C - Checked Here and Ginza 
+		2D - Checked Here
 644 Sakahagi scene - Introduction
-	Flags - 2E
+	Flags - 
+		2E - Checked in 646 (2x)
 646 Asakusa Hijiri - Multiple uses
-	Flags - 34, 30, 31, 32, 33 (optional), 34, 35, 405
+	Flags - 
+		34 - Checked Here (1x)
+		30 - Checked Here (1x)
+		31 - Checked Here (1x)
+		32 - Checked Here (1x)
+		33 - Checked Here (3x)
+		35 - Checked Here (3x)
+		405 - Unchecked
 650 Talking to Lucy in Obelisk
 	No Flags
 651 Saving Yuko in Obelisk (+2 demons)
-	Flags - 3E, 483, 36
+	Flags - 
+		3E - Checked in Ikebukuro Area, Obelisk Area, SMC Annex, Shibuya, Ginza, Ikebukuro, Mantra HQ, Asakusa, Obelisk, Mifunashiro, 1st Kalpa
+		483 - Checked in Shibuya
+		36 - Unchecked
 652 Post-Obelisk Hijiri
-	Flags - 40, 41
+	Flags - 
+		40 - Checked Here (3x)
+		41 - Unchecked
 655 Isamu in Amala Network 2
-	Flags - 63 (optional), 44, 45 (optional)
+	Flags - 
+		63 - Checked in Amala Temple
+		44 - Checked here and Mifunashiro
+		45 - Checked in 670
 656 Hijiri after Amala Network 2
-	Flags - 46 (optional), 46 (optional), 5A (optional), 5A (optional), 3B
+	Flags - 
+		46 - Checked here (6x)
+		5A - Checked here (4x)
+		3B - Checked here (2x)
 657 Yuko in Yoyogi (Yoyogi Key)
-	Flags - 48 and 3DD (optional), 4C (optional)
+	Flags - 
+		48 and 3DD:
+			48 - Checked Here and Yoyogi Park
+			3DD - Unchecked
+		4C - Checked here and 659
 658 Sakahagi + Girimehkala Fight
-	Flags - 47, 4A, 3DA, 908, 49
+	Flags - 
+		47 - Checked here
+		4A - Checked in 701, Yoyogi Park (a lot), 4th Kalpa
+		3DA - Unchecked
+		908 - Unchecked
+		49 - Checked here
 659 Giving Yuko thing back in Yoyogi
-	Flags - 4B, 75D, 4E (optional)
+	Flags - 
+		4B - Checked in 701, Yoyogi Park, Mantra HQ, Mifunashiro, 1st Kalpa
+		75D - Unchecked
+		4E - Checked in 704
 660 Hijiri - One of his Asakusa things
-	Flags - 4D
+	Flags - 
+		4D - Checked here and 700
 661 Gozu Tenno 3rd - Chiaki growing arm
-	Flags - 4F, 861, 599, 570, 59D, 59E, 54E, 862
+	Flags - 
+		4F - Checked in 700, Shibuya, Ginza, Ikebukuro, Mantra HQ
+		861 - Unchecked
+		599 - Unchecked
+		570 - Unchecked
+		59D - Checked in Kabukicho Prison
+		59E - Unchecked
+		54E - Unchecked
+		862 - Unchecked
 662 Asakusa going into Amala Network 3
-	Flags - 52, 53 (optional), 44 (optional), 3A (optional)
+	Flags - 
+		52 - Checked Here
+		53 - Unchecked
+		44 - Checked in 655 and Mifunashiro
+		3A - Unchecked
 670 Isamu dumping Hijiri in Amala Temple
-	Flags - 60 (optional), 51, 864, 60 (optional)
+	Flags - 
+		60 - Checked in 704
+		51 - Checked in 703, Amala Temple
+		864 - Unchecked
 671 Isamu turning into Noah
-	Flags - 54
+	Flags - 
+		54 - Checked in Shibuya, Ginza, Asakusa (a lot), Amala Temple
 672 Mifunashiro boss decision
-	Flags - 55, 81 (optional)
+	Flags - 
+		55 - Checked in 702
+		81 - Checked in 673 and 704
 673 Mifunashiro post-boss
 	Opens Yurakucho Tunnel
-	Flags - 56, 903, 4CE, 4CF
+	Flags - 
+		56 - Checked in 702, Shibuya, Ginza, Asakusa, Mifunashiro, 1st Kalpa, 2nd Kalpa, 3rd Kalpa, 4th Kalpa, 5th Kalpa
+		903 - Unchecked
+		4CE - Checked in Amala Network (!?)
+		4CF - Unchecked
 674 Diet Building Yuko & Hikawa
-	Flags - 904 (Samael Probably), 72 (optional), 73, 3DA, 870, 76 (optional), 70 (optional), 71 (optional)
+	Flags - 
+		904 - Unchecked (Samael probably)
+		72 - Checked here and ToK1
+		73 - Checked here, SMC Annex, Yurakucho Tunnel, Diet Building, Amala Temple
+		3DA - Unchecked
+		870 - Unchecked
+		76 - Checked in 704
+		70 - Checked here
+		71 - Checked here and 704
 677 Beating Noah
-	Flags - 61, 3E0
+	Flags - 
+		61 - Checked ToK2, ToK3, 5th Kalpa
+		3E0 - Unchecked
 678 Beating Ahriman
-	Flags - 74, 3DF
+	Flags - 
+		74 - Checked ToK3
+		3DF - Unchecked
 679 Beating Baal
-	Flags - 84, 3DE
+	Flags - 
+		84 - Checked ToK3
+		3DE - Unchecked
 680 Encountering Noah
-	Flags - 62
+	Flags - 
+		62 - Unchecked
 681 Encountering Ahriman
-	Flags - 74 (optional), 75, 75, 74
+	Flags - 
+		74 - Checked ToK3
+		75 - Checked 5th Kalpa
 682 Encountering Baal
-	Flags - 83
+	Flags - 
+		83 - Checked 5th Kalpa
 684 Yosuga Ending
 	No Flags
 686 Shijima Ending
@@ -116,12 +212,15 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 692 Clear data save
 	No Flags
 693 Neutral Ending
-	Flags - 27
+	Flags - 
+		27 - Checked Here
 694 Demon Ending
 	No Flags
 697 Hikawa in Ikebukuro
 	Opens Asakusa Tunnel with either 655 or 656
-	Flags - 57, 59 (optional)
+	Flags - 
+		57 - Checked in 656, Ikebukuro, Mifunashiro
+		59 - Checked in 674
 700 Blank
 	No Flags
 701 Yuko in Yoyogi Park (Yoyogi Key) [Dupe?]
@@ -129,73 +228,166 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 702 Mifunashiro boss decision [Dupe?]
 	No Flags
 703 Amala Temple dumping Hijiri
-	Flags - 96, 868 (twice?), 54F
-704 Kagutsuchi Intro [Dupe?]
-	Flags - 92 (optional), 91 (optional), 93 (optional)
+	Flags - 
+		96 - Checked Here, Shibuya, Ginza, East Nihilo, Asakusa, Obelisk, Amala Temple, 1st Kalpa, 2nd Kalpa, 3rd Kalpa, 4th Kalpa, 5th Kalpa
+		868 (twice?) - Unchecked
+		54F - Unchecked
+704 Kagutsuchi Decision
+	Flags - 
+		92 - Reason Shijima - Checked in: 681, 682, 704, 705, 717, 751, 752, 753, 754, 755, ToK1, ToK2, LoA Lobby, 1st Kalpa, 2nd Kalpa, 3rd Kalpa, 5th Kalpa
+		91 - Reason Yosuga - Checked in: 679, 682, 704, 705, 717, 751, 752, 753, 754, 755, ToK1, ToK3, LoA Lobby, 1st Kalpa, 2nd Kalpa, 3rd Kalpa, 5th Kalpa
+		93 - Reason Musubi - Checked in: 677, 680, 682, 704, 705, 717, 751, 752, 753, 754, 755, ToK1, ToK2, LoA Lobby, 1st Kalpa, 2nd Kalpa, 3rd Kalpa, 5th Kalpa
 705 Going to Kagutsuchi - Demon Ending?
-	Flags - 97 (x5)
+	Flags - 
+		97 (x5) - Checked Here
 710 LoA Lobby Cutscene 1
-	Flags - 10C and 10F and 3EA
+	Flags - 
+		10C and 10F and 3EA
+			10C - Unchecked
+			10F - Checked in 751, LoA Lobby
+			3EA - Checked in 5th Kalpa
 711 LoA Lobby Cutscene 2
-	Flags - 10B
+	Flags - 
+		10B - Checked in 720, 751, LoA Lobby
 712 LoA 1st Kalpa Cutscene
-	Flags - 10D and 10E, 103, 104
+	Flags - 
+		10D and 10E
+			10D - Unchecked
+			10E - Checked in 720, 751, 752
+		103 - Checked Here
+		104 - Checked Here
 713 LoA 2nd Kalpa Cutscene
-	Flags - 11A
+	Flags - 
+		11A - Checked in 751, 752, 753
 714 LoA 3rd Kalpa Cutscene
-	Flags - 11B
+	Flags - 
+		11B - Checked in 751, 752, 753, 754
 715 LoA 4th Kalpa Cutscene
-	Flags - 11F, 11C
+	Flags - 
+		11F - Checked in 717, 751, 752, 753, 754, 755
+		11C - Checked in 717, 751, 752, 753, 754, 755
 716 LoA Afterlife Bell Cutscene
-	Flags - 120, 11E
+	Flags - 
+		120 - Checked Here
+		11E - Checked in 751, 752, 753, 754, 755, 1st Kalpa, 2nd Kalpa, 3rd Kalpa, 4th Kalpa
 717 LoA Repeat
-	Flags - 11F, 117 (a lot)
+	Flags - 
+		11F - Checked Here, 751, 752, 753, 754, 755
+		117 (a lot) - Checked 712, 713, 714, 715, 716, Here
 718 LoA Complete
 	No Flags
 719 LoA Complete 2
-	Flags - 126 and 8C1
+	Flags - 
+		126 and 8C1
+			126 - Checked in 703, 704, 705, 717, 751, 752, 753, 754, 755, 5th Kalpa
+			8C1 - Unchecked
 720 LoA Repeat 2
-	Flags - 125 (x2)
+	Flags - 
+		125 (x2) - Checked in 712 and Here
 721 LoA Repeat 3
-	Flags - 12A (x4)
+	Flags - 
+		12A (x4) - Checked in 712, 713 and Here
 722 LoA Repeat 4
-	Flags - 12D (a lot)
+	Flags - 
+		12D (a lot) - Checked in 712, 713, 714, 716 and Here
 723 Dante 1
-	Flags - 100
+	Flags - 
+		100 - Checked Here, Ikebukuro
 726 Fight Lucy
-	Flags - 12C
+	Flags - 
+		12C - Checked Here
 727 TDE
 	No Flags
 728 Meet Dante 2
-	Flags - 11D, 101
+	Flags - 
+		11D - Unchecked
+		101 - Checked Here, 3rd Kalpa
 729 Dante 2 Start
-	Flags - 105
+	Flags - 
+		105 - Checked Here, 1st Kalpa, 3rd Kalpa (a lot)
 730 Recruit Dante
-	Flags - 111, 123, 124, 102, 110, 111, 123, 124, 110
+	Flags - 
+		111 - Unchecked
+		123 - Unchecked
+		124 - Unchecked
+		102 - Unchecked
+		110 - Checked Here
 731 Dante 2 End
-	Flags - 3EB
+	Flags - 
+		3EB - Checked in 4th Kalpa
 740 Matador Fight
-	Flags - 108, 921 and 3E9
+	Flags - 
+		108 - Checked here and Ginza Underpass
+		921 and 3E9
+			921 - Unchecked
+			3E9 - 1st Kalpa
 741 Hell Biker Fight
-	Flags - 10A, 922 and 3E8
+	Flags - 
+		10A - Checked here, Ikebukuro Area, 1st Kalpa
+		922 and 3E8
+			922 - Unchecked
+			3E8 - 2nd Kalpa
 742 Daisoujou
-	Flags - 107, 923 and 3E7
+	Flags - 
+		107 - Checked here, Ikebukuro, 1st Kalpa
+		923 and 3E7
+			923 - Unchecked
+			3E7 - 2nd Kalpa
 743 White Rider
-	Flags - 112, 91E and 3E4
+	Flags - 
+		112 - Checked here, Shibuya, Ginza, Ginza Underpass, Ikebukuro, Asakusa, 1st Kalpa
+		91E and 3E4
+			91E - Unchecked
+			3E4 - 3rd Kalpa
 744 Red Rider
-	Flags - 106, 91F and 3E3
+	Flags - 
+		106 - Here, SMC Annex, Ginza Underpass, 1st Kalpa
+		91F and 3E3
+			91F - Unchecked
+			3E3 - 3rd Kalpa
 745 Black Rider
-	Flags - 109, 920 and 3E2
+	Flags - 
+		109 - Here, SMC Annex, Asakusa, 1st Kalpa
+		920 and 3E2
+			91F - Unchecked
+			3E2 - 3rd Kalpa
 746 Pale Rider
-	Flags - 113, 91D and 3E1
+	Flags - 
+		113 - Here, Asakusa, 1st Kalpa
+		91D and 3E1
+			91F - Unchecked
+			3E1 - 4th Kalpa
 747 The Harlot
-	Flags - 116, 924 and 3E6
+	Flags - 
+		116 - Here, Yoyogi Park, 1st Kalpa
+		924 and 3E6
+			924 - Unchecked
+			3E6 - 4th Kalpa
 748 Trumpeter
-	Flags - 118, 925 and 3E5
+	Flags - 
+		118 - Here, Yurakucho Tunnel, 1st Kalpa
+		925 and 3E5
+			925 - Unchecked
+			3E5 - 4th Kalpa
+	*Note - 3EA is checked in 5th Kalpa!
 749 Beelzebub
-	Flags - 114, 928
+	Flags - 
+		114 - Here
+		928 - Unchecked
 750 Metatron
-	Flags - 115, 91B
+	Flags - 
+		115 - Here
+		91B - Unchecked
+751 ??? (Pure code, no text)
+	No Flags
+752 ??? (Pure code, no text)
+	No Flags
+753 ??? (Pure code, no text)
+	No Flags
+754 ??? (Pure code, no text)
+	No Flags
+755 ??? (Pure code, no text)
+	No Flags
 799 WHITE
 	No Flags
 800 Mido
@@ -216,12 +408,26 @@ Script descriptions came from seeing them in Vanilla SMT3 Debug mode, so Maniax 
 	No Flags
 809 Evolution
 	No Flags
+f001 - Pre-Conception outside
+	No Flags
+f002 - Shinjuku/Yoyogi/Shibuya Area
+	No Flags
+f003 - Ginza Area
+	No Flags
 f004 - Ikebukuro Area
 	Flags - 
 		(10A is Hell Biker beat flag)
 		75B - Hell Biker Flames (never really set)
 		754 - Hell Biker Run Away attempt
 		75F - Hell Biker Ran Away
+f005 - Asakusa Area
+	No Flags
+f006 - Obelisk Area
+	No Flags
+f007 - Obelisk Area w/ToK
+	No Flags
+f008 - Unknown (Amala Temple + Diet Building area?)
+	No Flags
 f011 - Yoyogi Park Station - Pre-Conception
 	Flags - 
 		43F
@@ -426,36 +632,44 @@ f024 - Mantra HQ
 		56E - Say no to a dude locking out a convo
 f025 - Kabukicho Prison
 	Flags - 
-		580
-		3D8
-		58D
-		58E
-		591
-		590
-		58F
-		587
-		588
-		592
-		583
-		58B
-		58C
-		586
-		584
-		585
-		58A
-		593
-		58B and 58C
-		594
-		595 and 59C and 863
-		595
-		596
-		589
-		3D9
-		59B
-		24
-		59A
+		580 - Intro Splash
+		3D8 - Umugi Stone
+		58D - Textless event on room 002 (gate?)
+		58E - Textless event on room 003 (gate?)
+		591 - Textless event on room 004 (gate?)
+		590 - Textless event on room 003 (gate?)
+		58F - Textless event on room 003 (gate?)
+		587 - Set going into room 006
+		588 - "No one is here" message in room 010
+		592 - Jumped into dug hole (or not?)
+		583 - Talked to Futomimi after Isamu
+		58B - Manikin scream
+		58C - Manikin scream 2
+		586 - 1F guard Naga w/Umugi stone
+		584 - Text just before ^
+		585 - Naga torturing Manikin. Before ^
+		58A - Talk to Jack Frost. If on text is difference when upside-down.
+		593 - Manikin talking after digging out
+		58B and 58C - "The manikin is unconscious" (room 021 event)
+		594 - "Go defeat Mizuchi" text
+		595 and 59C and 863 - Fighting Mizuchi (loaded room event)
+		595 - Also fighting Mizuchi (triggered event)
+		596 - Manikin digs
+		589 - Manikin broke spoon
+		3D9 - Get spoon
+		59B - Beat Black Frost
+		24 - Talk to Futomimi before Isamu
+		59A - Encounter Black Frost
 f026 - Ikebukuro Tunnel
-	Flags - 5A0 and 5A9, 5A7, 5A5 and 5A4 and 5A2 and 5A7, 5A2 and 90F, 5A3, 5a2 and 90F, 5A4 and 90E, 5A5 and 910, 5A6 and 911
+	Flags - 
+		5A0 and 5A9 - Entrance
+		5A7 - Set when entering room 011 (Ongyoki room?)
+		5A5 and 5A4 and 5A2 and 5A7 - Event of room 011
+		5A2 and 90F - Fight Sui-Ki
+		5A3 - Say hi to Sui-Ki (convo flag)
+		5A4 and 90E - Fight Kin-Ki
+		5A5 and 910 - Fight Fuu-Ki
+		5A6 and 911 - Fight Ongyo-Ki
 f027 - Asakusa
 	Flags - 
 		5C8 (silent city message)
@@ -468,7 +682,24 @@ f027 - Asakusa
 		758 (ran away from Pale Rider)
 		Hua Po Flag - 1 bit lower than 59. Seems to be 58 but setting 58 is nowhere to be found that makes sense. Written address is 0x0124d4b
 f028 - Amala Network 2
-	Flags - 5E0, 5EB, 5EC, 5FC, 42, 5ED, 5E1, 5E2, 5E3, 5E4, 5E5, 5EE, 5EF, 5F0, 5EF, 5E6, 5E7
+	Flags - 
+		5E0 - Entrance
+		5EB - Hijiri text
+		5EC - Specter 2
+		5FC - Shadow text (convo flag for repeat)
+		42 - Shadow done talking
+		5ED - Go into room 012 (call the event?)
+		5E1 - Wall flag? - "I do what I like. No one tells me what to do"
+		5E2 - Wall flag? - "I have the strength to be able to live on my own"
+		5E3 - Wall flag? - "Society didn't shun me, I sunned the society!"
+		5E4 - Wall flag? - "In the end, the only one you can trust is yourself."
+		5E5 - Wall flag? - "I don't want to talk to anyone. Scram!"
+		5EE - Beat Specter 2
+		5EF - Wall flag - (Same text as 5e2)
+		5F0 - Wall flag - (Same text as 5e3)
+		5EF - Wall flag - (Same text as 5e2)
+		5E6 - Wall flag - "I think, therefore I am..."
+		5E7 - Wall flag - "...To be strong is to be solitary."
 f029 - Asakusa Tunnel
 	Flags - 
 		600 and 475 - Area display flag
@@ -477,150 +708,151 @@ f030 - Amala Network 3
 		621 - Specter 3
 f031 - Obelisk
 	Flags - 
-		652
-		64A
-		645
-		653
-		64B
-		651
-		649
-		645
-		640
-		650
-		64E
-		64F
-		642 and 90B and 90C and 90D
-		642
+		652 - Fight Lachesis 1
+		64A - Fight Lachesis 2
+		645 - Fight Lachesis 3
+		653 - Fight Atropos 1
+		64B - Fight Atropos 2
+		651 - Fight Clotho 1
+		649 - Fight Clotho 2
+		645 - Fight Clotho 3
+		640 - Entrance
+		650 - Sisters talk near entrance
+		64E - Touch sphere
+		64F - Undoes ^ (puzzle effect off?)
+		642 and 90B and 90C and 90D - Beat Sisters
+		642 - Beat Sisters
 f032 - Tower of Kagutsuchi 1
 	Flags - 
-		92
-		93
-		91
-		94
-		95
-		660
-		675
-		676
-		904
-		673 and 904
+		92 - Reason Shijima
+		93 - Reason Musubi
+		91 - Reason Yosuga
+		94 - Reason Demon
+		95 - Reason Neutral
+			Note: These are set as part of a debug event
+		660 - Entrance
+		675 - Room 017 textless event 03
+		676 - Room 017 textless event 04
+		904 - Samael event
+		673 and 904 - Samael event
 f033 - Diet Building
 	Flags - 
-		680
-		69E
-		685 and 918
-		688
-		689
-		690
-		686 and 916
-		694
-		687
-		68A
-		68C
-		68E
-		68B
-		68D
-		68F
-		692
-		693
-		69F (a lot)
-		697
-		698
-		699
-		69A
-		69B
-		696 and 917
-		69A and 696 and 917
-		69B and 696 and 917
-		695
-		69D
-		691
-		919
+		680 - Entrance
+		69E - Start Message
+		685 and 918 - Fight Surt
+		688 - Post-Surt message ("He beat Surt")
+		689 - Post-Mada message ("He beat Surt and Mada")
+		690 - Mada fight message
+		686 and 916 - Fight mada
+		694 - Textless event of room 017 (set if Mada hasn't been fought)
+		687 - Undo Mot's magic
+		68A - Mot block 1
+		68C - Mot block 2
+		68E - Mot block 3
+		68B - Mot block 4
+		68D - Mot block 5
+		68F - Mot block 6
+		692 - Mot block 7
+		693 - Mot block 8
+		69F (a lot) - Warped back from trap
+		697 - Probably random mot spot
+		698 - ^
+		699 - ^
+		69A - Found Mot
+		69B - Found Mot
+		696 and 917 - Fight Mot
+		69A and 696 and 917 - Fight Mot
+		69B and 696 and 917 - Fight Mot
+		695 - Hiding Mot text
+		69D - Text going into room "Hath the destroyer appeared"
+		691 - Mithra Text
+		919 - Fight Mithra
 f034 - Amala Temple
 	Flags - 
-		6A8 and 6B7
-		(6A9 6AA 6AB 6AC 6AD 6AE 6AF)
-		(6A0 6A8 51 54)
-		(6A9 6AA 6AB 6AC 6AD 6AE 6AF)
-		(6A0 6A8 51 54 73)
-		(6A9 6AA 6AB 6AC 6AD 6AE 6AF)
-		(6A0 6A8 51 54 73 96)
-		(6A9 6AA 6AB 6AD 6AE 6AF)
-		6A0 and 6A8
-		63
-		6A0
-		6AC
-		6B0
-		6AE
-		6AD
-		6B1
-		6AF
-		6B5
-		6B6
-		6A0
-		6A7 (a lot)
-		6B3
-		6AA and 902
-		6B4
-		6AB and 901
-		6A4
-		6A6
-		6A3
-		6A5
-		6A2
-		6B2
-		6A9 and 900
+		6A8 and 6B7 - Isamu entrance text (inside)
+		(6A9 6AA 6AB 6AC 6AD 6AE 6AF) + (6A0 6A8 51 54) - Debug: Isamu becomes Noah
+		(6A9 6AA 6AB 6AC 6AD 6AE 6AF) + (6A0 6A8 51 54 73) - Debug: Get Pyramidion
+		(6A9 6AA 6AB 6AC 6AD 6AE 6AF) + (6A0 6A8 51 54 73 96) - Debug: Set Pyramidion
+		(6A9 6AA 6AB 6AD 6AE 6AF) + (6A0 6A8) - Debug: Break seal to all Pyramids
+		63 - Debug: Agree to Musubi
+		6A0 - Isamu entrance text (outside)
+		6AC - Beat a temple text
+		6B0 - Beat a temple (set when 6AE and 6AC are set)
+		6AE - Beat a temple text
+		6AD - Beat a temple text
+		6B1 - (Some sort of flag with positioning after beating a temple?)
+		6AF - Go into center temple text
+		6B5 - Divines text after center temple
+		6B6 - Kagutsuchi text (probably with Pyramidion)
+		6A0 - Entering 004 (temple entrance?)
+		6A7 (a lot) - Got grabbed in Red Temple
+		6B3 - "Strong power" text box
+		6AA and 902 - Skadi fight
+		6B4 - "Strong power" text box
+		6AB and 901 - Albion fight
+		6A4 - Entering 006 (temple entrance?)
+		6A6 - Entering 006 (temple entrance?)
+		6A3 - Set going in 007, unset going in 009 (???)
+		6A5 - Set with event in 007, unset going in 009
+		6A2 - Put out black flame
+		6B2 - "Strong power" text box
+		6A9 and 900 - Aciel fight
 f035 - Mifunashiro
 	Flags - 
-		6E0
-		2F
-		3F
-		6E3 and 6E7 and 5C8
-		6E2
-		6E4
-		6E8
-		6E9
-		6E5
+		6E0 - Entrance (to 010)
+		2F - Futomimi Conversation
+		3F - Futomimi going to Yoyogi
+		6E3 and 6E7 and 5C8 - Entrance (to 001)
+		6E2 - Also Entrance (001)
+		6E4 - Conversation flag 1
+		6E8 - Conversation flag 2
+		6E9 - ^ Say Yes
+		6E5 - Divines conversation
 f036 - Tower of Kagutsuchi 2
 	Flags - 
-		660
-		672
-		670
-		92
-		93
-		91
-		94
-		7F5
-		7F7
-		7F6
-		7F8
+		660 - Set going into 012 (entrance?)
+		672 - Textless event in 015. Gets turned on and off.
+		670 - Textless event in 017 and 020. Gets turned on and off.
+		92 - Reason Shijima
+		93 - Reason Musubi
+		91 - Reason Yosuga
+		94 - Reason Demon
+		(^ Set with Debug)
+		7F5 - Ahriman battle memory for Black Visor fight
+		7F7 - Ahriman battle memory NPC disappears
+		7F6 - Noah battle memory for Black Visor fight
+		7F8 - Noah battle memory NPC disappears
 f037 - Tower of Kagutsuchi 3
 	Flags - 
-		660
-		667
-		666
-		66F
-		674
-		671 and 909
-		665
-		66A
-		66C
-		66B 66D 66E 669
-		668
+		660 - Entrance
+		667 - 23_reset_f (???)
+		666 - 23_reset_g (???)
+		66F - 24_eve_09 (???)
+		674 - Sense Thor 2
+		671 and 909 - Thor 2 fight
+		665 - Probably entrance to Top
+		66A - Flag related to stones for Kagutsuchi
+		66C - Inserted Earthstone (Shijima)
+		66B - Inserted Netherstone (Musubi)
+		66D - Inserted Heavenstone (Yosuga)
+		66E - Message after inserting all 3
+		669 - Related to stones
+		668 - Related to stones
 f038 - Bandou Shrine
 	Flags - 
-		710
-		715
-		713
-		714
-		712
-		711
-		716
-		717
+		710 - Entrance
+		715 - (Probably) Lowered a pillar
+		713 - Zouchou Fight
+		714 - Jikoku Fight
+		712 - Koumoku Fight
+		711 - Bishamon Fight
+		716 - Received Masakados
+		717 - Said no to Masakados
 f039 - Bishamon Temple
 	Flags - 
-		731
-		732 and 91A
-		733
+		731 - Offer Kimon Stone
+		732 and 91A - Bishamon1 Fight
+		733 - Said no
 f040 - Labyrinth of Amala Lobby
 	Flags - 
 		762
