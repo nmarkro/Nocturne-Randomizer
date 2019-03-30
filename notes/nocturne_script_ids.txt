@@ -855,233 +855,220 @@ f039 - Bishamon Temple
 		733 - Said no
 f040 - Labyrinth of Amala Lobby
 	Flags - 
-		762
-		783
-		7A4
-		7C5
-		7E2
-		75E
-		750
-		752
-		7D3
+		762 - Debug - Return Candelabra to 1st Kalpa
+		783 - Debug - Return Candelabra to 2nd Kalpa
+		7A4 - Debug - Return Candelabra to 3rd Kalpa
+		7C5 - Debug - Return Candelabra to 4th Kalpa
+		7E2 - Debug - Return Candelabra to 5th Kalpa
+		75E - Entrance - "Landed in unexpected location"
+		750 - Also with Entrance, but not with ^
+		752 - Open the door 
+		7D3 - Door is locked (non-TDE chosen)
 f041 - 1st Kalpa
 	Flags - 
-		3E9
-		760
-		761
-		762
-		768
-		7D3
-		3EE
-		8
-		4C5
-		3EE and 8 and 4C5
-		8A0
-		(8A0 A01 A03 A05 A07 A09 A0B A0D A0F A11 A13 A15 A17 A19 A1B A1D A1F A21 A23 A25 A27 A29 A2B A2D A2F)
-		A00
-		764
-		A01
-		A02
-		765
-		A03
-		3EE
-		567
-		3EE and 567
-		A04
-		766
-		A05
-		A06
-		767
-		A07
-		763
-		133
-		130
-		13A
+		3E9 - Debug - Add Candelabra to inventory
+		760 - Entrance
+		761 - Light the Candelabra
+		762 - Candelabra has been Lit. Pairs with ^. (lit all)
+		768 - Door (to 2nd kalpa?)
+		7D3 - Door is locked (non-TDE chosen)
+		3EE - (Debug) Black visor
+		8 - (Debug) Forneus defeated
+		4C5 - (Debug) Troll defeated
+		3EE and 8 and 4C5 - (Debug) Above 3
+		8A0 - (Debug) Cerberus defeated - Unused boss
+		(8A0 A01 A03 A05 A07 A09 A0B A0D A0F A11 A13 A15 A17 A19 A1B A1D A1F A21 A23 A25 A27 A29 A2B A2D A2F) - (Debug) Hi Score Flag. Probably sets all the black visor fights within turn limits.
+		A00 - Tombstone Check
+		764 - Tombstone change inscription
+		A01 - Forneus Tombstone Red
+		A02 - Tombstone Check
+		765 - Tombstone change inscription
+		A03 - Troll Tombstone Red
+		3EE - Black Visor
+		567 - (Debug) Orthrus and Yaksini defeated (Shared Flag)
+		A04 - Tombstone Check
+		766 - Tombstone change inscription
+		A05 - Orthrus Tombstone Red
+		A06 - Tombstone Check
+		767 - Tombstone change 
+		A07 - Yaksini Tombstone Red
+		763 - 1st Kalpa switch
+		133 - Purchased Pisaca
+		130 - Talked to Kamala
+		13A - Cerberus flag (unused)
 f042 - 2nd Kalpa
 	Flags -
-		3E8
-		3E7
-		3E8 and 3E7
-		780
-		781
-		783
-		782
-		128
-		78A
-		78B
-		7D3
-		3EE
-		6D6
-		16
-		642
-		595
-		(3EE 6D6 16 642 595) x2
-		A08
-		786
-		A09
-		A0A
-		787
-		A0B
-		A0C
-		788
-		A0D
-		A0E
-		789
-		A0F
-		134
+		3E8 - (Debug) Add Candelabra of Dignity
+		3E7 - (Debug) Add Candelabra of Eternity
+		780 - Entrance
+		781 - Light Dignity
+		783 - Lit all?
+		782 - Light Eternity
+		128 - Metatron text
+		78A - Also Metatron text?
+		78B - Door open
+		7D3 - Locked out of door
+		3EE - (Debug) Black Visor
+		6D6 - (Debug) Kaiwan defeated
+		16 - (Debug) Ose defeated
+		642 - (Debug) Moirae Sisters defeated
+		595 - (Debug) Mizuchi defeated
+		A08 - Tombstone Check
+		786 - Tombstone change
+		A09 - Kaiwan Tombstone Red
+		A0A - Tombstone Check
+		787 - Tombstone change
+		A0B - Ose Tombstone Red
+		A0C - Tombstone Check
+		788 - Tombstone change
+		A0D - Sisters Tombstone Red
+		A0E - Tombstone Check
+		789 - Tombstone change
+		A0F - Mizuchi
+		134 - Purchased Nue
 f043 - 3rd Kalpa
 	Flags - 
-		3E4
-		3E2
-		3E3
-		3E4 and 3E2 and 3E3
-		7A0
-		7A1
-		7A4
-		7A2
-		7A3
-		12B
-		7B8
-		7B3
-		7D3
-		7BA
-		7A6
-		7B9 and 7AA
-		7A7
-		7A9
-		7A8
-		7B1
-		7B2
-		7BA
-		7B3
-		7B4
-		7B5
-		7BB
-		3EE
-		5A4
-		5A2
-		5A5
-		(3EE, 5A4, 5A2, 5A5)
-		5A6
-		488
-		59A
-		(3EE 5A6 488 59A)
-		A10
-		7AB
-		A11
-		A12
-		7AC
-		A13
-		A14
+		3E4 - (Debug) - Candelabra of Compassion
+		3E2 - (Debug) - Candelabra of Wisdom
+		3E3 - (Debug) - Candelabra of Insight
+		7A0 - Entrance
+		7A1 - Lit all?
+		7A4 - Lit Compassion
+		7A2 - Lit Wisdom
+		7A3 - Lit Insight
+		12B - Say yes to the riders
+		7B8 - Riders text flag
+		7B3 - Dante Switch
+		7D3 - Door open
+		7BA - 003_dante_ni() - All the subroutine does is set this
+		7A6 - Dante text in chase (1st door)
+		7B9 and 7AA - Dante text in chase (2nd door)
+		7A7 - "One"
+		7A9 - "Two"
+		7A8 - "Three"
+		7B1 - Switch activation?
+		7B2 - Switch activation?
+		7BA - 007_dante_s() - Sets this in subroutine if 105 is set.
+		7B3 - Switch activation?
+		7B4 - Switch activation?
+		7B5 - Switch activation?
+		7BB - 007_goal() - Set this in subroutine if 105 is set
+		3EE - (Debug) Black Visor
+		5A4 - (Debug) Kin-Ki defeated
+		5A2 - (Debug) Sui-Ki defeated
+		5A5 - (Debug) Fuu-Ki defeated
+		5A6 - (Debug) Ongyo-Ki defeated
+		488 - (Debug) Mara defeated
+		59A - (Debug) Black frost defeated
+		A10 - Tombstone Check
+		7AB - Tombstone change
+		A11 - Kin-Ki Tombstone Red
+		A12 - Tombstone Check
+		7AC - Tombstone change
+		A13 - Sui-Ki Tombstone Red
+		A14 - blah blah
 		7AD
-		A15
+		A15 - Fuu-Ki Tombstone Red
 		A16
 		7AE
-		A17
+		A17 - Ongyo-Ki Tombstone Red
 		A18
 		7AF
-		A19
+		A19 - Mara Tombstone Red
 		A1A
 		7B0
-		A1B
-		7BB
-		929
-		131
-		135
-		136
+		A1B - Black Frost Red
+		7BB - 012_dante_s() - Set this in subroutine if 105 is set 
+		929 - Fusable Black Frost
+		131 - Black Frost joins
+		135 - Shady Broker Purchase 1
+		136 - Shady Broker Purchase 2
 f044 - 4th Kalpa
 	Flags - 
-		3EB
-		3E1
-		3E6
-		3E5
-		(3EB 3E1 3E6 3E6)
-		7C0
-		7C1
-		7C2
-		7C3
-		7C4
-		7C5
-		7D3
-		3EE
-		621
-		4A
-		(3EE 621 4A)
-		6A9
-		6AA
-		6AB
-		(3EE 6A9 6AA 6AB)
-		A1C
+		3EB (Debug) - Candelabra of Knowledge
+		3E1 (Debug) - Majesty
+		3E6 (Debug) - Beauty
+		3E5 (Debug) - Godliness
+		7C0 - Entrance
+		7C1 - Lit all?
+		7C2 - Lit Knowledge
+		7C3 - Lit Majesty
+		7C4 - Lit Beauty
+		7C5 - Lit Godliness
+		7D3 - Open door
+		3EE (Debug) - Black Visor
+		621 (Debug) - Specter defeated (3?)
+		4A (Debug) - Sakahagi defeated
+		6A9 (Debug) - Aciel defeated
+		6AA (Debug) - Skadi defeated
+		6AB (Debug) - Albion defeated
+		A1C - Tombstone Check
 		7C6
-		A1D
+		A1D - Specter tombstone Red
 		A1E
 		7C7
-		A1F
+		A1F - Sakahagi tombstone Red
 		A20
 		7C8
-		A21
+		A21 - Aciel tombstone Red
 		A22
 		7C9
-		A23
+		A23 - Skadi tombstone Red
 		A24
 		7CA
-		A25
-		7CC
-		7CD
-		7CE
-		7D2
-		7D0 and 927
-		7D1
-		7CF and 926
-		7D4
-		12E
-		138
+		A25 - Albion tombstone Red
+		7CC - Waiting Gramps flag (waited)
+		7CD - Waiting Gramps said no but waited (convo)
+		7CE - Waiting Gramps said no (convo)
+		7D2 - Talked to Sakahagi Soul
+		7D0 and 927 - Used Afterlife bell on Sakahagi
+		7D1 - Talked to Futomimi Soul
+		7CF and 926 - Used Afterlife bell on Futomimi
+		7D4 and 12E - Activated switch (028)
+		138 - Purchased from Shady Broker
 f045 - 5th Kalpa
 	Flags - 
-		3EA
-		7E0
-		7E1
-		7E2
-		7EE
-		7EF
-		3EE
-		691
-		671
-		(3EE 691 671)
-		75
-		51
-		83
-		(3EE 75 61 83)
-		C0F
-		A26
+		3EA - (Debug) Sovereignty
+		7E0 - Entrance
+		7E1 - Lit Sovereignty
+		7E2 - Also ^
+		7EE - Switch 1
+		7EF - Switch 2
+		3EE - (Debug) - Black Visor
+		691 - (Debug) - Mithra defeated
+		671 - (Debug) - Thor defeated
+		75 - (Debug) - Ahriman defeated
+		51 - (Debug) - Noah defeated
+		83 - (Debug) - Baal Avatar defeated
+		C0F - Set going into room 023 (textless)
+		A26 - 
 		7E3
-		A27
+		A27 - Mithra Tombstone Red
 		A28
 		7E4
-		A29
+		A29 - Thor Tombstone Red
 		A2A
 		7E5
-		A2B
+		A2B - Ahriman Tombstone Red
 		A2C
 		7E6
-		A2D
+		A2D - Noah Tombstone Red
 		A2E
 		7E7
-		A2F
-		7ED
-		20
-		914 and 915
-		7E9
-		7EC
-		7EB
-		7EA
-		139
-		8C0
-		7F0
-		7F1
-		7F2
-		7F4
-		7F3
-		440
+		A2F - Baal Avatar Tombstone Red
+		7ED - Got Uber Pixie
+		20 and 914 and 915 - Textless event test (room 015)
+		7E9 - 3x Door text
+		7EC - 3x Door 
+		7EB - 2x Door
+		7EA - 1x Door
+		139 - Purchased from Shady Broker
+		8C0 - Get extra attacks from Izanami (!?)
+		7F0 - Textless event 1 (shows DEVILGEN.BED in room 030) - Tutorial fight?
+		7F1 - Textless event 2 (shows DEVILGEN.BED in room 030)
+		7F2 - Textless event 3 (shows DEVILGEN.BED in room 031)
+		7F4 - Textless event 4 (shows DEVILGEN.BED in room 031)
+		7F3 - "This way" text in tutorial
+		440 - Tutorial done
 f100 - Probably unused Ikebukuro Tunnel (text in Japanese)
 	Flags - 40, 54 and 55 and 56, 56, 57, 55, 54, 58
