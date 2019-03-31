@@ -273,3 +273,8 @@ fix eligor summons:
 	    0x28D06
 
 	rom addr += 0x3F1800
+
+fix jewel shop demons
+	change 0x0010B3F8 and 0x0010B570 from sra v0,0x18
+		to li v0,0x4
+			24 02 00 04

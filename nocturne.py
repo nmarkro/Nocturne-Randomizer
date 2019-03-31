@@ -406,9 +406,11 @@ def patch_magic_pierce(rom):
     rom.write_word(hook1, 0x00166B80)       # replaces addiu,fp,0x7998
     rom.write_word(hook2, 0x00166B84)       # replaces sll v0,v0,0x02
     # function in free space
-    rom.write_word(0x00111080, 0x1FF2D0)    # sll v0,s1,0x02
-    rom.write_word(0x00441021, 0x1FF2D4)    # addu v0, a0
-    rom.write_word(0x080996E2, 0x1FF2D8)    # j 0x265B88
+    rom.write_word(0x00111080, 0x001FF2D0)    # sll v0,s1,0x02
+    rom.write_word(0x00441021, 0x001FF2D4)    # addu v0, a0
+    rom.write_word(0x080996E2, 0x001FF2D8)    # j 0x265B88
+    # nop if statement
+    rom.write_word(0x00000000, 0x00167250)    # replaces bnez v1,0x00266268
 
 def patch_stock_aoe_healing(rom):
     # makes aoe healing affect the stock
@@ -484,6 +486,12 @@ def fix_angel_reward(rom, reward):
     offset = 0x002B63C8
     rom.write_halfword(reward, offset)
 
+def fix_rags_demons(rom):
+    # disable the apperance of "random" elemental and mitamas to prevent underflow shenanigans 
+    patch = 0x24020004                  # li v0,0x4
+    rom.write_word(patch, 0x0010B3F8)   # replaces sra v0,0x18
+    rom.write_word(patch, 0x0010B570)   # replaces sra v0,0x18
+
 def patch_intro_skip(iso_file):
     # overwrite an unused event script with ours
     e506_offset = 0x3F1C7800
@@ -556,3 +564,4 @@ def write_all(rom, world):
         futomimi_reward = all_magatamas[futomimi_reward.name].ind
         futomimi_reward += 320
         fix_angel_reward(rom, futomimi_reward)
+    fix_rags_demons(rom)

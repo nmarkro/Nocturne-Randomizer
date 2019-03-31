@@ -1,8 +1,6 @@
 # a lot of code modified from https://github.com/samfin/mmbn3-random/tree/cleanup
 import random
-import struct
 import copy
-import math
 import logging
 import shutil
 import hashlib
