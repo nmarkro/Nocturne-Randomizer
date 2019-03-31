@@ -115,7 +115,7 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
     return demon_map
 
 
-def generate_skill_permutation(balance_by_rank = True, keep_pierce = False):
+def generate_skill_permutation(balance_by_rank = True, ignored_skills=[]):# keep_pierce = False):
     skill_sets = defaultdict(list)
     # separare skills by rank
     for skill in nocturne.all_skills.values():
@@ -126,9 +126,9 @@ def generate_skill_permutation(balance_by_rank = True, keep_pierce = False):
                 skill_id = 1
         # treak attack/passive/recruitment skills differently 
         skill_id += skill.skill_type * 1000
-        if keep_pierce:
-            if skill.ind == 357:
-                skill_id = skill.ind
+        # keep ignored skills separate
+        if skill.ind in ignored_skills:
+            skill_id = skill.ind
         skill_sets[skill_id].append(skill.ind)
 
     # shuffle inside each set
@@ -341,8 +341,12 @@ def randomize_demons(demon_map, generated_demons, exp_mod=1):
 
 def randomize_magatamas():
     new_magatamas = []
+    # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort 
+    ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152]
+    if config_keep_marogareh_pierce:
+        ignored_skills.append(357)
     # make one skill_map for all magatamas to prevent duplicate skills
-    skill_map = generate_skill_permutation(config_balance_by_skill_rank, config_keep_marogareh_pierce)
+    skill_map = generate_skill_permutation(config_balance_by_skill_rank, ignored_skills)
     for old_magatama in nocturne.all_magatamas.values():
         new_magatama = copy.copy(old_magatama)
         new_magatama.stats = randomize_stats(sum(new_magatama.stats), False)
