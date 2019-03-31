@@ -4,14 +4,18 @@ import struct
 import re
 import random
 
-import demons
-import skills
-import magatamas
-import boss_battles
+import randomizer
 import races
+from base_classes import Demon, Skill, Magatama, Battle
 
 N_DEMONS = 383
 N_MAGATAMAS = 25
+N_BATTLES = 1270
+
+all_demons = {}
+all_magatamas = {}
+all_battles = {}
+all_skills = {}
 
 # demons/bosses that absorb/repel/null phys
 PHYS_INVALID_DEMONS = [2, 14, 87, 93, 98, 104, 105, 144, 155, 172, 202, 269, 274, 276, 277, 333, 334, 352]
@@ -49,7 +53,11 @@ def load_demons(rom):
         if demon_name == 'Beelzebub':
             demon_id = 207
 
-        demon = demons.add_demon(demon_id, demon_name)
+        demon = Demon(demon_id, demon_name)
+        demon.offset = demon_offset
+        demon.skill_offset = 0x00234CF4 + (demon_id * 0x66)
+        demon.ai_offset = 0x002999E4 + (demon_id * 0xA4)
+
         demon.race = race_id
         demon.level = level
         demon.hp = hp
@@ -66,7 +74,7 @@ def load_demons(rom):
 
         # battle skills are the skills that show up when you analyze enemy demons (used for demon ai later)
         demon.battle_skills = s
-        demon.skills = load_demon_skills(rom, demon_id, level)
+        demon.skills = load_demon_skills(rom, demon.skill_offset, level)
 
         demon.is_boss = bool(i >= 255)
 
@@ -77,21 +85,22 @@ def load_demons(rom):
         if demon_id in SHADY_BROKER.keys():
             demon.shady_broker = SHADY_BROKER[demon_id]
 
-        demon.offset = demon_offset
+        all_demons[demon_id] = demon
 
+def lookup_demon(ind):
+    return all_demons.get(ind)
+
+race_names = []
 def load_races():
-    race_names = open('data/race_names.txt', 'r').read().strip()
-    demons.race_names = race_names.split('\n')
+    names = open('data/race_names.txt', 'r').read().strip()
+    names = names.split('\n')
+    race_names.extend(names)
 
-def load_demon_skills(rom, demon_id, level):
-    skill_offset = 0x00234CF4
-
+def load_demon_skills(rom, skill_offset, level):
     demon_skills = []
 
     rom.save_offsets()
-
-    offset = skill_offset + (demon_id * 0x66)
-    rom.seek(offset + 0x0A)
+    rom.seek(skill_offset + 0x0A)
 
     count = 0
     while True:
@@ -117,7 +126,6 @@ def load_demon_skills(rom, demon_id, level):
             # disregard magic_bytes currently since we are removing evolution demons
             'magic_byte': 1,
             'skill_id': skill_id,
-            'offset': offset,
         }
 
         for skill in demon_skills:
@@ -129,7 +137,6 @@ def load_demon_skills(rom, demon_id, level):
 
     rom.load_offsets()
     return demon_skills
-
 
 def load_skills(rom):
     skill_data = open('data/skill_data.txt', 'r').read().strip()
@@ -143,8 +150,13 @@ def load_skills(rom):
         rank = int(skill_data[i][3])
         skill_type = int(skill_data[i][4])
 
-        skill = skills.add_skill(skill_id, name, rank)
+        skill = Skill(skill_id, name, rank)
         skill.skill_type = skill_type
+
+        all_skills[skill_id] = skill
+
+def lookup_skill(ind):
+    return all_skills.get(ind)
 
 def load_magatamas(rom):
     magatama_offset = 0x0023AE3A
@@ -154,61 +166,55 @@ def load_magatamas(rom):
 
     rom.seek(magatama_offset)
     for i in range(N_MAGATAMAS):
-        magatama_name = magatama_names[i]
+        m_name = magatama_names[i]
 
-        magatama_offset = rom.r_offset
+        m_offset = rom.r_offset
         _, strength, _, magic, vitality, agility, luck, _, skills = struct.unpack('<14sBBBBBB14s32s', rom.read(0x42))
 
-        magatama = magatamas.add_magatama(i, magatama_name)
-        magatama.stats = [strength, magic, vitality, agility, luck]
+        m = Magatama(m_name)
+        m.ind = i
+        m.stats = [strength, magic, vitality, agility, luck]
         
-        magatama.level = None
+        m.level = None
 
         s = []
         for j in range(0, len(skills), 4):
             level, skill_id = struct.unpack('<HH', skills[j : j + 4])
 
-            if magatama.level is None:
-                magatama.level = level
+            if m.level is None:
+                m.level = level
 
             if skill_id > 0:
                 skill = {
-                    'level': level - magatama.level,
+                    'level': level - m.level,
                     'skill_id': skill_id,
                 }
                 s.append(skill)
-        magatama.skills = s
-        magatama.offset = magatama_offset
+        m.skills = s
+        m.offset = m_offset
+        all_magatamas[m.name] = m
 
-def load_boss_battles(rom):
-    boss_data = open('data/boss_data.txt', 'r').read().strip()
-    pattern = re.compile(r"(\d+) ([\w\d\- ]+)")
+def load_battles(rom):
+    offset = 0x002AFFE0
 
-    boss_data = list(map(lambda s: re.search(pattern, s), boss_data.split('\n')))
+    for i in range(N_BATTLES):
+        enemies = []
 
-    for i in range(len(boss_data)):
-        offset = int(boss_data[i][1])
-        rom.seek(offset)
-        boss = boss_data[i][2]
-        is_boss, item_drop, phase_value, demons, arena, first_turn, reinforcement_value, music = struct.unpack('<HHH22sIHHH', rom.read(0x26))
+        for j in range(0, 18, 2):
+            enemy_id = rom.read_halfword(offset + 6 + j)
+            enemies.append(enemy_id)
 
-        if is_boss == 0x01FF:
-            data = []
-            for j in range(0, 18, 2):
-                demon_id = struct.unpack('<H', demons[j : j + 2])[0]
-                data.append(demon_id)
-
-            battle = boss_battles.add_battle(i, boss, offset)
-            battle.phase_value = phase_value
-            battle.data = data
-            battle.arena = arena
-            battle.first_turn = first_turn
-            battle.reinforcement_value = reinforcement_value
-            battle.music = music
-            # check if magatama
-            if item_drop > 0x140 and item_drop < 0x15A:
-                item_drop = 0
-            battle.item_drop = item_drop
+        battle = Battle(offset)
+        battle.enemies = enemies
+        battle.is_boss = rom.read_halfword(offset) == 0x01FF
+        battle.reward = rom.read_halfword(offset + 2)
+        battle.phase_value = rom.read_halfword(offset + 4)
+        battle.arena = rom.read_word(offset + 0x1C)
+        battle.goes_first = rom.read_halfword(offset + 0x20)
+        battle.reinforcement_value = rom.read_halfword(offset + 0x22)
+        battle.music = rom.read_halfword(offset + 0x24)
+        all_battles[offset] = battle
+        offset += 0x26
 
 def write_demon(rom, demon, offset):
     rom.seek(offset)
@@ -252,21 +258,17 @@ def write_demons(rom, new_demons):
 def write_skills(rom, demon):
     for i in range(len(demon.skills)):
         skill = demon.skills[i]
-        offset = (skill['offset'] + 0x0A) + (i * 0x04)
+        offset = (demon.skill_offset + 0x0A) + (i * 0x04)
         rom.seek(offset)
         rom.write_byte(skill['level'])
         rom.write_byte(skill['magic_byte'])
         rom.write_halfword(skill['skill_id'])
         
-    offset = demon.skills[0]['offset']
-
     for i in range(len(demon.skills), 23):
-        rom.write_word(0, offset + 0x0A + (i * 0x4))
+        rom.write_word(0, demon.skill_offset + 0x0A + (i * 0x4))
 
 def write_ai(rom, demon):
-    ai_offset = 0x002999E4
-
-    offset = (ai_offset + (demon.ind * 0xA4)) + 0x24
+    offset = demon.ai_offset + 0x24
 
     # todo: make generating odds more random
     total_odds = [
@@ -310,6 +312,20 @@ def write_magatamas(rom, new_magatams):
             s = magatama.offset + 0x22 + (i * 4)
             rom.write_halfword(skill['level'], s)
             rom.write_halfword(skill['skill_id'], s + 2)
+
+def write_battles(rom, new_battles, preserve_boss_arenas=False):
+    for b in new_battles:
+        # only write magatama rewards
+        if 345 >= b.reward >= 320:
+            rom.write_halfword(b.reward, b.offset + 0x02)
+        rom.write_halfword(b.phase_value, b.offset + 0x04)
+        for i, e in enumerate(b.enemies):
+            rom.write_halfword(e, b.offset + 0x06 + (i * 2))
+        if preserve_boss_arenas:
+            rom.write_word(b.arena, b.offset + 0x1C)
+        rom.write_halfword(b.goes_first, b.offset + 0x20)
+        rom.write_halfword(b.reinforcement_value, b.offset + 0x22)
+        rom.write_halfword(b.music, b.offset + 0x24)
 
 def patch_easy_demon_recruits(rom):
     # patch the flag check during demon recruiting to use an always(?) zero flag as oppsed to the forneus flag
@@ -390,9 +406,11 @@ def patch_magic_pierce(rom):
     rom.write_word(hook1, 0x00166B80)       # replaces addiu,fp,0x7998
     rom.write_word(hook2, 0x00166B84)       # replaces sll v0,v0,0x02
     # function in free space
-    rom.write_word(0x00111080, 0x1FF2D0)    # sll v0,s1,0x02
-    rom.write_word(0x00441021, 0x1FF2D4)    # addu v0, a0
-    rom.write_word(0x080996E2, 0x1FF2D8)    # j 0x265B88
+    rom.write_word(0x00111080, 0x001FF2D0)    # sll v0,s1,0x02
+    rom.write_word(0x00441021, 0x001FF2D4)    # addu v0, a0
+    rom.write_word(0x080996E2, 0x001FF2D8)    # j 0x265B88
+    # nop if statement
+    rom.write_word(0x00000000, 0x00167250)    # replaces bnez v1,0x00266268
 
 def patch_stock_aoe_healing(rom):
     # makes aoe healing affect the stock
@@ -421,7 +439,7 @@ def fix_elemental_fusion_table(rom, demon_generator):
     # use the generated elemental results to change the fusion table
     for race, elemental in zip(races.raceref, demon_generator.elemental_results):
         if elemental > 0:
-            race_id = demons.race_names.index(race)
+            race_id = race_names.index(race)
             race_table_offset = fusion_table_offset + (race_id * 32)
             rom.write_byte(elem_table_ids[elemental], race_table_offset + race_id)
 
@@ -433,11 +451,46 @@ def fix_mada_summon(rom, new_demons):
     if mada and candidates:
         rom.write_byte(random.choice(candidates), pazuzu_summon_offset)
 
+def fix_nihilo_summons(rom, new_demons):
+    # replace the demons summoned by the nihilo minibosses
+    def replace_summons(offsets, candidates):
+        replacement = random.choice(candidates)
+        for off in offsets:
+            rom.write_byte(replacement, off)
+        return replacement
+
+    yaka_summon_offsets = [0x0041A0FA, 0x0041A132, 0x0041A182]
+    dis_summon_offsets = [0x0041A2CE, 0x0041A306, 0x0041A382, 0x0041A556]
+    incubus_summon_offsets = [0x0041A4CE, 0x0041A506]
+
+    yaka_level = next((d.level for d in all_demons.values() if d.name == "Yaka"), None)
+    dis_level = next((d.level for d in all_demons.values() if d.name == "Dis"), None)
+    incubus_level = next((d.level for d in all_demons.values() if d.name == "Incubus"), None)
+
+    yaka_candidates = [d.ind for d in new_demons if d.level == yaka_level and not d.is_boss]
+    dis_candidates = [d.ind for d in new_demons if d.level == dis_level and not d.is_boss]
+    incubus_candidates = [d.ind for d in new_demons if d.level == incubus_level and not d.is_boss]
+
+    replace_summons(yaka_summon_offsets, yaka_candidates)
+    replace_summons(dis_summon_offsets, dis_candidates)
+    replace_summons(incubus_summon_offsets, incubus_candidates)
+
 def fix_specter_1_reward(rom, reward):
     # add rewards to each of the fused versions of specter 1
     fused_reward_offsets = [0x002B2842, 0x002B2868, 0x002B288E]
     for offset in fused_reward_offsets:
         rom.write_halfword(reward, offset)
+
+def fix_angel_reward(rom, reward):
+    # fix the magatama drop for the optional angel fight
+    offset = 0x002B63C8
+    rom.write_halfword(reward, offset)
+
+def fix_rags_demons(rom):
+    # disable the apperance of "random" elemental and mitamas to prevent underflow shenanigans 
+    patch = 0x24020004                  # li v0,0x4
+    rom.write_word(patch, 0x0010B3F8)   # replaces sra v0,0x18
+    rom.write_word(patch, 0x0010B570)   # replaces sra v0,0x18
 
 def patch_intro_skip(iso_file):
     # overwrite an unused event script with ours
@@ -458,14 +511,57 @@ def patch_intro_skip(iso_file):
     iso_file.seek(0x49CB58B6)
     iso_file.write(bytes(0))
 
-
 def load_all(rom):
     load_demons(rom)
     load_races()
     load_skills(rom)
     load_magatamas(rom)
-    load_boss_battles(rom)
+    load_battles(rom)
 
-def write_all(rom, demons, magatamas):
-    write_demons(rom, demons)
-    write_magatamas(rom, magatamas)
+def write_all(rom, world):
+    write_demons(rom, world.demons.values())
+    write_magatamas(rom, world.magatamas.values())
+    write_battles(rom, world.battles.values())
+
+    # make the pierce skill work on magic
+    patch_magic_pierce(rom)
+    # make aoe healing work on the stock demons
+    patch_stock_aoe_healing(rom)
+    # remove magatamas from shops since they are all tied to boss drops now
+    remove_shop_magatamas(rom)
+    # patch the fusion table using the generated elemental results
+    fix_elemental_fusion_table(rom, world.demon_generator)
+    # swap tyrant to vile for pale rider, the harlot, & trumpeter fusion
+    rom.write_byte(0x12, 0x22EDE3)
+    if randomizer.config_fix_tutorial:
+        print("fixing tutorials")
+        patch_fix_tutorials(rom)
+    # this just doesn't work half the time :(
+    if randomizer.config_easy_recruits:
+        print("applying easy recruits patch")
+        patch_easy_demon_recruits(rom)
+    # add the spyglass to 3x preta fight and reduce it's selling price
+    if randomizer.config_early_spyglass:
+        print("applying early spyglass patch")
+        patch_early_spyglass(rom)
+    # make learnable skills always visible
+    if randomizer.config_visible_skills:
+        patch_visible_skills(rom)
+
+    # replace the pazuzu mada summons
+    fix_mada_summon(rom, world.demons.values())
+    # replace the demons summoned by the nihilo minibosses
+    fix_nihilo_summons(rom, world.demons.values())
+    # fix the magatama drop on the fused versions of specter 1
+    specter_1_reward = world.get_boss("Specter 1").reward
+    if specter_1_reward:
+        specter_1_reward = all_magatamas[specter_1_reward.name].ind
+        specter_1_reward += 320
+        fix_specter_1_reward(rom, specter_1_reward)
+    # fix the magatama drop for the optional angel fight
+    futomimi_reward = world.get_check("Futomimi").boss.reward
+    if futomimi_reward:
+        futomimi_reward = all_magatamas[futomimi_reward.name].ind
+        futomimi_reward += 320
+        fix_angel_reward(rom, futomimi_reward)
+    fix_rags_demons(rom)

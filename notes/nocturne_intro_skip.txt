@@ -1,6 +1,5 @@
 flags to set:
     18      in 601
-    2208    in 601      NG+ for first person camera?
     1       in 602
     3       in 604
     5       in 605
@@ -9,6 +8,8 @@ flags to set:
     6       in 615
     37      Sac fusion
     40      Compendium
+    7       Skips Hijiri SMC Terminal event
+    1086    SMC terminal
 
 use e506 for our hook
 call e506 from the start of e601
@@ -36,19 +37,70 @@ new e506 code:
     void e506_main()
     {
         BIT_ON( 18 );               // Set flags from skipped cutscenes
-        BIT_ON( 2208 );
         BIT_ON( 1 );
         BIT_ON( 3 );
         BIT_ON( 5 );
         BIT_ON( 976 );
         BIT_ON( 1066 );
-        BIT_ON( 6 );
+        BIT_ON( 6 );        
+        BIT_ON( 7 );                // Hijiri Cutscene Flag
+        BIT_ON( 1094 );             // SMC Terminal Flag
         BIT_ON( 37 );               // Sac Fusion
         BIT_ON( 40 );               // Compendium
         BIT_ON( 1086 );             // Yoyogi Park Terminal Vending Machine
         FUNCTION_0070( 15, 1 );     // Sacred Water
         BIT_ON( 1059 );             // SMC Vending Machine
         FUNCTION_0070( 10, 1 );     // Soma
+
+        // Fusion Flags
+        BIT_ON( 2304 );             // Aciel
+        BIT_ON( 2305 );             // Albion
+        BIT_ON( 2306 );             // Skadi
+        BIT_ON( 2307 );             // Seraphs?
+        BIT_ON( 2308 );             // Samael
+        BIT_ON( 2312 );             // Girimhekala?
+        BIT_ON( 2313 );             // Thor
+        BIT_ON( 2314 );             // Kaiwan
+        BIT_ON( 2315 );             // Moirae Sisters
+        BIT_ON( 2316 );             // ^
+        BIT_ON( 2317 );             // ^
+        BIT_ON( 2318 );             // Kin-Ki
+        BIT_ON( 2319 );             // Sui-Ki
+        BIT_ON( 2320 );             // Fuu-Ki
+        BIT_ON( 2321 );             // Ongyo-Ki
+        BIT_ON( 2326 );             // Mada
+        BIT_ON( 2327 );             // Mot
+        BIT_ON( 2328 );             // Surt
+        BIT_ON( 2329 );             // Mithra
+        BIT_ON( 2330 );             // Bishamon
+        BIT_ON( 2331 );             // Metatron
+        BIT_ON( 2333 );             // Pale Rider
+        BIT_ON( 2334 );             // White Rider
+        BIT_ON( 2335 );             // Red Rider
+        BIT_ON( 2336 );             // Black Rider
+        BIT_ON( 2337 );             // Matador
+        BIT_ON( 2338 );             // Hell Biker
+        BIT_ON( 2339 );             // Daisoujou
+        BIT_ON( 2340 );             // Harlot
+        BIT_ON( 2341 );             // Trumpeter
+        BIT_ON( 2342 );             // Futomimi
+        BIT_ON( 2343 );             // Sakahagi
+        BIT_ON( 2344 );             // Beelzebub
+        BIT_ON( 2345 );             // Black Frost
+
+        // Open Mode Flags
+        BIT_ON( 44 );               // Asakusa Front Door
+        BIT_ON( 43 );               // Mantra HQ East Door
+        BIT_ON( 1386 );             // ^
+        BIT_ON( 36 );               // Ikebukuro Station for Ikebukuro Tunnel
+        BIT_ON( 53 );               // West Nihilo
+        BIT_ON( 86 );               // Yurakucho Tunnel
+        BIT_ON( 26 );               // East Nihilo
+        BIT_ON( 15 );               // East Nihilo (Hijiri)
+        BIT_ON( 84 );               // Mifunashiro
+        BIT_ON( 47 );               //
+        BIT_ON( 63 );               // Asakusa West open
+
         FUNCTION_0158( 4 );         // +4 Stock
         FUNCTION_0121( 0, 0 );      // Set Names
         FUNCTION_0121( 1, 1 );
@@ -58,4 +110,4 @@ new e506 code:
         CALL_EVENT( 618 );          // Call "Wake up in SMC" event
     }
 
-write 0 to 0x45D3469A and 0x49CB58B6 to prevenet >12 stock
+write 0 to 0x45D3469A and 0x49CB58B6 to prevent >12 stock

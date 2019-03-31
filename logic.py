@@ -1,168 +1,17 @@
 import copy
 import random
 
+import nocturne
 import rules
-
-# should probably move these objects to a separate file
-class World(object):
-    def __init__(self):
-        self.areas = {}
-        self.terminals = {}
-        self.checks = {}
-        self.magatamas = {}
-        self.bosses = {}
-        self.state = Progression(self)
-
-    def get_area(self, area):
-        return self.areas.get(area)
-
-    def get_check(self, check):
-        return self.checks.get(check)
-
-    def get_terminal(self, terminal):
-        return self.terminals.get(terminal)
-
-    def get_magatama(self, magatama):
-        return self.magatamas.get(magatama)
-
-    def get_boss(self, boss):
-        return self.bosses.get(boss)
-
-    def get_areas(self):
-        return list(self.areas.values())
-
-    def get_checks(self):
-        return list(self.checks.values())
-
-    def get_terminals(self):
-        return list(self.terminals.values())
-
-    def get_magatamas(self):
-        return list(self.magatamas.values())
-
-    def get_bosses(self):
-        return list(self.bosses.values())
-
-
-class Area(object):
-    def __init__(self, name):
-        self.name = name
-        self.rule = lambda state: True
-        self.boss_rule = lambda boss: True
-        self.terminal = None
-        self.checks = []
-        self.changed = False
-
-    def can_reach(self, state):
-        return self.rule(state)
-
-    def can_place(self, boss):
-        return self.boss_rule(boss)
-
-
-# Checks are boss locations, not the bosses themselves
-class Check(object):
-    def __init__(self, name, parent):
-        self.name = name
-        self.rule = lambda state: True
-        self.area = parent
-        self.boss = None
-        self.area.checks.append(self)
-
-    def can_reach(self, state):
-        return self.rule(state) and self.area.can_reach(state)
-
-    def can_place(self, boss):
-        return self.area.can_place(boss)
-
-
-# Bosses are the actual boss fights at each check
-class Boss(object):
-    def __init__(self, name):
-        self.name = name
-        self.check = None
-        self.rule = lambda state: True
-        self.reward = None
-        self.phys_invalid = False
-
-    def can_beat(self, state):
-        return self.rule(state)
-
-
-class Terminal(object):
-    def __init__(self, name, parent):
-        self.name = name
-        self.area = parent
-        self.area.terminal = self
-        self.check = None
-
-    def can_reach(self, state):
-        return self.area.can_reach(state)
-
-
-class Magatama(object):
-    def __init__(self, name, resistances):
-        self.name = name
-        self.boss = None
-        self.resistances = resistances
-
-
-# State of players progression in the world
-class Progression(object):
-    def __init__(self, parent):
-        self.world = parent
-        self.terminals = {}
-        self.checks = {}
-        self.magatamas = {}
-
-    def init_checks(self):
-        for c in self.world.get_checks():
-            self.checks[c.name] = False
-
-        for t in self.world.get_terminals():
-            self.terminals[t.name] = False
-
-        for m in self.world.get_magatamas():
-            self.magatamas[m.name] = False
-
-    def check(self, check):
-        self.checks[check] = True
-
-    def get_terminal(self, terminal):
-        self.terminals[terminal] = True
-
-    def get_magatama(self, magatama):
-        self.magatamas[magatama] = True
-
-    def remove_terminal(self, terminal):
-        self.terminals[terminal] = False
-
-    def remove_magatama(self, magatama):
-        self.magatamas[magatama] = False
-
-    def has_checked(self, check):
-        return self.checks.get(check) == True
-
-    def has_terminal(self, terminal):
-        return self.terminals.get(terminal) == True
-
-    def has_resistance(self, resistance):
-        for m in self.world.magatamas.values():
-            if self.magatamas[m.name]:
-                if resistance in m.resistances:
-                    return True
-        return False
-
-    def can_warp(self):
-        return self.has_checked('Specter 1')
-
+from base_classes import *
 
 def init_magatamas(world):
     def add_magatama(name, resistances, world):
-        m = Magatama(name, resistances)
+        m = Magatama(name)
+        m.resistances = resistances
         world.magatamas[name] = m
 
-    #add_magatama('Marogarah', [], world)
+    add_magatama('Marogareh', [], world)
     add_magatama('Wadatsumi', ['Ice'], world)
     add_magatama('Ankh', ['Expel'], world)
     add_magatama('Iyomante', ['Mind'], world)
@@ -185,7 +34,8 @@ def init_magatamas(world):
     add_magatama('Gundari', ['Force'], world)
     add_magatama('Sophia', ['Expel', 'Death'], world)
     add_magatama('Kailash', [], world)
-    #add_magatama('Gaea', ['Phys'], world)
+    add_magatama('Gaea', ['Phys'], world)
+    add_magatama('Masakados', [], world)
 
 
 # Resist/Null/Absorb/Repel Phys to leave out of SMC
@@ -201,115 +51,117 @@ def create_areas(world):
         t = Terminal(name, area)
         world.terminals[name] = t
 
-    def add_check(name, area, world):
+    def add_check(name, area, world, offset):
         c = Check(name, area)
+        c.offset = offset
         world.checks[name] = c
 
         b = Boss(name)
+        b.battle = nocturne.all_battles.get(offset)
         b.phys_invalid = name in PHYS_INVALID_BOSSES
         world.bosses[name] = b
 
     smc = add_area('SMC', world)
     add_terminal('SMC', smc, world)
-    add_check('Forneus', smc, world)
-    add_check('The Harlot', smc, world)
-    add_check('Black Rider', smc, world)
+    add_check('Forneus', smc, world, 2818548)
+    add_check('The Harlot', smc, world, 2857194)
+    add_check('Black Rider', smc, world, 2857042)
 
     shibuya = add_area('Shibuya', world)
     add_terminal('Shibuya', shibuya, world)
-    add_check('Mara', shibuya, world)
+    add_check('Mara', shibuya, world, 2845110)
 
     amala_network_1 = add_area('Amala Network 1', world)
-    add_check('Specter 1', amala_network_1, world)
+    add_check('Specter 1', amala_network_1, world, 2818776)
 
     ginza = add_area('Ginza', world)
     add_terminal('Ginza', ginza, world)
 
     underpass = add_area('Ginza Underpass', world)
     add_terminal('Ginza Underpass', underpass, world)
-    add_check('Troll', underpass, world)
-    add_check('Matador', underpass, world)
-    add_check('Red Rider', underpass, world)
+    add_check('Troll', underpass, world, 2820106)
+    add_check('Matador', underpass, world, 2857080)
+    add_check('Red Rider', underpass, world, 2857004)
 
     ikebukuro = add_area('Ikebukuro', world)
     add_terminal('Ikebukuro', ikebukuro, world)
-    add_check('Orthrus', ikebukuro, world)
-    add_check('Yaksini', ikebukuro, world)
-    add_check('Thor 1', ikebukuro, world)
-    add_check('Dante 1', ikebukuro, world)
-    add_check('Daisoujou', ikebukuro, world)
-    add_check('Hell Biker', ikebukuro, world)
+    add_check('Orthrus', ikebukuro, world, 2821170)
+    add_check('Yaksini', ikebukuro, world, 2821208)
+    add_check('Thor 1', ikebukuro, world, 2821246)
+    add_check('Dante 1', ikebukuro, world, 2857270)
+    add_check('Daisoujou', ikebukuro, world, 2857156)
+    add_check('Hell Biker', ikebukuro, world, 2857118)
 
     nihilo_e = add_area('Nihilo East', world)
     add_terminal('Nihilo East', nihilo_e, world)
-    add_check("Ose", nihilo_e, world)
+    add_check("Ose", nihilo_e, world, 2822462)
 
     ikebukuro_tunnel = add_area('Ikebukuro Tunnel', world)
     add_terminal('Ikebukuro Tunnel', ikebukuro_tunnel, world)
-    add_check("Kin-Ki", ikebukuro_tunnel, world)
-    add_check("Sui-Ki", ikebukuro_tunnel, world)
-    add_check("Fuu-Ki", ikebukuro_tunnel, world)
-    add_check("Ongyo-Ki", ikebukuro_tunnel, world)
+    add_check("Kin-Ki", ikebukuro_tunnel, world, 2825464)
+    add_check("Sui-Ki", ikebukuro_tunnel, world, 2825502)
+    add_check("Fuu-Ki", ikebukuro_tunnel, world, 2825540)
+    add_check("Ongyo-Ki", ikebukuro_tunnel, world, 2825578)
 
     kabukicho_prison = add_area('Kabukicho Prison', world)
     add_terminal('Kabukicho Prison', kabukicho_prison, world)
-    add_check("Mizuchi", kabukicho_prison, world)
-    add_check("Black Frost", kabukicho_prison, world)
+    add_check("Mizuchi", kabukicho_prison, world, 2825388)
+    add_check("Black Frost", kabukicho_prison, world, 2845148)
 
     asakusa = add_area('Asakusa', world)
     add_terminal('Asakusa', asakusa, world)
-    add_check('Pale Rider', asakusa, world)
-    add_check('White Rider', asakusa, world)
+    add_check('Pale Rider', asakusa, world, 2856928)
+    add_check('White Rider', asakusa, world, 2856966)
 
     obelisk = add_area('Obelisk', world)
     add_terminal('Obelisk', obelisk, world)
-    add_check("Sisters", obelisk, world)
+    add_check("Sisters", obelisk, world, 2828314)
 
     amala_network_2 = add_area('Amala Network 2', world)
-    add_check('Specter 2', amala_network_2, world)
+    add_check('Specter 2', amala_network_2, world, 2828124)
 
     yoyogi = add_area('Yoyogi Park', world)
     add_terminal('Yoyogi Park', yoyogi, world)
-    add_check("Girimehkala", yoyogi, world)
+    add_check("Girimehkala", yoyogi, world, 2829682)
 
     amala_network_3 = add_area('Amala Network 3', world)
-    add_check('Specter 3', amala_network_3, world)
+    add_check('Specter 3', amala_network_3, world, 2828162)
 
     amala_temple = add_area('Amala Temple', world)
     add_terminal('Amala Temple', amala_temple, world)
-    add_check("Albion", amala_temple, world)
-    add_check("Aciel", amala_temple, world)
-    add_check("Skadi", amala_temple, world)
+    add_check("Albion", amala_temple, world, 2828808)
+    add_check("Aciel", amala_temple, world, 2830442)
+    add_check("Skadi", amala_temple, world, 2830480)
 
     mifunashiro = add_area('Mifunashiro', world)
     add_terminal('Mifunashiro', mifunashiro, world)
-    add_check("Futomimi", mifunashiro, world)
+    add_check("Futomimi", mifunashiro, world, 2843628)
 
     yurakucho_tunnel = add_area('Yurakucho Tunnel', world)
     add_terminal('Yurakucho Tunnel', yurakucho_tunnel, world)
-    add_check("Trumpeter", yurakucho_tunnel, world)
+    add_check("Trumpeter", yurakucho_tunnel, world, 2857232)
 
     diet_building = add_area('Diet Building', world)
     add_terminal('Diet Building', diet_building, world)
-    add_check("Surt", diet_building, world)
-    add_check("Mada", diet_building, world)
-    add_check("Mot", diet_building, world)
-    add_check("Mithra", diet_building, world)
-    add_check("Samael", diet_building, world)
+    add_check("Surt", diet_building, world, 2855522)
+    add_check("Mada", diet_building, world, 2855446)
+    add_check("Mot", diet_building, world, 2855484)
+    add_check("Mithra", diet_building, world, 2854876)
+    add_check("Samael", diet_building, world, 2843552)
 
     lab_of_amala = add_area("Labyrinth of Amala", world)
     add_terminal("Labyrinth of Amala", lab_of_amala, world)
-    add_check("Dante 2", lab_of_amala, world)
-    add_check("Beelzebub", lab_of_amala, world)
-    add_check("Metatron", lab_of_amala, world)
+    add_check("Dante 2", lab_of_amala, world, 2857346)
+    add_check("Beelzebub", lab_of_amala, world, 2835116)
+    add_check("Metatron", lab_of_amala, world, 2835078)
 
     tok = add_area("ToK", world)
-    add_check("Ahriman", tok, world)
-    add_check("Noah", tok, world)
-    add_check("Thor 2", tok, world)
-    add_check("Baal Avatar", tok, world)
-    add_check("Kagutsuchi", tok, world)
-    add_check("Lucifer", tok, world)
+    add_check("Ahriman", tok, world, 2855712)
+    add_check("Noah", tok, world, 2855750)
+    add_check("Thor 2", tok, world, 2856320)
+    add_check("Baal Avatar", tok, world, 2830670)
+    add_check("Kagutsuchi", tok, world, 2835990)
+    add_check("Lucifer", tok, world, 2835154)
 
 
 # Bosses not to randomize
@@ -324,14 +176,17 @@ def create_world():
 
     return world
 
-def randomize_bosses(boss_pool, check_pool, logger):
+def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
     random.shuffle(boss_pool)
     while boss_pool:
+        if attempts < 0:
+            raise Exception("Stuck: Could not randomize bosses")
         boss = boss_pool.pop()
         candidates = [c for c in check_pool if c.boss is None and c.can_place(boss)]
         # can't place boss yet, re-add to the beginning of the boss pool
         if not candidates:
             boss_pool.insert(0, boss)
+            attempts -= 1
             continue
         chosen_check = random.choice(candidates)
         boss.check = chosen_check
@@ -358,11 +213,13 @@ def randomize_world(world, logger):
     randomize_bosses(boss_pool, check_pool, logger)
 
     # Remove the starting Magatama and Gaea (24 st magatama)
-    # marogarah = world.get_magatama('Marogarah')
-    # state.get_magatama(marogarah.name)
-    # magatama_pool.remove(marogarah)
-    # gaea = world.get_magatama('Gaea')
-    # magatama_pool.remove(gaea)
+    marogareh = world.get_magatama('Marogareh')
+    state.get_magatama(marogareh.name)
+    magatama_pool.remove(marogareh)
+    gaea = world.get_magatama('Gaea')
+    magatama_pool.remove(gaea)
+    masakados = world.get_magatama('Masakados')
+    magatama_pool.remove(masakados)
     # shuffle magatamas for more random rewards
     random.shuffle(magatama_pool)
 
@@ -403,7 +260,11 @@ def randomize_world(world, logger):
                 if check.boss.name not in BANNED_BOSSES:
                     new_boss_pool.append(check.boss)
                     check.boss = None
-            randomize_bosses(new_boss_pool, check_pool, logger)
+            try:
+                randomize_bosses(new_boss_pool, check_pool, logger)
+            except:
+                print('Error generating world, trying again')
+                return None
             continue
         
         can_progress = False
