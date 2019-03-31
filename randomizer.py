@@ -63,12 +63,6 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
                 # choose a new demon from all non-hospital, non-phys invalid demons
                 new_choice = random.choice([d for d in demon_pool if not d.phys_inv])
                 swap_demon(demon, new_choice)
-                # get the index of the new choice for swaping
-                # for key, value in demon_map.items():
-                #     if value == new_choice.ind:
-                #         # swap the two demons in the map
-                #         demon_map[demon.ind], demon_map[key] = new_choice.ind, demon_map[demon.ind]
-                #         break
 
     for element in all_elements:
         # find the element in generated demons
@@ -81,9 +75,6 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         if chosen_demon:
             demon_pool.remove(chosen_demon)
             swap_demon(element, chosen_demon)
-            # for key, value in demon_map.items():
-            #     if value == element.ind:
-            #         demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
         else:
             print("Error finding mutation for " + element.name)   
 
@@ -98,10 +89,6 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         if chosen_demon:
             demon_pool.remove(chosen_demon)
             swap_demon(mitama, chosen_demon)
-            # for key, value in demon_map.items():
-            #     if value == mitama.ind:
-            #         demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
-            #         break
         else:
             print("Error finding mutation for " + mitama.name)
 
@@ -119,10 +106,6 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
         if chosen_demon:
             demon_pool.remove(chosen_demon)
             swap_demon(fiend, chosen_demon)
-            # for key, value in demon_map.items():
-            #     if value == fiend.ind:
-            #         demon_map[chosen_demon.ind], demon_map[key] = demon_map[key], demon_map[chosen_demon.ind]
-            #         break
         else:
             print("Error finding mutation for " + fiend.name)
 
@@ -160,7 +143,6 @@ def generate_skill_permutation(balance_by_rank = True, keep_pierce = False):
 
 
 def randomize_stats(total_stats, req_min = True):
-    # todo: make this not kinda shit
     # get total number of stat points
     if req_min:
         # remove 5 for the min 1 point per stat
@@ -171,19 +153,17 @@ def randomize_stats(total_stats, req_min = True):
     # keep track of non-maxed stats
     valid_stats = [0, 1, 2, 3, 4]
     # distribute stats randomly one at a time
-    for i in range(total_stats):
-        while True:
-            # sanity check incase there are no more valid stats
-            if len(valid_stats) == 0:
-                break
-            choice = random.choice(valid_stats)
-            # make sure stats don't go past max
-            if new_stats[choice] >= 40:
-                new_stats[choice] = 40
-                valid_stats.remove(choice)
-            else:
-                new_stats[choice] += 1
-                break
+    while total_stats > 0:
+        # sanity check incase there are no more valid stats
+        if not valid_stats:
+            break
+        choice = random.choice(valid_stats)
+        # make sure stats don't go past max
+        if (new_stats[choice] + 1) > 40:
+            valid_stats.remove(choice)
+            continue
+        new_stats[choice] += 1
+        total_stats -= 1
 
     return new_stats
 
