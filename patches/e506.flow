@@ -1,3 +1,6 @@
+// Compile using the AtlusScriptCompiler found here: https://github.com/TGEnigma/AtlusScriptToolchain
+// be sure to use these parameters "-Compile -Library SMT3 -OutFormat V1DDS"
+
 void e506_main()
 {
     BIT_ON( 18 );               // Set flags from skipped cutscenes
