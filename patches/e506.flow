@@ -11,6 +11,7 @@ void e506_main()
     BIT_ON( 1094 );             // SMC Terminal Flag
     BIT_ON( 37 );               // Sac Fusion
     BIT_ON( 40 );               // Compendium
+    BIT_ON( 2325 );             // Watched first fusion cutscene
     BIT_ON( 1086 );             // Yoyogi Park Terminal Vending Machine
     FUNCTION_0070( 15, 1 );     // Sacred Water
     BIT_ON( 1059 );             // SMC Vending Machine
