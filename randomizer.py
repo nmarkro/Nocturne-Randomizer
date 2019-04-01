@@ -537,6 +537,7 @@ def main(rom_path, output_path, text_seed=None):
     world.add_battles(new_battles)
     world.add_magatamas(new_magatamas)
     world.demon_generator = demon_generator
+    world.demon_map = demon_map
 
     # write all changes to the binary buffer
     nocturne.write_all(rom, world)

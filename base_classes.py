@@ -10,6 +10,8 @@ class World(object):
         # new objects used for writing to binary
         self.demons = {}
         self.battles = {}
+        self.demon_generator = None
+        self.demon_map = {}
 
     def get_area(self, area):
         return self.areas.get(area)
