@@ -32,7 +32,7 @@ def init_magatamas(world):
     add_magatama('Adama', ['Elec', 'Expel', 'Death'], world)
     add_magatama('Vimana', ['Nerve'], world)
     add_magatama('Gundari', ['Force'], world)
-    add_magatama('Sophia', ['Expel', 'Death'], world)
+    add_magatama('Sophia', ['Expel'], world)
     add_magatama('Kailash', [], world)
     add_magatama('Gaea', ['Phys'], world)
     add_magatama('Masakados', [], world)
