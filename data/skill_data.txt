@@ -238,7 +238,7 @@
 159 Endure 5 0
 12E Drain Attack 7 0
 130 Attack All 10 0
-165 Pierce 8 0
+165 Pierce 100 0
 122 Life Bonus 2 0
 125 Mana Bonus 3 0
 123 Life Gain 4 0
