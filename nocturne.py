@@ -503,6 +503,14 @@ def patch_intro_skip(iso_file):
     iso_file.seek(0x49CB58B6)
     iso_file.write(bytes(0))
 
+def patch_special_fusions(rom):
+    rom.seek(0x0022EB78)
+    for i in range(9):
+        rom.write_halfword(0)
+    rom.seek(0x0022EBE0)
+    for i in range(85):
+        rom.write_halfword(0)
+
 def load_all(rom):
     load_demons(rom)
     load_races()
@@ -523,6 +531,8 @@ def write_all(rom, world):
     remove_shop_magatamas(rom)
     # patch the fusion table using the generated elemental results
     fix_elemental_fusion_table(rom, world.demon_generator)
+    # make special fusion demons fuseable normally
+    patch_special_fusions(rom)
     # swap tyrant to vile for pale rider, the harlot, & trumpeter fusion
     rom.write_byte(0x12, 0x22EDE3)
     if randomizer.config_fix_tutorial:
