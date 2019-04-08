@@ -511,6 +511,11 @@ def patch_special_fusions(rom):
     for i in range(85):
         rom.write_halfword(0)
 
+def patch_fix_dummy_convo(rom):
+    personality_offsets = [0x002DDF58, 0x002DF5D8, 0x002DF668, 0x002DF7B8, 0x002DFB78]
+    for o in personality_offsets:
+        rom.write_byte(0x0C, o)
+
 def load_all(rom):
     load_demons(rom)
     load_races()
@@ -567,3 +572,5 @@ def write_all(rom, world):
         futomimi_reward += 320
         fix_angel_reward(rom, futomimi_reward)
     fix_rags_demons(rom)
+    # replace the DUMMY personality on certain demons
+    patch_fix_dummy_convo(rom)
