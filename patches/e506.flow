@@ -62,12 +62,53 @@ void e506_main()
     BIT_ON( 1386 );             // ^
     BIT_ON( 36 );               // Ikebukuro Station for Ikebukuro Tunnel
     BIT_ON( 53 );               // West Nihilo
-    BIT_ON( 86 );               // Yurakucho Tunnel
+    //BIT_ON( 86 );               // Yurakucho Tunnel
     BIT_ON( 26 );               // East Nihilo
     BIT_ON( 15 );               // East Nihilo (Hijiri)
     BIT_ON( 84 );               // Mifunashiro
     BIT_ON( 47 );               //
     BIT_ON( 63 );               // Asakusa West open
+
+    BIT_ON( 9 );                // Set (Shibuya Chiaki cutscene)
+    BIT_ON( 1152 );             // Shibuya Entrance Cutscene
+    BIT_ON( 1216 );             // Ginza Entrance Cutscene
+    BIT_ON( 914 );              // ^
+    BIT_ON( 1320 );             // Accepted Collector Quest
+    BIT_ON( 1314 );             // Ginza Underpass Cutscene 
+    BIT_ON( 1315 );             // Ginza Underpass Cutscene
+    BIT_ON( 1316 );             // Ginza Underpass Cutscene
+    BIT_ON( 1317 );             // Ginza Underpass Cutscene
+    BIT_ON( 1219 );             // Harumi Underpass Entrance
+    BIT_ON( 1344 );             // Ikebukuro Entrance Cutscene
+    BIT_ON( 1354 );             // ?
+    BIT_ON( 1388 );             // ?
+    BIT_ON( 1346 );             // Minor textbox saves
+    BIT_ON( 34 );               // Isamu smacked cutscene
+    BIT_ON( 1376 );             // Mantra Entrance Cutscene
+    BIT_ON( 1248 );             // Nihilo Entrance Cutscene
+    BIT_ON( 23 );               // Chiaki Cutscene in Ikebukuro
+    BIT_ON( 25 );               // Agree with Chiaki
+    BIT_ON( 1408 );             // Kabukicho Entrance Cutscene
+    BIT_ON( 984 );              // Instant Umugi Stone
+    BIT_ON( 1412 );             // Instant Umugi Stone
+    BIT_ON( 1413 );             // Instant Umugi Stone
+    BIT_ON( 1414 );             // Instant Umugi Stone
+    BIT_ON( 1415 );             // Instant Umugi Stone
+    BIT_ON( 1440 );             // East Ikebukuro Entrance Cutscene
+    BIT_ON( 1449 );             // East Ikebukuro Entrance Cutscene
+    BIT_ON( 1472 );             // Asakusa Entrance Cutscene
+    BIT_ON( 1536 );             // Asakusa Tunnel Entrance Cutscene
+    BIT_ON( 1141 );             // Asakusa Tunnel Entrance Cutscene
+    BIT_ON( 1600 );             // Obelisk Entrance Cutscene
+    BIT_ON( 1616 );             // Obelisk Sisters Cutscene
+    BIT_ON( 1704 );             // Amala Temple Isamu Entrance Text
+    BIT_ON( 1719 );             // Amala Temple Isamu Entrance Text
+    BIT_ON( 1696 );             // Amala Temple Entrance Cutscene
+    BIT_ON( 1664 );             // Diet Building Entrance Cutscene
+    BIT_ON( 1717 );             // Divines Text
+    BIT_ON( 1718 );             // Kagutsuchi Text
+    BIT_ON( 1760 );             // Mifunashiro (later) Entrance
+    BIT_ON( 1925 );             // Talked to Loki
 
     FUNCTION_0158( 4 );         // +4 Stock
     FUNCTION_0121( 0, 0 );      // Set Names
