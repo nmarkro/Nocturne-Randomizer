@@ -117,8 +117,8 @@ def load_demon_skills(rom, skill_offset, level):
         if magic_byte == 0 or count >= 23:
             break
 
-        # skip the evolution message
-        if magic_byte == 7:
+        # skip the evolution events
+        if magic_byte >= 6:
             continue
 
         s = {
