@@ -374,14 +374,14 @@ def randomize_battles(demon_map):
                 if d > 0:
                     demon = nocturne.lookup_demon(d)
                     if not demon:
-                        break
+                        continue
                     # don't change any of the early scripted fights
                     if not demon.is_boss or demon.name not in ["Will o' Wisp", "Kodama", "Preta"]:
                         new_demon = demon_map.get(d)
                         if new_demon:
                             new_battle.enemies[i] = new_demon
                     else:
-                        break
+                        continue
         else:
             for i, d in enumerate(b.enemies):
                 if d > 0:
