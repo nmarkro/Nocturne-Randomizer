@@ -108,7 +108,7 @@ void e506_main()
     BIT_ON( 1717 );             // Divines Text
     BIT_ON( 1718 );             // Kagutsuchi Text
     BIT_ON( 1760 );             // Mifunashiro (later) Entrance
-    BIT_ON( 1925 );             // Talked to Loki
+    BIT_ON( 1925 );             // Loki sidequest started
 
     FUNCTION_0158( 4 );         // +4 Stock
     FUNCTION_0121( 0, 0 );      // Set Names
