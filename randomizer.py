@@ -22,7 +22,6 @@ config_write_binary = True                  # Write the game's binary to a separ
 config_fix_tutorial = True                  # replace a few tutorial fights
 config_easy_hospital = True                 # Force hospital demons/boss to not have null/repel/abs phys
 config_keep_marogareh_pierce = True         # Don't randomize Pierce on Maraogareh
-config_easy_recruits = True                 # Patch game so demon recruits always succeed after giving 2 things (bugged?)
 config_always_go_first = True               # Always go first in randomized boss fights
 config_give_pixie_estoma_riberama = True    # Give pixie estoma and riberama
 config_early_spyglass = True                # Adds the Spyglass as a drop on the 3x Preta fight
