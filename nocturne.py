@@ -327,18 +327,6 @@ def write_battles(rom, new_battles, preserve_boss_arenas=False):
         rom.write_halfword(b.reinforcement_value, b.offset + 0x22)
         rom.write_halfword(b.music, b.offset + 0x24)
 
-def patch_easy_demon_recruits(rom):
-    # patch the flag check during demon recruiting to use an always(?) zero flag as oppsed to the forneus flag
-    # this also doesn't work half the time for some fucking reason
-    patch = 0x24040000                      # li a0, 0x0
-    rom.write_word(patch, 0x00171584)       # replaces li a0, 0x8
-    rom.write_word(patch, 0x001720E4)       # replaces li a0, 0x8
-    rom.write_word(patch, 0x001715D8)       # replaces li a0, 0x8
-    rom.write_word(patch, 0x00171670)       # replaces li a0, 0x8
-    rom.write_word(patch, 0x00171A18)       # replaces li a0, 0x8
-    rom.write_word(patch, 0x001719D4)       # replaces li a0, 0x8
-    rom.write_word(patch, 0x001737E4)       # replaces li a0, 0x8
-
 def patch_fix_tutorials(rom):
     # replaces the 1x preta and 2x sudamas tutorial fights with the unmodified, scipted will o' wisp demons
     tutorial_2_offset = 0x002BBBF8
@@ -478,12 +466,6 @@ def fix_angel_reward(rom, reward):
     offset = 0x002B63C8
     rom.write_halfword(reward, offset)
 
-def fix_rags_demons(rom):
-    # disable the apperance of "random" elemental and mitamas to prevent underflow shenanigans 
-    patch = 0x24020004                  # li v0,0x4
-    rom.write_word(patch, 0x0010B3F8)   # replaces sra v0,0x18
-    rom.write_word(patch, 0x0010B570)   # replaces sra v0,0x18
-
 def patch_intro_skip(iso_file):
     # overwrite an unused event script with ours
     e506_offset = 0x3F1C7800
@@ -571,6 +553,5 @@ def write_all(rom, world):
         futomimi_reward = all_magatamas[futomimi_reward.name].ind
         futomimi_reward += 320
         fix_angel_reward(rom, futomimi_reward)
-    fix_rags_demons(rom)
     # replace the DUMMY personality on certain demons
     patch_fix_dummy_convo(rom)
