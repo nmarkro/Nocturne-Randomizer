@@ -525,10 +525,6 @@ def write_all(rom, world):
     if randomizer.config_fix_tutorial:
         print("fixing tutorials")
         patch_fix_tutorials(rom)
-    # this just doesn't work half the time :(
-    if randomizer.config_easy_recruits:
-        print("applying easy recruits patch")
-        patch_easy_demon_recruits(rom)
     # add the spyglass to 3x preta fight and reduce it's selling price
     if randomizer.config_early_spyglass:
         print("applying early spyglass patch")
