@@ -1,0 +1,13 @@
+Text box pointers start from the end of the MSG1 header, which is 0x17 bytes after "MSG1".
+Text box format:
+0x17 - Label
+0x02 - # of text boxes
+0x02 - Speaker name index (05 is "Soul", 00 is nothing)
+0x04 - 1st text box pointer
+0x04 - 2nd text box pointer
+etc.
+Very short list of known text codes:
+F2 02 02 FF (color text) F2 02 01 FF
+0A F1 04 F2 08 FF FF (end text box)
+0A F1 04 00 (end message)
+0A (alone is newline)
