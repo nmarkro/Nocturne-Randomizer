@@ -498,6 +498,11 @@ def patch_fix_dummy_convo(rom):
     for o in personality_offsets:
         rom.write_byte(0x0C, o)
 
+def fix_rags_demons(rom):
+    patch = 0x0000982D                  # dmove s3,zero
+    rom.write_word(patch, 0x0010B318)   # replaces andi s3,v0,0x0003
+    rom.write_word(patch, 0x0010B490)   # replaces andi s3,v0,0x0003
+
 def load_all(rom):
     load_demons(rom)
     load_races()
@@ -551,3 +556,5 @@ def write_all(rom, world):
         fix_angel_reward(rom, futomimi_reward)
     # replace the DUMMY personality on certain demons
     patch_fix_dummy_convo(rom)
+    # make the random mitamas and elementals not show up in rag's shop
+    fix_rags_demons(rom)
