@@ -388,17 +388,20 @@ def patch_visible_skills(rom):
 
 def patch_magic_pierce(rom):
     # makes the pierce skill work on magic
-    # code from Zombero's hardtype romhack
-    hook1 = 0x080BF8B4                      # j 0x2FE2D0 (free space)
-    hook2 = 0x3C04003E                      # lui a0, 0x003E
+    # code based off of Zombero's hardtype romhack
+    hook1 = 0x080BF8AC                      # j 0x2FE2D0 (free space)
+    hook2 = 0x3C04003D                      # lui a0,0x003D
     rom.write_word(hook1, 0x00166B80)       # replaces addiu,fp,0x7998
     rom.write_word(hook2, 0x00166B84)       # replaces sll v0,v0,0x02
     # function in free space
-    rom.write_word(0x00111080, 0x001FF2D0)    # sll v0,s1,0x02
-    rom.write_word(0x00441021, 0x001FF2D4)    # addu v0, a0
-    rom.write_word(0x080996E2, 0x001FF2D8)    # j 0x265B88
+    rom.write_word(0x001110C0, 0x001FF2D0)  # sll v0,s1,0x03
+    rom.write_word(0x00441021, 0x001FF2D4)  # addu v0,a0
+    rom.write_word(0x90426998, 0x001FF2D8)  # lbu v0,0x6998(v0)     load element ID into v0
+    rom.write_word(0x28420006, 0x001FF2DC)  # slti v0,0x0006        exclude expel and death from magic pierce
+    rom.write_word(0x080996E4, 0x001FF2E0)  # j 0x00265B90
+    rom.write_word(0x38430001, 0x001FF2E4)  # xori v1,v0,0x0001   flip the returned bit
     # nop if statement
-    rom.write_word(0x00000000, 0x00167250)    # replaces bnez v1,0x00266268
+    rom.write_word(0x00000000, 0x00167250)  # replaces bnez v1,0x00266268
 
 def patch_stock_aoe_healing(rom):
     # makes aoe healing affect the stock
