@@ -164,6 +164,7 @@ class Demon(object):
         self.phys_inv = None
         self.base_demon = None
         self.shady_broker = None
+        self.flag = None
 
 
 class Skill(object):

@@ -43,7 +43,7 @@ def load_demons(rom):
         demon_name = demon_names[i]
 
         demon_offset = rom.r_offset
-        _, race_id, level, hp, _, mp, _, demon_id, strength, _, magic, vitality, agility, luck, battle_skills, _, macca_drop, exp_drop, _ = struct.unpack('<16sBBHHHHHBBBBBB12s8sHHH', rom.read(0x3C))
+        _, flag, _, race_id, level, hp, _, mp, _, demon_id, strength, _, magic, vitality, agility, luck, battle_skills, _, macca_drop, exp_drop, _ = struct.unpack('<12sH2sBBHHHHHBBBBBB12s8sHHH', rom.read(0x3C))
 
         # skip entry if it's a garbage/unknown demon
         if race_id == 0 or demon_name =='?':
@@ -65,6 +65,8 @@ def load_demons(rom):
         demon.stats = [strength, magic, vitality, agility, luck]
         demon.macca_drop = macca_drop
         demon.exp_drop = exp_drop
+        # remove jive talk flag from demons
+        demon.flag = flag ^ 0x0080
 
         s = []
         for j in range(0, len(battle_skills), 2):
@@ -219,6 +221,7 @@ def load_battles(rom):
 def write_demon(rom, demon, offset):
     rom.seek(offset)
 
+    rom.write_halfword(demon.flag, rom.w_offset + 0x0C)
     rom.write_byte(demon.race, rom.w_offset + 0x10)
     rom.write_byte(demon.level, rom.w_offset + 0x11)
     rom.write_halfword(demon.hp, rom.w_offset + 0x12)
@@ -506,6 +509,20 @@ def fix_rags_demons(rom):
     rom.write_word(patch, 0x0010B318)   # replaces andi s3,v0,0x0003
     rom.write_word(patch, 0x0010B490)   # replaces andi s3,v0,0x0003
 
+def patch_all_recruit(rom):
+    patch1 = 0x1000002D                 # b 0026DBB0
+    patch2 = 0x10000009                 # b 0026D3B0
+
+    # fix most non-recruitable demons
+    rom.write_word(patch1, 0x0016EAF8)  # replaces beql a1,v1,0026DBA0
+    rom.write_word(0, 0x0016EAFC)       # replaces lw v1,0x28(s0)
+
+    # fix tyrant, vile, and gurr
+    rom.write_word(0, 0x0016E364)       # replaces beql v0,v1,0026D394
+    rom.write_word(0, 0x0016E368)       # replaces lw v0,0x12C(s0)
+    rom.write_word(0, 0x0016E378)       # replaces beq v0,v1,0026D390
+    rom.write_word(patch2, 0x0016E388)  # replaces bne v0,v1,0026D3B0
+
 def load_all(rom):
     load_demons(rom)
     load_races()
@@ -561,3 +578,5 @@ def write_all(rom, world):
     patch_fix_dummy_convo(rom)
     # make the random mitamas and elementals not show up in rag's shop
     fix_rags_demons(rom)
+    # fix most non-recruitable demons and demon races
+    patch_all_recruit(rom)

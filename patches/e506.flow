@@ -61,6 +61,7 @@ void e506_main()
     BIT_ON( 43 );               // Mantra HQ East Door
     BIT_ON( 1386 );             // ^
     BIT_ON( 36 );               // Ikebukuro Station for Ikebukuro Tunnel
+    BIT_ON( 35 );               // Fix Kabukicho softlock caused by ^ (?)
     BIT_ON( 53 );               // West Nihilo
     //BIT_ON( 86 );               // Yurakucho Tunnel
     BIT_ON( 26 );               // East Nihilo
