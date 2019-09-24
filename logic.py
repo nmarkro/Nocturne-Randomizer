@@ -178,6 +178,7 @@ def create_world():
 
 def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
     random.shuffle(boss_pool)
+    random.shuffle(check_pool)
     while boss_pool:
         if attempts < 0:
             raise Exception("Stuck: Could not randomize bosses")
@@ -194,7 +195,7 @@ def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
         logger.info("Placing " + boss.name + " at check: " + chosen_check.name)
 
 
-def randomize_world(world, logger):
+def randomize_world(world, logger, attempts=100):
     state = world.state
     area_pool = world.get_areas()
     terminal_pool = world.get_terminals()
@@ -210,7 +211,11 @@ def randomize_world(world, logger):
         boss.check = check
     # Do the initial randomization of bosses
     logger.info('Randomizing bosses')
-    randomize_bosses(boss_pool, check_pool, logger)
+    try:
+        randomize_bosses(boss_pool, check_pool, logger)
+    except:
+        print('Error generating world, trying again')
+        return None
 
     # Remove the starting Magatama and Gaea (24 st magatama)
     marogareh = world.get_magatama('Marogareh')
@@ -226,6 +231,10 @@ def randomize_world(world, logger):
     # keep track of bosses beaten for placing magatamas
     bosses_progressed = []
     while world.get_check('Lucifer') in check_pool:
+        if attempts < 0:
+            print('Error generating world, trying again')
+            return None
+
         # keep beating bosses and unlocking terminals until stuck
         has_progressed = True
         while has_progressed:
@@ -265,6 +274,7 @@ def randomize_world(world, logger):
             except:
                 print('Error generating world, trying again')
                 return None
+            attempts -= 1
             continue
         
         can_progress = False
