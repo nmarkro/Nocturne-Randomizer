@@ -392,6 +392,7 @@ def patch_visible_skills(rom):
 def patch_magic_pierce(rom):
     # makes the pierce skill work on magic
     # code based off of Zombero's hardtype romhack
+    nop = 0x00000000                        # nop
     hook1 = 0x080BF8AC                      # j 0x2FE2D0 (free space)
     hook2 = 0x3C04003D                      # lui a0,0x003D
     rom.write_word(hook1, 0x00166B80)       # replaces addiu,fp,0x7998
@@ -404,16 +405,19 @@ def patch_magic_pierce(rom):
     rom.write_word(0x080996E4, 0x001FF2E0)  # j 0x00265B90
     rom.write_word(0x38430001, 0x001FF2E4)  # xori v1,v0,0x0001   flip the returned bit
     # nop if statement
-    rom.write_word(0x00000000, 0x00167250)  # replaces bnez v1,0x00266268
+    rom.write_word(nop, 0x00167250)         # replaces bnez v1,0x00266268
 
 def patch_stock_aoe_healing(rom):
     # makes aoe healing affect the stock
     # code from Zombero's hardtype romhack
     nop = 0x00000000                        # nop
-    patch = 0x3042FFFF                      # andi v0,0xFFFF
+    patch1 = 0x9462000E                     # lhu v0,0xE(v1)
+    patch2 = 0x30420800                     # andi v0,0x800
+    patch3 = 0x14400003                     # bnez v0,0x0022D614
     rom.write_word(nop, 0x001420C4)         # replaces beqz v1,0x002410E0
-    rom.write_word(nop, 0x00191948)         # replaces beqz v0,0x0029096C
-    rom.write_word(patch, 0x0012E600)       # replaces andi v0,0x0002
+    rom.write_word(patch1, 0x0012E5FC)      # replaces nop
+    rom.write_word(patch2, 0x0012E600)      # replaces andi v0,0x0002
+    rom.write_word(patch3, 0x0012E604)      # replaces beqz v0,0x0022D614
 
 def fix_elemental_fusion_table(rom, demon_generator):
     fusion_table_offset = 0x0022E270
@@ -510,17 +514,18 @@ def fix_rags_demons(rom):
     rom.write_word(patch, 0x0010B490)   # replaces andi s3,v0,0x0003
 
 def patch_all_recruit(rom):
+    nop = 0x00000000                    # nop
     patch1 = 0x1000002D                 # b 0026DBB0
     patch2 = 0x10000009                 # b 0026D3B0
 
     # fix most non-recruitable demons
     rom.write_word(patch1, 0x0016EAF8)  # replaces beql a1,v1,0026DBA0
-    rom.write_word(0, 0x0016EAFC)       # replaces lw v1,0x28(s0)
+    rom.write_word(nop, 0x0016EAFC)     # replaces lw v1,0x28(s0)
 
     # fix tyrant, vile, and gurr
-    rom.write_word(0, 0x0016E364)       # replaces beql v0,v1,0026D394
-    rom.write_word(0, 0x0016E368)       # replaces lw v0,0x12C(s0)
-    rom.write_word(0, 0x0016E378)       # replaces beq v0,v1,0026D390
+    rom.write_word(nop, 0x0016E364)     # replaces beql v0,v1,0026D394
+    rom.write_word(nop, 0x0016E368)     # replaces lw v0,0x12C(s0)
+    rom.write_word(nop, 0x0016E378)     # replaces beq v0,v1,0026D390
     rom.write_word(patch2, 0x0016E388)  # replaces bne v0,v1,0026D3B0
 
 def load_all(rom):
