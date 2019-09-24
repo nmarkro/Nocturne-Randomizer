@@ -66,7 +66,7 @@ def load_demons(rom):
         demon.macca_drop = macca_drop
         demon.exp_drop = exp_drop
         # remove jive talk flag from demons
-        demon.flag = flag ^ 0x0080
+        demon.flag = flag & (~0x0080)
 
         s = []
         for j in range(0, len(battle_skills), 2):
