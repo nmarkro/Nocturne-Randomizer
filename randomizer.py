@@ -18,16 +18,16 @@ from rom import Rom
 config_balance_by_skill_rank = False        # Permutate skills based on rank
 config_exp_modifier = 2                     # Mulitlpy EXP values of demons
 config_make_logs = True                     # Write various data to the logs/ folder
-config_write_binary = True                  # Write the game's binary to a separe file for easier hex reading
 config_fix_tutorial = True                  # replace a few tutorial fights
 config_easy_hospital = True                 # Force hospital demons/boss to not have null/repel/abs phys
 config_keep_marogareh_pierce = True         # Don't randomize Pierce on Maraogareh
 config_always_go_first = True               # Always go first in randomized boss fights
 config_give_pixie_estoma_riberama = True    # Give pixie estoma and riberama
 config_early_spyglass = True                # Adds the Spyglass as a drop on the 3x Preta fight
-config_visible_skills = True                # Make all learnable skills visable
 config_preserve_boss_arenas = False         # Make randomized bosses apear in their normal battle arena
-
+config_visible_skills = True                # Make all learnable skills visable (like hardtype)
+config_magic_pierce = True                  # Make pierce affect most magic spells (like hardtype)
+config_stock_healing = True                 # Make AoE healing affect stock demons (like hardtype)
 
 def init_rom_data(rom_path):
     global rom
@@ -421,7 +421,7 @@ def randomize_boss_battles(world):
 
         new_exp = old_boss_demon.exp_drop
         new_macca = old_boss_demon.macca_drop
-        
+
         if old_boss is not new_boss:
             if new_level < new_boss_demon.level:
                 new_level /= 2
@@ -487,7 +487,7 @@ def write_demon_log(output_path, demons):
 
 def main(rom_path, output_path, text_seed=None):
     if text_seed is None:
-        text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+        text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     print("ROM Seed: " + text_seed)
     seed = int(hashlib.sha256(text_seed.encode('utf-8')).hexdigest(), 16)
     random.seed(seed)
@@ -547,10 +547,6 @@ def main(rom_path, output_path, text_seed=None):
 
     print("copying iso")
     shutil.copyfile(rom_path, output_path)
-    if config_write_binary:
-        print("writing new binary")
-        with open('rom/SLUS_209.11', 'wb') as file:
-            file.write(bytearray(rom.buffer))
     with open(output_path, 'r+b') as file:
         print("writing changes")
         # write the binary buffer on top of the old binary

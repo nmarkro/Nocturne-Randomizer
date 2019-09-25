@@ -3,6 +3,7 @@ import copy
 import struct
 import re
 import random
+import os
 
 import randomizer
 import races
@@ -346,78 +347,29 @@ def patch_early_spyglass(rom):
 
 def remove_shop_magatamas(rom):
     # Shibuya shop
-    # remove Iyomante
-    rom.write_byte(0, 0x00230718)
-    # remove Shiranui
-    rom.write_byte(0, 0x0023071C)
+    rom.write_byte(0, 0x00230718)           # remove Iyomante
+    rom.write_byte(0, 0x0023071C)           # remove Shiranui
 
     # Underpass shop
-    # remove Ankh
-    rom.write_byte(0, 0x002307A2)
-    # remove Hifumi
-    rom.write_byte(0, 0x002307A6)
-    # remove Kamudo
-    rom.write_byte(0, 0x002307AA)
+    rom.write_byte(0, 0x002307A2)           # remove Ankh
+    rom.write_byte(0, 0x002307A6)           # remove Hifumi
+    rom.write_byte(0, 0x002307AA)           # remove Kamudo
 
     # Asakusa shop
-    # remove Nirvana
-    rom.write_byte(0, 0x002308B6)
-    # remove Gehenna
-    rom.write_byte(0, 0x002308BA)
+    rom.write_byte(0, 0x002308B6)           # remove Nirvana
+    rom.write_byte(0, 0x002308BA)           # remove Gehenna
 
     # Asakusa Tunnel shop
-    # remove Kamurogi
-    rom.write_byte(0, 0x00230920)
-    # remove Vimana
-    rom.write_byte(0, 0x00230924)
-    # remove Sophia
-    rom.write_byte(0, 0x00230928)
+    rom.write_byte(0, 0x00230920)           # remove Kamurogi
+    rom.write_byte(0, 0x00230924)           # remove Vimana
+    rom.write_byte(0, 0x00230928)           # remove Sophia
 
     # ToK shop
-    # remove Kailash
-    rom.write_byte(0, 0x002309DE)
+    rom.write_byte(0, 0x002309DE)           # remove Kailash
 
     # Underpass shop may be separate based on if you got Ankh from Pixie
-    # remove Hifumi again(?)
-    rom.write_byte(0, 0x00230A2C)
-    # remove Kamudo again(?)
-    rom.write_byte(0, 0x00230A30)
-
-def patch_visible_skills(rom):
-    # makes learnable skills always visible
-    # code from Zombero's hardtype romhack
-    patch = 0x0640003D                      # bltz s2, 0x002383C8
-    rom.write_word(patch, 0x001392D0)       # replaces bnez s2, 0x002383C8
-
-def patch_magic_pierce(rom):
-    # makes the pierce skill work on magic
-    # code based off of Zombero's hardtype romhack
-    nop = 0x00000000                        # nop
-    hook1 = 0x080BF8AC                      # j 0x2FE2D0 (free space)
-    hook2 = 0x3C04003D                      # lui a0,0x003D
-    rom.write_word(hook1, 0x00166B80)       # replaces addiu,fp,0x7998
-    rom.write_word(hook2, 0x00166B84)       # replaces sll v0,v0,0x02
-    # function in free space
-    rom.write_word(0x001110C0, 0x001FF2D0)  # sll v0,s1,0x03
-    rom.write_word(0x00441021, 0x001FF2D4)  # addu v0,a0
-    rom.write_word(0x90426998, 0x001FF2D8)  # lbu v0,0x6998(v0)     load element ID into v0
-    rom.write_word(0x28420006, 0x001FF2DC)  # slti v0,0x0006        exclude expel and death from magic pierce
-    rom.write_word(0x080996E4, 0x001FF2E0)  # j 0x00265B90
-    rom.write_word(0x38430001, 0x001FF2E4)  # xori v1,v0,0x0001   flip the returned bit
-    # nop if statement
-    rom.write_word(nop, 0x00167250)         # replaces bnez v1,0x00266268
-
-def patch_stock_aoe_healing(rom):
-    # makes aoe healing affect the stock
-    # code from Zombero's hardtype romhack
-    nop = 0x00000000                        # nop
-    patch1 = 0x9462000E                     # lhu v0,0xE(v1)
-    patch2 = 0x30420800                     # andi v0,0x800
-    patch3 = 0x14400003                     # bnez v0,0x0022D614
-    rom.write_word(nop, 0x001420C4)         # replaces beqz v1,0x002410E0
-    rom.write_word(patch1, 0x0012E5FC)      # replaces nop
-    rom.write_word(patch2, 0x0012E600)      # replaces andi v0,0x0002
-    rom.write_word(patch3, 0x0012E604)      # replaces beqz v0,0x0022D614
+    rom.write_byte(0, 0x00230A2C)           # remove Hifumi again(?)
+    rom.write_byte(0, 0x00230A30)           # remove Kamudo again(?)
 
 def fix_elemental_fusion_table(rom, demon_generator):
     fusion_table_offset = 0x0022E270
@@ -508,25 +460,14 @@ def patch_fix_dummy_convo(rom):
     for o in personality_offsets:
         rom.write_byte(0x0C, o)
 
-def fix_rags_demons(rom):
-    patch = 0x0000982D                  # dmove s3,zero
-    rom.write_word(patch, 0x0010B318)   # replaces andi s3,v0,0x0003
-    rom.write_word(patch, 0x0010B490)   # replaces andi s3,v0,0x0003
-
-def patch_all_recruit(rom):
-    nop = 0x00000000                    # nop
-    patch1 = 0x1000002D                 # b 0026DBB0
-    patch2 = 0x10000009                 # b 0026D3B0
-
-    # fix most non-recruitable demons
-    rom.write_word(patch1, 0x0016EAF8)  # replaces beql a1,v1,0026DBA0
-    rom.write_word(nop, 0x0016EAFC)     # replaces lw v1,0x28(s0)
-
-    # fix tyrant, vile, and gurr
-    rom.write_word(nop, 0x0016E364)     # replaces beql v0,v1,0026D394
-    rom.write_word(nop, 0x0016E368)     # replaces lw v0,0x12C(s0)
-    rom.write_word(nop, 0x0016E378)     # replaces beq v0,v1,0026D390
-    rom.write_word(patch2, 0x0016E388)  # replaces bne v0,v1,0026D3B0
+def apply_asm_patch(rom, patch_path):
+    assert(os.path.exists(patch_path))
+    with open(patch_path, 'r') as f:
+        for line in f:
+            if line.startswith(';'):
+                continue
+            addr, value = map(int, line.split(','))
+            rom.write_byte(value, addr)
 
 def load_all(rom):
     load_demons(rom)
@@ -540,10 +481,20 @@ def write_all(rom, world):
     write_magatamas(rom, world.magatamas.values())
     write_battles(rom, world.battles.values())
 
+    # make the random mitamas and elementals not show up in rag's shop
+    apply_asm_patch(rom, 'patches/rags.txt')
+    # fix most non-recruitable demons and demon races
+    apply_asm_patch(rom, 'patches/recruit.txt')
     # make the pierce skill work on magic
-    patch_magic_pierce(rom)
+    if randomizer.config_magic_pierce:
+        apply_asm_patch(rom, 'patches/pierce.txt')
     # make aoe healing work on the stock demons
-    patch_stock_aoe_healing(rom)
+    if randomizer.config_stock_healing:
+        apply_asm_patch(rom, 'patches/healing.txt')
+    # make learnable skills always visible
+    if randomizer.config_visible_skills:
+        apply_asm_patch(rom, 'patches/skills.txt')
+
     # remove magatamas from shops since they are all tied to boss drops now
     remove_shop_magatamas(rom)
     # patch the fusion table using the generated elemental results
@@ -559,9 +510,6 @@ def write_all(rom, world):
     if randomizer.config_early_spyglass:
         print("applying early spyglass patch")
         patch_early_spyglass(rom)
-    # make learnable skills always visible
-    if randomizer.config_visible_skills:
-        patch_visible_skills(rom)
 
     # replace the pazuzu mada summons
     fix_mada_summon(rom, world.demons.values())
@@ -581,7 +529,3 @@ def write_all(rom, world):
         fix_angel_reward(rom, futomimi_reward)
     # replace the DUMMY personality on certain demons
     patch_fix_dummy_convo(rom)
-    # make the random mitamas and elementals not show up in rag's shop
-    fix_rags_demons(rom)
-    # fix most non-recruitable demons and demon races
-    patch_all_recruit(rom)
