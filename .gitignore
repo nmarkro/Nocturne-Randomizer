@@ -108,5 +108,6 @@ rom/*.iso
 rom/SLUS_209.11
 rom/*.xdelta
 
-# armips binary
+# armips binary and other asm stuff
 asm/armips.exe
+!asm/build/
