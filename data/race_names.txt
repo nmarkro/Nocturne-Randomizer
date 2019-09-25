@@ -28,12 +28,12 @@ Dragon
 Avatar
 Avian
 Raptor
-?
+Reaper
 Entity
 Corpus
 Zoa
 Hallel
 Light
-?
+Emperor
 Fiend
 Devil

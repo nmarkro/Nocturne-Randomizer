@@ -46,7 +46,7 @@ def load_demons(rom):
         _, flag, _, race_id, level, hp, _, mp, _, demon_id, strength, _, magic, vitality, agility, luck, battle_skills, _, macca_drop, exp_drop, _ = struct.unpack('<12sH2sBBHHHHHBBBBBB12s8sHHH', rom.read(0x3C))
 
         # skip entry if it's a garbage/unknown demon
-        if race_id == 0 or demon_name =='?':
+        if race_id == 0 or demon_name == '?':
             continue
 
         # Beelzebub (Human) and Beelzebub (Fly) share the same demon_id for some reason, so separate them

@@ -439,7 +439,11 @@ def randomize_boss_battles(world):
                 new_hp = min(new_hp, 4000)
             if config_always_go_first:
                 boss_battle.goes_first = 0x0D
-        balanced_demon = rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=config_exp_modifier, stat_mod=1)
+            balanced_demon = rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=config_exp_modifier, stat_mod=1)
+        else:
+            balanced_demon = old_boss_demon
+            new_exp *= config_exp_modifier
+            balanced_demon.exp_drop = int(min(new_exp, 0xFFFF))
         boss_demons.append(balanced_demon)
         # balance any extra demons that show up in the fight
         extras = boss_extras.get(new_boss_demon.name)
