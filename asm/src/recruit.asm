@@ -1,7 +1,7 @@
 .org 0x0026DAF8
 .func RECRUIT_FIX
     b 0x0026DBB0
-    nop
+    li s1,0x8
 .endfunc
 
 .org 0x0026D364

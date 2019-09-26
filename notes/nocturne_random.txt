@@ -86,10 +86,11 @@ battle layout is 26h long
 	item drop can be magatamas too (that's how the game gives you wadatsumi, satan, ect)
 
 AI layout is A4h long
-	00h-23h					?
-	24h-4Bh					Back attack skills (5 skills)
-	4Ch-73h					Regular skills (5 skills)
-	74h-9Bh					Low HP skills? (5 skills)	
+	00h					Header?
+		0x0 (2 bytes): special demon script id
+	28h					Back attack skills (5 skills)
+	50h					Regular skills (5 skills)
+	78h					Low HP skills? (5 skills)	
 
 	skill layout (8h long)
 		00h 				Odds (each set of skills adds up to 100) (2 bytes?)

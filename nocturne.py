@@ -57,7 +57,8 @@ def load_demons(rom):
         demon = Demon(demon_id, demon_name)
         demon.offset = demon_offset
         demon.skill_offset = 0x00234CF4 + (demon_id * 0x66)
-        demon.ai_offset = 0x002999E4 + (demon_id * 0xA4)
+        #demon.ai_offset = 0x002999E4 + (demon_id * 0xA4)
+        demon.ai_offset = 0x002999E0 + (demon_id * 0xA4)
 
         demon.race = race_id
         demon.level = level
@@ -147,11 +148,12 @@ def load_skills(rom):
 
     skill_data = list(map(lambda s: re.search(pattern, s), skill_data.split('\n')))
 
-    for i in range(len(skill_data)):
-        skill_id = int(skill_data[i][1], 16)
-        name = skill_data[i][2]
-        rank = int(skill_data[i][3])
-        skill_type = int(skill_data[i][4])
+    #for i in range(len(skill_data)):
+    for i, data in enumerate(skill_data):
+        skill_id = int(data[1], 16)
+        name = data[2]
+        rank = int(data[3])
+        skill_type = int(data[4])
 
         skill = Skill(skill_id, name, rank)
         skill.skill_type = skill_type
@@ -210,8 +212,8 @@ def load_battles(rom):
         battle = Battle(offset)
         battle.enemies = enemies
         battle.is_boss = rom.read_halfword(offset) == 0x01FF
-        battle.reward = rom.read_halfword(offset + 2)
-        battle.phase_value = rom.read_halfword(offset + 4)
+        battle.reward = rom.read_halfword(offset + 0x02)
+        battle.phase_value = rom.read_halfword(offset + 0x04)
         battle.arena = rom.read_word(offset + 0x1C)
         battle.goes_first = rom.read_halfword(offset + 0x20)
         battle.reinforcement_value = rom.read_halfword(offset + 0x22)
@@ -222,29 +224,28 @@ def load_battles(rom):
 def write_demon(rom, demon, offset):
     rom.seek(offset)
 
-    rom.write_halfword(demon.flag, rom.w_offset + 0x0C)
-    rom.write_byte(demon.race, rom.w_offset + 0x10)
-    rom.write_byte(demon.level, rom.w_offset + 0x11)
-    rom.write_halfword(demon.hp, rom.w_offset + 0x12)
-    rom.write_halfword(demon.hp, rom.w_offset + 0x14)
-    rom.write_halfword(demon.mp, rom.w_offset + 0x16)
-    rom.write_halfword(demon.mp, rom.w_offset + 0x18)
+    rom.write_halfword(demon.flag, offset + 0x0C)
+    rom.write_byte(demon.race, offset + 0x10)
+    rom.write_byte(demon.level, offset + 0x11)
+    rom.write_halfword(demon.hp, offset + 0x12)
+    rom.write_halfword(demon.hp, offset + 0x14)
+    rom.write_halfword(demon.mp, offset + 0x16)
+    rom.write_halfword(demon.mp, offset + 0x18)
 
     stats = struct.pack('<BBBBBB', demon.stats[0], 0x00, demon.stats[1], demon.stats[2], demon.stats[3], demon.stats[4])
-    rom.write(stats, rom.w_offset + 0x1C)
+    rom.write(stats, offset + 0x1C)
 
-    rom.write_halfword(demon.macca_drop, rom.w_offset + 0x36)
-    rom.write_halfword(demon.exp_drop, rom.w_offset + 0x38)
+    rom.write_halfword(demon.macca_drop, offset + 0x36)
+    rom.write_halfword(demon.exp_drop, offset + 0x38)
 
     # don't change boss ai or skills
     if not demon.is_boss:
+        # zero out old battle skills
+        rom.write(struct.pack('<16x'), offset + 0x22)
+
         rom.seek(offset + 0x22)
-        for i in range(8):
-            if i < len(demon.battle_skills):
-                skill = demon.battle_skills[i]
-                rom.write_halfword(skill)
-            else:
-                rom.write_halfword(0)
+        for skill in demon.battle_skills:
+            rom.write_halfword(skill)
 
         write_skills(rom, demon)
         write_ai(rom, demon)
@@ -260,19 +261,21 @@ def write_demons(rom, new_demons):
             rom.write_byte(0, shady_broker_offset + 0x10)
 
 def write_skills(rom, demon):
-    for i in range(len(demon.skills)):
-        skill = demon.skills[i]
-        offset = (demon.skill_offset + 0x0A) + (i * 0x04)
-        rom.seek(offset)
+    # zero out old demon skills
+    offset = demon.skill_offset + 0x0A
+    rom.write(struct.pack('<24x'), offset)
+   
+    rom.seek(offset)
+    for skill in demon.skills:
         rom.write_byte(skill['level'])
         rom.write_byte(skill['magic_byte'])
         rom.write_halfword(skill['skill_id'])
-        
-    for i in range(len(demon.skills), 23):
-        rom.write_word(0, demon.skill_offset + 0x0A + (i * 0x4))
 
 def write_ai(rom, demon):
-    offset = demon.ai_offset + 0x24
+    # get rid of special demon ai scripts
+    if rom.read_halfword(demon.ai_offset) != 0x46:
+        # 0x46 is the default I think?
+        rom.write_halfword(0x46, demon.ai_offset)
 
     # todo: make generating odds more random
     total_odds = [
@@ -295,27 +298,25 @@ def write_ai(rom, demon):
         num_of_skills = min(len(skill_pool), 5)
         odds = total_odds[num_of_skills - 1]
 
+        # zero out old demon ai
+        offset = (demon.ai_offset + 0x28) + (i * 0x28)
+        rom.write(struct.pack('<40x'), offset)
+        
+        rom.seek(offset)
         # write the new demon ai
-        for j in range(num_of_skills):
-            skill = skill_pool[j]
-            rom.write(struct.pack('<HHI', odds[j], skill_pool[j], 0), offset)
-            offset += 0x08
-
-        # fill the rest with zeros
-        for j in range(num_of_skills, 5):
-            rom.write(struct.pack('<Q', 0), offset)
-            offset += 0x08
+        for o, s in zip(odds, skill_pool):
+            rom.write(struct.pack('<HHI', o, s, 0))
 
 def write_magatamas(rom, new_magatams):
     for magatama in new_magatams:
         stats = struct.pack('<BBBBBB', magatama.stats[0], 0xFF, magatama.stats[1], magatama.stats[2], magatama.stats[3], magatama.stats[4])
-        rom.write(stats, magatama.offset + 0x0E)
-        rom.write(stats, magatama.offset + 0x14)
-        for i in range(len(magatama.skills)):
-            skill = magatama.skills[i]
-            s = magatama.offset + 0x22 + (i * 4)
-            rom.write_halfword(skill['level'], s)
-            rom.write_halfword(skill['skill_id'], s + 2)
+        rom.seek(magatama.offset + 0x0E)
+        for i in range(2):
+            rom.write(stats)
+        rom.seek(magatama.offset + 0x22)
+        for skill in magatama.skills:
+            rom.write_halfword(skill['level'])
+            rom.write_halfword(skill['skill_id'])
 
 def write_battles(rom, new_battles, preserve_boss_arenas=False):
     for b in new_battles:
@@ -323,8 +324,9 @@ def write_battles(rom, new_battles, preserve_boss_arenas=False):
         if 345 >= b.reward >= 320:
             rom.write_halfword(b.reward, b.offset + 0x02)
         rom.write_halfword(b.phase_value, b.offset + 0x04)
-        for i, e in enumerate(b.enemies):
-            rom.write_halfword(e, b.offset + 0x06 + (i * 2))
+        rom.seek(b.offset + 0x06)
+        for e in b.enemies:
+            rom.write_halfword(e)
         if preserve_boss_arenas:
             rom.write_word(b.arena, b.offset + 0x1C)
         rom.write_halfword(b.goes_first, b.offset + 0x20)
@@ -448,12 +450,15 @@ def patch_intro_skip(iso_file):
     iso_file.write(bytes(0))
 
 def patch_special_fusions(rom):
-    rom.seek(0x0022EB78)
-    for i in range(9):
-        rom.write_halfword(0)
-    rom.seek(0x0022EBE0)
-    for i in range(85):
-        rom.write_halfword(0)
+    rom.write(struct.pack('<18x'), 0x0022EB78)
+    rom.write(struct.pack('<170x'), 0x0022EBE0)
+
+    # rom.seek(0x0022EB78)
+    # for i in range(9):
+    #     rom.write_halfword(0)
+    # rom.seek(0x0022EBE0)
+    # for i in range(85):
+    #     rom.write_halfword(0)
 
 def patch_fix_dummy_convo(rom):
     personality_offsets = [0x002DDF58, 0x002DF5D8, 0x002DF668, 0x002DF7B8, 0x002DFB78]

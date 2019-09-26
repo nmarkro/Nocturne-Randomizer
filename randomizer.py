@@ -34,7 +34,7 @@ def init_rom_data(rom_path):
     rom = Rom(rom_path)
 
 
-def generate_demon_permutation(demon_gen, easy_hospital = False):
+def generate_demon_permutation(demon_gen):
     def swap_demon(d1, d2):
         for key, value in demon_map.items():
             if value == d1.ind:
@@ -54,7 +54,7 @@ def generate_demon_permutation(demon_gen, easy_hospital = False):
 
     for old_demon, new_demon in zip(demon_pool, shuffled_pool):
         demon_map[old_demon.ind] = new_demon.ind
-    if easy_hospital:
+    if config_easy_hospital:
         # iterate through each hospital demon looking for conflicts
         for demon in all_base:
             new_demon = nocturne.lookup_demon(demon_map.get(demon.ind))
@@ -517,7 +517,7 @@ def main(rom_path, output_path, text_seed=None):
     demon_generator = races.all_demons(races.demon_levels, races.demon_names)
     demon_generator.generate()
     # generate_demon_permutation disregards demon names for most races for better randomization (non-element/mitama)
-    demon_map = generate_demon_permutation(demon_generator, config_easy_hospital)
+    demon_map = generate_demon_permutation(demon_generator)
     # randomize and rebalance all demon stats
     new_demons = randomize_demons(demon_map, demon_generator.demons, exp_mod=config_exp_modifier)
 
