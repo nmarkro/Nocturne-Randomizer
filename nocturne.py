@@ -499,6 +499,9 @@ def write_all(rom, world):
     # make learnable skills always visible
     if randomizer.config_visible_skills:
         apply_asm_patch(rom, 'patches/skills.txt')
+    # remove hard mode price multiplier
+    if randomizer.config_remove_hardmode_prices:
+        apply_asm_patch(rom, 'patches/prices.txt')
 
     # remove magatamas from shops since they are all tied to boss drops now
     remove_shop_magatamas(rom)

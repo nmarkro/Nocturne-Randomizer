@@ -28,6 +28,7 @@ config_preserve_boss_arenas = False         # Make randomized bosses apear in th
 config_visible_skills = True                # Make all learnable skills visable (like hardtype)
 config_magic_pierce = True                  # Make pierce affect most magic spells (like hardtype)
 config_stock_healing = True                 # Make AoE healing affect stock demons (like hardtype)
+config_remove_hardmode_prices = True        # Remove the 3x multiplier on hard mode shop prices 
 
 def init_rom_data(rom_path):
     global rom

@@ -5,6 +5,6 @@
 .include "src/skills.asm"
 .include "src/healing.asm"
 .include "src/recruit.asm"
-.include "src/rags.asm"
+.include "src/shops.asm"
 
 .close
