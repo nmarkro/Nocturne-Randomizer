@@ -209,6 +209,9 @@ def randomize_skills(new_demon, force_skills=None):
     # this is mainly for Dante who has like 10 unique skills
     if num_of_unique > total_skills:
         total_skills = num_of_unique
+    # make sure demons can't learn more than 8 skills
+    if (total_skills - starting_skills) > 8:
+        starting_skills = min(total_skills - 8, 8)
     # randomly select nonunique skills
     chosen_skills = random.sample(skill_pool, total_skills - num_of_unique)
     # randomly select unique skills and add it to the list + shuffle

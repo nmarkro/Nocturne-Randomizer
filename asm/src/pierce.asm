@@ -6,7 +6,7 @@
 
 .org 0x002FE2D0
 .func PIERCE_FUNC
-    sll v0,v1,0x03
+    sll v0,s1,0x03
     addu v0,a0
     lbu v0,0x6998(v0)
     slti v0,0x0006

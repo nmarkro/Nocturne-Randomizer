@@ -263,7 +263,7 @@ def write_demons(rom, new_demons):
 def write_skills(rom, demon):
     # zero out old demon skills
     offset = demon.skill_offset + 0x0A
-    rom.write(struct.pack('<24x'), offset)
+    rom.write(struct.pack('<92x'), offset)
    
     rom.seek(offset)
     for skill in demon.skills:
