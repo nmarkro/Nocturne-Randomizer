@@ -502,6 +502,9 @@ def write_all(rom, world):
     # remove hard mode price multiplier
     if randomizer.config_remove_hardmode_prices:
         apply_asm_patch(rom, 'patches/prices.txt')
+    # remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
+    if randomizer.config_fix_inheritance:
+        apply_asm_patch(rom, 'patches/inherit.txt')
 
     # remove magatamas from shops since they are all tied to boss drops now
     remove_shop_magatamas(rom)

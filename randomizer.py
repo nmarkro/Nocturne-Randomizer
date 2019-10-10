@@ -29,6 +29,7 @@ config_visible_skills = True                # Make all learnable skills visable 
 config_magic_pierce = True                  # Make pierce affect most magic spells (like hardtype)
 config_stock_healing = True                 # Make AoE healing affect stock demons (like hardtype)
 config_remove_hardmode_prices = True        # Remove the 3x multiplier on hard mode shop prices 
+config_fix_inheritance = True               # Remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
 
 def init_rom_data(rom_path):
     global rom
