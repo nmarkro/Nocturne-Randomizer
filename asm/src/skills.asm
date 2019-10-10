@@ -11,12 +11,13 @@
 .org 0x002FEFD0
 .func INHERIT_ALL_FUNC
     andi v0, a0, 0x200
-    slti v0, v0, 0x1FF
+    srl v0, v0, 0x09
     j INHERIT_ALL_HOOK + 0x8
+    xori v0, v0, 0x01
 .endfunc
 
 .org 0x00222C7C
-.func INHERIT_EQ_SKILL_TIER
+.func INHERIT_EQ_SKILL_RANK
     li a2, 0x63
     li v0, 0x1
 .endfunc
