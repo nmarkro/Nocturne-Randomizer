@@ -401,10 +401,10 @@ def randomize_battles(demon_map):
 # Additional demons in certain boss fights
 boss_extras = {
     'Albion (Boss)': [279, 280, 281, 282],      # Urizen, Luvah, Tharmas, Urthona
-    'White Rider (Boss)': [359, 359],           # Virtue
-    'Red Rider (Boss)': [360, 360],             # Power
-    'Black Rider (Boss)': [361, 361],           # Legion
-    'Pale Rider (Boss)': [358, 358],            # Loa
+    'White Rider (Boss)': [359],                # Virtue
+    'Red Rider (Boss)': [360],                  # Power
+    'Black Rider (Boss)': [361],                # Legion
+    'Pale Rider (Boss)': [358],                 # Loa
     'Atropos 2 (Boss)': [326, 327]              # Clotho, Lachesis
 }
 
