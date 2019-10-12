@@ -56,6 +56,7 @@ def generate_demon_permutation(demon_gen):
 
     for old_demon, new_demon in zip(demon_pool, shuffled_pool):
         demon_map[old_demon.ind] = new_demon.ind
+
     if config_easy_hospital:
         # iterate through each hospital demon looking for conflicts
         for demon in all_base:
@@ -63,7 +64,7 @@ def generate_demon_permutation(demon_gen):
             if new_demon.phys_inv:
                 # choose a new demon from all non-hospital, non-phys invalid demons
                 new_choice = random.choice([d for d in demon_pool if not d.phys_inv])
-                swap_demon(demon, new_choice)
+                swap_demon(new_choice, demon)
 
     for element in all_elements:
         # find the element in generated demons
@@ -110,8 +111,10 @@ def generate_demon_permutation(demon_gen):
         else:
             print("Error finding mutation for " + fiend.name)
 
-    #for key, value in demon_map.items():
-    #    print(nocturne.lookup_demon(key).name + " -> " + nocturne.lookup_demon(value).name)
+    if config_make_logs:
+        with open('logs/demon_spoiler.txt', 'w') as f:
+            for key, value in demon_map.items():
+                f.write(nocturne.lookup_demon(key).name + " -> " + nocturne.lookup_demon(value).name + '\n')
 
     return demon_map
 
