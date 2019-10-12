@@ -110,25 +110,25 @@ def load_demon_skills(rom, skill_offset, level):
     while True:
         # level at which they learn the skill 
         learn_level = rom.read_byte()
-        # magic_byte indicates what event happens at learn_level
+        # event indicates what event happens at learn_level
         # 0x01 = skill learned normally
-        # 0x05 = skill learned through evolution only
-        # 0x06 = demon evolves
+        # 0x05 = demon evolves
+        # 0x06 = skill learned through evolution only
         # 0x07 = "demon body is changing" text thing
-        magic_byte = rom.read_byte()
+        event = rom.read_byte()
         skill_id = rom.read_halfword()
 
-        if magic_byte == 0 or count >= 23:
+        if event == 0 or count >= 23:
             break
 
         # skip the evolution events
-        if magic_byte >= 6:
+        if event == 0x05 or event == 0x07:
             continue
 
         s = {
             'level': max(0, learn_level - level),
-            # disregard magic_bytes currently since we are removing evolution demons
-            'magic_byte': 1,
+            # disregard events currently since we are removing evolution demons
+            'event': 1,
             'skill_id': skill_id,
         }
 
@@ -268,7 +268,7 @@ def write_skills(rom, demon):
     rom.seek(offset)
     for skill in demon.skills:
         rom.write_byte(skill['level'])
-        rom.write_byte(skill['magic_byte'])
+        rom.write_byte(skill['event'])
         rom.write_halfword(skill['skill_id'])
 
 def write_ai(rom, demon):

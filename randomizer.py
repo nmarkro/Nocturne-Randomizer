@@ -199,7 +199,7 @@ def randomize_skills(new_demon, force_skills=None):
             skill = {
                 'level': level,
                 'skill_id': s,
-                'magic_byte': 1,
+                'event': 1,
             }
             new_skills.append(skill)
             for p in skill_pool:
@@ -235,7 +235,7 @@ def randomize_skills(new_demon, force_skills=None):
         skill = {
             'level': level,
             'skill_id': chosen_skill.ind,
-            'magic_byte': 1,
+            'event': 1,
         }
         new_skills.append(skill)
 
