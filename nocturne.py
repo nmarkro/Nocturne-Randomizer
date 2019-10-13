@@ -67,8 +67,8 @@ def load_demons(rom):
         demon.stats = [strength, magic, vitality, agility, luck]
         demon.macca_drop = macca_drop
         demon.exp_drop = exp_drop
-        # remove jive talk flag from demons
-        demon.flag = flag & (~0x0080)
+        # remove jive talk (bit 7) and evolution fusion (bit 1) flag from demons
+        demon.flag = flag & (~0x0082)
 
         s = []
         for j in range(0, len(battle_skills), 2):
@@ -451,7 +451,7 @@ def patch_intro_skip(iso_file):
 
 def patch_special_fusions(rom):
     rom.write(struct.pack('<18x'), 0x0022EB78)
-    rom.write(struct.pack('<170x'), 0x0022EBE0)
+    rom.write(struct.pack('<192x'), 0x0022EBE0)
 
     # rom.seek(0x0022EB78)
     # for i in range(9):
