@@ -278,7 +278,7 @@ def randomize_world(world, logger, attempts=100):
             continue
         
         can_progress = False
-        shuffled_bosses = copy.copy(bosses_progressed)
+        shuffled_bosses = copy.copy([b for b in bosses_progressed if b.check.area.name != 'ToK'])
         random.shuffle(shuffled_bosses)
         # try to assign magatamas that unlock progression 
         while not can_progress:
