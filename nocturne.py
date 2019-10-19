@@ -67,8 +67,6 @@ def load_demons(rom):
         demon.stats = [strength, magic, vitality, agility, luck]
         demon.macca_drop = macca_drop
         demon.exp_drop = exp_drop
-        # remove jive talk (bit 7) and evolution fusion (bit 1) flag from demons
-        demon.flag = flag & (~0x0082)
 
         s = []
         for j in range(0, len(battle_skills), 2):
@@ -81,6 +79,11 @@ def load_demons(rom):
         demon.skills = load_demon_skills(rom, demon.skill_offset, level)
 
         demon.is_boss = bool(i >= 255)
+        # remove jive talk flag
+        demon.flag = flag & (~0x0080)
+        if not demon.is_boss:
+            # remove evolution fusion flag from non-boss demons
+            demon.flag = demon.flag & (~0x0002)
 
         # keep track of phys invalid demons and demons in the hospital for "Easy Hospital" and early buff/debuff distribution
         demon.phys_inv = demon_id in PHYS_INVALID_DEMONS
