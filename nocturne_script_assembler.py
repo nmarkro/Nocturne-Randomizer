@@ -2,6 +2,13 @@
 #In a disassembled state, there is an API in the bf_script class that lets you modify the script programatically.
 #Currently the API is not implemented and this entire piece is a messy WIP, but is useful to see to be able to understand how to interface with bf files.
 import math
+import copy
+#import message #message.py
+
+#Values for the message class
+pixels_per_line = 420
+kerning = {" ": 8,"!": 9,'"': 8,'#': 13,'$': 12,'%': 19,'&': 13,"'": 4,'(': 11,')': 11,'*': 11,'+': 14,',': 6,'-': 13,'.': 6,'/': 13,'0': 13,'1': 11,'2': 12,'3': 13,'4': 12,'5': 13,'6': 12,'7': 12,'8': 13,'9': 13,':': 9,';': 9,'<': 14,'=': 14,'>': 14,'?': 13,'@': 17,'A': 13,'B': 14,'C': 17,'D': 14,'E': 14,'F': 14,'G': 17,'H': 14,'I': 6,'J': 11,'K': 14,'L': 13,'M': 16,'N': 14,'O': 17,'P': 12,'Q': 17,'R': 12,'S': 13,'T': 12,'U': 13,'V': 15,'W': 20,'X': 14,'Y': 12,'Z': 15,'[': 11,'\\': 17,']': 12,'_': 13,'`': 15,'a': 12,'b': 11,'c': 11,'d': 12,'e': 12,'f': 8,'g': 12,'h': 13,'i': 7,'j': 7,'k': 10,'l': 6,'m': 19,'n': 13,'o': 14,'p': 14,'q': 14,'r': 7,'s': 13,'t': 7,'u': 13,'v': 12,'w': 16,'x': 12,'y': 13,'z': 11,'{': 11,'|': 9,'}': 11,'~': 15}
+
 OPCODES = {
     "PUSHI":0,
     "PUSHF":1,
@@ -40,9 +47,12 @@ OPCODES = {
     "PUSHSTR":34
 }
 OPCODES_0_OPERAND = ["PUSHI", "PUSHF", "PUSHIX", "PUSHIF", "PUSHREG", "POPIX", "POPFX",  "END", "ADD", "SUB", "MUL", "DIV", "MINUS", "NOT", "OR", "AND", "EQ", "NEQ", "S", "L", "SE", "LE"]
+OPCODES_0_OPERAND_BYNUM = [0,1,2,3,4,5,6,9,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
 OPCODES_LABEL_OPERAND = ["JUMP", "GOTO", "IF","PROC"] #Proc specifically marks the beginning of a function and uses different labels
+OPCODES_LABEL_OPERAND_BRANCH_BYNUM = [10,13,28]
 OPCODES_1_OPERAND = ["POPLFX", "POPLIX", "PUSHLFX", "PUSHLIX", "PUSHIS", "CALL", "COMM", "PUSHSTR"]
 #PUSHSTR is a special code
+OPCODES_1_OPERAND_BYNUM = [33,32,31,30,29,11,8,34]
 BF_MAGIC = "FLW0"
 MSG_MAGIC = "MSG1"
 
@@ -75,86 +85,298 @@ class bf_script:
             retbytes.extend(base.toBytes())
         return retbytes
 
+    #Potential problem with this proc handling: Assumes proc list will be in order.
     def changeProcByIndex(self, instructions, relative_labels, index):
         #Integrity checks:
         #   Check that index is not OoB
+        proclen = len(self.sections[PROC_LABELS].labels)
+        if index >= proclen:
+            print "ERROR: In changeProcByIndex(), given index is out of bounds."
+            return -1
         #   Check that instructions is a valid list of instruction objects
+        if not isinstance(instructions,list):
+            print "ERROR: In changeProcByIndex(), parameter 'instructions' is not a list."
+            return -1
+        if len(instructions) > 0 and not isinstance(instructions[0],instruction):
+            print "ERROR: In changeProcByIndex(), parameter 'instructions' is not an instruction list."
+            return -1
         #   Check that relative_labels is a valid list of label objects
-        #   Check that the label strs in relative_labels have not been used
+        if relative_labels and not isinstance(relative_labels,list):
+            print "ERROR: In changeProcByIndex(), parameter 'relative_labels' is not a list."
+            return -1
+        if not relative_labels:
+            relative_labels = []
+        if len(relative_labels) > 0 and not isinstance(relative_labels[0],label):
+            print "ERROR: In changeProcByIndex(), parameter 'relative_labels' is not a label list."
+            return -1
         #   Check that the index of the labels are within the length of instructions
-        #   Check that the first instruction is PROC. Perhaps add it and add the relative label indices by 1?
-        #   Check any other instructions for invalid logic:
-        #       Make sure last instruction is END. Perhaps add it?
-        #       Make sure instructions with a label operand have a given relative_label
-        #       Make sure PUSHSTR instructions are not OoB with the STRINGS section
-        
-        #Optional things:
-        #   Remove replaced labels
+        proclabel = self.sections[PROC_LABELS].labels[index]
+        if index == proclen - 1:
+            procsize = len(self.sections[BYTECODE].instructions) - proclabel.label_offset #minus 1?
+        else:
+            procsize = self.sections[PROC_LABELS].labels[index+1].label_offset - proclabel.label_offset
+        proc_instructions = self.sections[BYTECODE].instructions[proclabel.label_offset:proclabel.label_offset+procsize]
         
         #Pointer cleanup
         #Get the relative change in bytes (positive or negative) and instruction count
+        delta_instructions = len(instructions) - len(proc_instructions) 
+        delta_bytes = delta_instructions * 4
+        removed_branch_indices = []
+        labels_to_remove = []
+        for r_lab in relative_labels:
+            if r_lab.label_offset > len(instructions) or r_lab.label_offset < 0:
+                print "ERROR: In changeProcByIndex(), given label",r_lab.label_str,"is out of bounds."
+                return -1
+            for br_index,br_lab in enumerate(self.sections[BR_LABELS].labels):
+                #Remove overwritten labels
+                if br_lab.label_offset >= proclabel.label_offset and br_lab.label_offset <= proclabel.label_offset + procsize and br_lab not in labels_to_remove:
+                    removed_branch_indices.append(br_index)
+                    #self.sections[BR_LABELS].labels.remove(br_lab) #remove overwritten labels
+                    labels_to_remove.append(br_lab)
+                    self.sections[BR_LABELS].count -= 1
+                    self.sections[BYTECODE].offset -= 0x20 # could use size instead of hardcoding 0x20 but eh
+                    self.sections[MESSAGES].offset -= 0x20
+                    self.sections[STRINGS].offset -= 0x20
+                    #print "+DEBUG: removing label. Name:",br_lab.label_str,"Offset:",br_lab.label_offset, "0x:",hex(br_lab.label_offset)
+                elif r_lab.label_str == br_lab.label_str and br_lab not in labels_to_remove:
+                    print "ERROR: Label string",r_lab.label_str,"is the same name as an already existing branch string"
+                    #print "-DEBUG: relative offset:",r_lab.label_offset,"0x:",hex(r_lab.label_offset),"absolute proc offset:",proclabel.label_offset,"procsize:",procsize
+                    #print "--DEBUG: br absolute offset:",br_lab.label_offset
+                    return -1
+            for pr_lab in self.sections[PROC_LABELS].labels:
+                if r_lab.label_str == pr_lab.label_str:
+                    print "ERROR: Label string",r_lab.label_str,"is the same name as an already existing procedure string"
+                    return -1
+        for l in labels_to_remove:
+            self.sections[BR_LABELS].labels.remove(l)
+        #   Check that the label strs in relative_labels have not been used
+        #   Check that the first instruction is PROC. Perhaps add it and add the relative label indices by 1?
+        if len(instructions) > 0 and instructions[0].opcode != OPCODES["PROC"]:
+            print "WARNING: In changeProcByIndex(), given first instruction is not PROC. Instruction opcode is:",instructions[0].opcode
+        #   Check any other instructions for invalid logic:
+        #       Make sure last instruction is END. Perhaps add it?
+        if len(instructions) > 0 and instructions[-1].opcode != OPCODES["END"]:
+            print "WARNING: In changeProcByIndex(), given last instruction is not END. Instruction opcode is:",instructions[-1].opcode
+        
+        #       Make sure instructions with a label operand have a given relative_label or is in the current list of lables. Perhaps only give a warning?
+        #TODO: This integrity check
+        #       Make sure PUSHSTR instructions are not OoB with the STRINGS section
+        #TODO: This integrity check
+        
         #   All PROC labels past this one are added by instruction count delta
-        #   All BR labels past current proc instruction offset + count are added by instruction count delta
-        #   Add the offset of the bf script headers past this one with delta byte count
-        #   Add the count of the instruction bf script header with delta instruction count
+        if index < proclen - 1:
+            for proc_l in self.sections[PROC_LABELS].labels[index+1:]:
+                proc_l.label_offset += delta_instructions
                 
+        #   All BR labels past current proc instruction offset + count are added by instruction count delta
+        for br_l in self.sections[BR_LABELS].labels:
+            if br_l.label_offset > proclabel.label_offset + procsize:
+                br_l.label_offset += delta_instructions
+        
+        #   Add the offset of the bf script headers past this one with delta byte count
+        #In this case it's just messsages and strings
+        self.sections[MESSAGES].offset += delta_bytes
+        self.sections[STRINGS].offset += delta_bytes
+        self.size += delta_bytes
+        
+        #   Add the count of the instruction bf script header with delta instruction count
+        self.sections[BYTECODE].count += delta_instructions
+                
+        #Branch label indices have moved. Fix each instruction with a branch.
+        def recalc_index(index,removed_indices):
+            n=0
+            #print removed_branch_indices
+            for ind in removed_indices:
+                if index>ind:
+                    n+=1
+                elif index == ind:
+                    print "WARNING or internal logic error: Branch label used outside of procedure. Previous index:",index,"Removed_indices:",removed_indices
+            return index - n
+        #recalculate branch indices before
+        if len(removed_branch_indices)>0:
+            #print "DEBUG: Fixing br labels of indices:",removed_branch_indices
+            for l_inst in self.sections[BYTECODE].instructions[:proclabel.label_offset]:
+                if l_inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
+                    #r = recalc_index(l_inst.operand,removed_branch_indices)
+                    #if r != l_inst.operand:
+                    #    print "DEBUG: Rewriting previous branch instruction from",l_inst.operand,"to",r
+                    l_inst.operand = recalc_index(l_inst.operand,removed_branch_indices)
+            #recalculate branch indices after
+            for l_inst in self.sections[BYTECODE].instructions[proclabel.label_offset + procsize:]:
+                if l_inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
+                    #r = recalc_index(l_inst.operand,removed_branch_indices)
+                    #if r != l_inst.operand:
+                    #    print "DEBUG: Rewriting later branch instruction from",l_inst.operand,"to",r
+                    l_inst.operand = recalc_index(l_inst.operand,removed_branch_indices)
+            #turn branch instruction indices from relative to absolute
+            for inst in instructions:
+                if inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
+                    #print "DEBUG: Rewriting instruction from relative label to absolute.",inst.operand,"to",inst.operand + len(self.sections[BR_LABELS].labels) #- len(removed_branch_indices)
+                    inst.operand += len(self.sections[BR_LABELS].labels) #- len(removed_branch_indices)
+            #print "DEBUG: Done fixing"
         #Append added labels (maybe its own function?):
-        #   Add relative_labels indices by current label count (in label header)
+        #   Add relative_labels offset by current instruction count (in label header)
         #   Add relative_labels to BR_LABELS
+        for relative_l in relative_labels:
+            relative_l.label_offset += proclabel.label_offset
+            self.sections[BR_LABELS].labels.append(relative_l)
+        
         #   Add count in bf script to added labels
+        self.sections[BR_LABELS].count += len(relative_labels)
         #   Add label count*0x20 bytes to offset of sections past BR_LABELS
+        self.sections[BYTECODE].offset += len(relative_labels) * 0x20
+        self.sections[MESSAGES].offset += len(relative_labels) * 0x20
+        self.sections[STRINGS].offset += len(relative_labels) * 0x20
         
-        #Cut out old instructions
-        #Insert new instructions
+        #Cut out old instructions and insert new ones
+        self.sections[BYTECODE].instructions = self.sections[BYTECODE].instructions[:proclabel.label_offset] + instructions + self.sections[BYTECODE].instructions[proclabel.label_offset + procsize:]
         
-        #No return value
-        pass
-    def changeMessageByIndex(self, byte_text):
+        #Integrity check to make sure length is correct?
         
-        #No return value
-        pass
+        #Return 0 for success
+        return 0
+    def changeMessageByIndex(self, message_obj, index):
+        if not message_obj.byte_formed and message_obj.text_formed:
+            message_obj.message_str_to_bytes()
+        elif not message_obj.byte_formed and not message_obj.text_formed:
+            print "ERROR In changeMessageByIndex(). Given message object has no text formed in it!"
+            return -1
+        indexed_message = self.sections[MESSAGES].messages[index]
+        absolute_pointer = self.sections[MESSAGES].message_pointers[index].pointer
+        delta_bytes = len(message_obj.toBytes()) - len(indexed_message.toBytes())
+        message_obj.text_pointers = []
+        #Turn the relative pointers into fully functional pointers
+        for rp in message_obj.relative_pointers:
+            message_obj.text_pointers.append(rp + absolute_pointer)
+        #Change the offset of each of the next message pointers
+        for mp in self.sections[MESSAGES].message_pointers:
+            if mp.pointer > absolute_pointer:
+                mp.pointer += delta_bytes
+        #Update section header for byte change
+        self.sections[MESSAGES].count+=delta_bytes # * size which equals 1
+        self.sections[STRINGS].offset+=delta_bytes
+        for np in self.sections[MESSAGES].names.names_pointers:
+            np.offset+=delta_bytes
+        self.sections[MESSAGES].names.offset += delta_bytes
+        self.sections[MESSAGES].unknown_pointer += delta_bytes
+        self.size += delta_bytes
+        return 0
     def appendProc(self, instructions, relative_labels, proc_label):
-    
-        #Return proc index
-        pass
-    def appendMessage(self, message_label, byte_text, is_decision = False, speaker_id = 0):
-        #NOTE: byte_text is as it has gone through space_text() and str_to_bytes() in message.py
-    
-        #Find textbox count
-        #Construct relative pointers to the textboxes
-        #That should be enough to construct a valid mesage as well as the extra bytes added.
-        #Added bytes = message pointer length + message length (added to offset of PUSHSTRS)
-        #Add bf section header count to length of added bytes
+        #TODO: integrity check of proc_label being a valid label
+        self.sections[PROC_LABELS].labels.append(proc_label)
+        retval = self.changeProcByIndex(instructions,relative_labels,len(self.sections[PROC_LABELS].labels)-1)
+        if retval == -1:
+            #changing proc failed, revert append
+            self.sections[PROC_LABELS].labels = self.sections[PROC_LABELS].labels[:-1]
+            return -1
+        self.sections[PROC_LABELS].count += 1
+        self.sections[BYTECODE].offset += 0x20
+        self.sections[MESSAGES].offset += 0x20
+        self.sections[STRINGS].offset += 0x20
+        return len(self.sections[PROC_LABELS].labels)-1 #return index of appended proc
+    def appendMessage(self, message_label_str, message_str, is_decision = False, name_id = 0):
+        m = message()
+        #New pointer is going to be where the names_obj pointer is
+        m.label_str = message_label_str
+        m.name_id = name_id
+        m.space_text(message_str)
+        byte_count = len(m.toBytes()) + 4 #+4 is the pointer length
         #Every message pointer offset is added by the length of a message pointer
-        
+        for mp in self.sections[MESSAGES].message_pointers:
+            mp.offset+=4
+        m_ptr = self.sections[MESSAGES].names.offset
+        self.sections[MESSAGES].message_pointers.append(message_pointer(is_decision,m_ptr))
+        #Add bf section header count to length of added bytes
+        self.sections[MESSAGES].count+=byte_count
+        self.sections[STRINGS].offset+=byte_count
+        for np in self.sections[MESSAGES].names.names_pointers:
+            np.offset+= byte_count
         #Add names_obj offset by added bytes
         #Add unknown_pointer offset by added bytes
-        
+        self.sections[MESSAGES].names.offset += byte_count
+        self.sections[MESSAGES].unknown_pointer += byte_count
+
+        self.sections[MESSAGES].messages.append(m)
         #Return message index
-        pass
+        return len(self.sections[MESSAGES].messages)-1
     def appendPUSHSTR(self,str):
-    
-        #Return str index
-        pass
+        self.sections[STRINGS].count += len(str) + 1
+        self.sections[STRINGS].strings.append(str)
+        return len(self.sections[STRINGS].strings) - 1 #Return str index
     def getMessageIndexByLabel(self, label_str):
-    
-        #Return message index
-        pass
+        for i in range (len(self.sections[MESSAGES])):
+            l_s = self.sections[MESSAGES].label_str
+            if label_str == l_s:
+                return i
+        return -1
     def getPUSHSTRIndexByStr(self, str):
-    
-        #Return pushstr index
-        pass
+        try:
+            retval = self.sections[STRINGS].strings.index(str)
+        except ValueError as e:
+            return -1
+        return retval
     def getProcIndexByLabel(self, label_str):
-    
-        #Return proc index
-        pass
-    def getProcInstructionsByIndex(self, proc_index):
-    
-        #Return a list of instructions
-        pass
+        for proc in self.sections[PROC_LABELS].labels:
+            if label_str == proc.label_str:
+                return proc.label_offset
+        return -1
+    #Returns a tuple of instructions and relative labels. Branches are all returned as relative labels. 
+    #All values are returned as a deep copy as modifications can have huge ramifications elsewhere, which needs to be handled separately.
+    def getProcInstructionsLabelsByIndex(self, proc_index):
+        try:
+            proc = self.sections[PROC_LABELS].labels[proc_index]
+            if proc.label_str == self.sections[PROC_LABELS].labels[-1].label_str:#is last one
+                islast = True
+            else:
+                islast = False
+                next_proc = self.sections[PROC_LABELS].labels[proc_index+1]
+        except IndexError as e:
+            return ([],[])
+        relative_labels = []
+        relative_label_indices = []
+        #print "DEBUG. Obtained: proc offset:",proc.label_offset," - Proc index:",proc_index
+        for br_ind, br_lab in enumerate(self.sections[BR_LABELS].labels):
+            if br_lab.label_offset > proc.label_offset:
+                if islast or br_lab.label_offset < next_proc.label_offset:
+                    lab = copy.deepcopy(br_lab)
+                    lab.label_offset -= proc.label_offset
+                    relative_labels.append(lab)
+                    relative_label_indices.append(br_ind)
+                    #print "DEBUG: Adding relative label:",lab.label_str,"Index:",br_ind
+        #print "DEBUG: relative label indices:",relative_label_indices
+        if islast:
+            ret_instrucitons = copy.deepcopy(self.sections[BYTECODE].instructions[proc.label_offset:])
+        ret_instructions = copy.deepcopy(self.sections[BYTECODE].instructions[proc.label_offset:next_proc.label_offset])
+        for inst in ret_instructions:
+            if inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
+                inst.operand = relative_label_indices.index(inst.operand)
+        return (ret_instructions, relative_labels)
+ 
     def exportASM(self, asmFilename):
+        #start with .instructions
+        #iterate through instructions with index i.
+        #   if there is a br label at that index, then put that string in.
+        #   put in opcode string
+        #   if opcode string is PROC, put in the proc label string
+        #       verify that there is a proc label at current index. If not then the instructions are malformed. 
+        #   if opcode string is a branch label operand, put the string of the indexed br label in with a colon
+        #   if opcode string is PUSHSTR, put the string of the indexed pushstr in
+        #   if opcode string has an operand, put in the operand number
+        #   otherwise (opcode string with 0 operands) - Nothing!
+        
+        #next is .messages
+        #.sel or .msg space, [index], space, Message label, space, name or -1 or blank, colon. Perhaps have a way to ignore auto-spacing? Seems kind of bad.
+        #String with escape codes. Message MUST end with ^m.
+        #.unknownbytes
+        #put in the unknown bytes as a list of strs
+        #return -1 for failure, 0 for success
         pass
     def importASM(self, asmFilename):
+        #first pass of .instructions used to create proc_labels, br_labels, and pushstrs
+        #second pass of .instructions to create the bytecode
+        #first pass of .messages to create name list
+        #second pass of .messages to do everything else
+        #return -1 for failure, 0 for success
         pass
         
 class relocated_class: #aka section. Is an abstract base class
@@ -251,23 +473,7 @@ class message_script(relocated_class):
         
         #this part is disgusting since every message is variable length, and there are 2 types of messages
         for mo in self.messages:
-            #pointer spot of message_pointers[i]
-            retbytes.extend(ctobb(mo.label_str,0x18))
-            if mo.is_decision:
-                retbytes.extend([0]*2)
-                retbytes.extend(itobb(mo.textbox_count,2))
-                retbytes.extend([0]*4)
-            else:
-                retbytes.extend(itobb(mo.textbox_count,2))
-                retbytes.extend(itobb(mo.name_id,2))
-            #check if c == len(mo.text_pointers)?
-            for tp in mo.text_pointers:
-                retbytes.extend(itobb(tp,4))
-            retbytes.extend(itobb(mo.text_size,4))
-            extra_extend = (4-(len(mo.text_bytes)%4))%4 #2nd mod 4 is in case it ends up being 4, which doesn't extend.
-            retbytes.extend(mo.text_bytes)
-            if extra_extend > 0:
-                retbytes.extend([0]*extra_extend)
+            retbytes.extend(mo.toBytes())
         
         #names.offset pointer spot
         for np in self.names.names_pointers:
@@ -305,15 +511,270 @@ class message_pointer:
         self.bool_val = bool_val
         self.pointer = pointer
 
+
+#escape codes
+ep = [0xF2, 0x02, 0x01, 0xFF]
+er = [0xF2, 0x02, 0x02, 0xFF]
+eb = [0xF2, 0x02, 0x03, 0xFF]
+ey = [0xF2, 0x02, 0x04, 0xFF]
+eg = [0xF2, 0x02, 0x05, 0xFF]
+en = [0x0A]
+ex = [0x0A, 0xF1, 0x04, 0xF2, 0x08, 0xFF, 0xFF]
+em = [0x0A, 0xF1, 0x04, 0x00]
 class message:
     def __init__(self):
+        self.str = "" #message in text as str
         self.label_str = ""
         self.textbox_count = 0
         self.name_id = 0
         self.text_pointers = []
+        self.relative_pointers = []
         self.text_size = 0
         self.text_bytes = [] #message in text as bytes because of escape codes
         self.is_decision = False #decision text (like yes/no) is structured differently than other text
+        self.byte_formed = False #message is valid in byte form
+        self.text_formed = False #message is valid in string form
+    def getSize(self):
+        #Label str 0x18
+        #if msg
+        #   4 bytes for textbox count and name id
+        #   4 bytes * textbox_count
+        #   4 bytes for text_size
+        #
+        pass
+    #Fills in text_bytes and relative_pointers given self.str / givenstr (writes into self.str if givenstr is given)
+    def message_str_to_bytes(self, givenstr = ""):
+        if not self.text_formed and givenstr == "":
+            print "ERROR: In message.message_str_to_bytes(). Message needs to be text formed to convert from string to bytes."
+            return -1
+        byte_count = 0
+        in_escape = False
+        bytes_by_int = []
+        self.relative_pointers = [0]
+        if givenstr != "":
+            self.str = givenstr
+            self.text_formed = True
+        for c in self.str: #self
+            if in_escape:
+                #e* are escape codes in bytes
+                if c == "p":
+                    bytes_by_int.extend(ep)
+                    byte_count +=len(ep)
+                elif c == "r":
+                    bytes_by_int.extend(er)
+                    byte_count +=len(er)
+                elif c == "b":
+                    bytes_by_int.extend(eb)
+                    byte_count +=len(eb)
+                elif c == "y":
+                    bytes_by_int.extend(ey)
+                    byte_count +=len(ey)
+                elif c == "g":
+                    bytes_by_int.extend(eg)
+                    byte_count +=len(eg)
+                elif c == "n":
+                    bytes_by_int.extend(en)
+                    byte_count +=len(en)
+                elif c == "x":
+                    bytes_by_int.extend(ex)
+                    byte_count +=len(ex)
+                    self.relative_pointers.append(byte_count)
+                elif c == "m":
+                    bytes_by_int.extend(em)
+                    byte_count +=len(em)
+                in_escape=False
+            elif c == "^":
+                in_escape = True
+            else:
+                bytes_by_int.append(ord(c))
+                byte_count+=1
+        self.byte_formed = True
+        self.text_bytes = bytes_by_int #self
+        self.text_size = len(text_bytes)
+        return 0
+    #Fills in self.str from text_bytes / givenbytes. Writes into text_bytes from givenbytes if given.
+    def bytes_to_message_str(self, givenbytes = []):
+        #Note: Does not fill in relative_pointers
+        if not self.byte_formed or givenbytes != []:
+            print "ERROR: In message.bytes_to_message_str(), Message needs to be byte formed to convert from bytes to string"
+            return -1
+        if givenbytes !=[]:
+            self.bytes = givenbytes
+            self.byte_formed = True
+        bytelen = len(self.bytes)
+        i=0
+        str = ""
+        while i<bytelen:
+            if self.bytes[i] == 0xF2:
+                if i+3 < bytelen:
+                    bc = self.bytes[i:i+4] #byte check
+                    if bc == ep:
+                        str+="^p"
+                    elif bc == er:
+                        str+="^r"
+                    elif bc == eb:
+                        str+="^b"
+                    elif bc == ey:
+                        str+="^y"
+                    elif bc == eg:
+                        str+="^g"
+                    else:
+                        print "ERROR: In message.bytes_to_str(). Invalid set of bytes"
+                        return -1
+                else:
+                    print "ERROR: In message.bytes_to_str(). Invalid set of bytes"
+                    return -1
+                i+=4
+            elif self.bytes[i] == 0x0A:
+                checkdone = False
+                if i+5 < bytelen: #check ^x first
+                    if self.bytes[i:i+6] == ex:
+                        str+="^x"
+                        i+=6
+                        checkdone = True
+                if i+3 < bytelen and not checkdone:
+                    if self.bytes[i:i+4] == em:
+                        str+="^m"
+                        i+=4
+                        checkdone = True
+                if not checkdone:
+                    str+="^n"
+                    i+=1
+            else:
+                str+=chr(self.bytes[i])
+                i+=1
+        self.text_formed = True
+        self.str = str
+        return 0
+    def space_text(self, givenstr = ""):
+        if givenstr == "" and self.str == "":
+            print "ERROR in message.space_text(). No text to space!"
+            return -1
+        if givenstr != "":
+            self.str = givenstr
+            self.text_formed = True
+        lines = []
+        word = ""
+        processed_str = self.str
+        line_pixels = 0
+        index = 0
+        pending_space = False
+        #space_index = 0
+        line_count = 0 #lines on the text box
+        is_newline = False #lots of cases for newline so it's consolidated all in this flag
+        text_boxes = 1
+        while index < len(processed_str):
+            ch = processed_str[index]
+            #check for ^n, ^x, ^m, \r, \n and \r\n.
+            if ch == '\n':
+                is_newline = True
+            elif ch == '\r':
+                #watch out for \r\n
+                if index+1 < len(processed_str) and processed_str[index+1] == '\n':
+                    index+=1
+                is_newline = True
+            elif ch == "^" or ch == "\\":
+                #check if the escape character is the last character
+                if index+1 == len(processed_str):
+                    print "WARNING: Escape character as last character. Ignoring."
+                    break
+                esc_ch = processed_str[index+1]
+                #Ignore text coloring. That's for byte conversion
+                if ch == "^" and (esc_ch == 'p' or esc_ch == 'r' or esc_ch == 'b' or esc_ch == 'y' or esc_ch == 'g'):
+                    index+=1 #skip an extra character
+                    word = word + ch
+                    word = word + esc_ch
+                elif ch == "^" and esc_ch == 'n':
+                    if pending_space and word != "":
+                        lines.append(" ")
+                        lines.append(word)
+                        word = ""
+                    elif word != "":
+                        lines.append(word)
+                        word = ""
+                    is_newline = True
+                    index+=1
+                elif ch == "^" and esc_ch == 'x':
+                    #Reset everything
+                    line_pixels = 0
+                    line_count = 0
+                    if pending_space and word != "":
+                        lines.append(" ")
+                        lines.append(word)
+                        word = ""
+                    elif word != "":
+                        lines.append(word)
+                        word = ""
+                    pending_space = False
+                    lines.append("^x")
+                    text_boxes += 1
+                    index+=1
+                elif ch == "^" and esc_ch == "m":
+                    break #End of message. ^m is automatically added at the end.
+                else:
+                    print "WARNING: Unknown escape character: '",esc_ch,"'. Ignoring."
+            elif ch not in kerning:
+                print "WARNING: Kerning of ",ch," is unknown. Removing character"
+            elif ch == " ":
+                if pending_space:
+                    lines.append(" ")
+                if line_pixels + kerning[" "] > pixels_per_line:
+                    lines.append(word)
+                    word = ""
+                    is_newline = True
+                    pending_space = False
+                else:
+                    line_pixels += kerning[" "]
+                    lines.append(word)
+                    word = ""
+                    pending_space = True
+            else:
+                if line_pixels + kerning[ch] > pixels_per_line:
+                    is_newline = True
+                else:
+                    line_pixels = line_pixels + kerning[ch]
+                word = word + ch
+                
+            if is_newline:
+                #append ^n or ^x depending on textbox length
+                is_newline = False
+                line_pixels = 0
+                if line_count == 2:
+                    line_count = 0
+                    lines.append("^x")
+                    text_boxes += 1
+                else:
+                    line_count += 1
+                    lines.append("^n")
+                pending_space = False
+            index+=1
+        if pending_space:
+            lines.append(" ")
+        if word != "":
+            lines.append(word)
+        lines.append("^m")
+        self.str = ''.join(lines)
+        return 0
+    def toBytes(self):    
+        retbytes = []
+            #pointer spot of message_pointers[i]
+        retbytes.extend(ctobb(self.label_str,0x18))
+        if self.is_decision:
+            retbytes.extend([0]*2)
+            retbytes.extend(itobb(self.textbox_count,2))
+            retbytes.extend([0]*4)
+        else:
+            retbytes.extend(itobb(self.textbox_count,2))
+            retbytes.extend(itobb(self.name_id,2))
+        #check if c == len(mo.text_pointers)?
+        for tp in self.text_pointers:
+            retbytes.extend(itobb(tp,4))
+        retbytes.extend(itobb(self.text_size,4))
+        extra_extend = (4-(len(self.text_bytes)%4))%4 #2nd mod 4 is in case it ends up being 4, which doesn't extend.
+        retbytes.extend(self.text_bytes)
+        if extra_extend > 0:
+            retbytes.extend([0]*extra_extend)
+        return retbytes
         
 class names_obj:
     def __init__(self, offset, names_count):
@@ -341,7 +802,6 @@ class pushstrs(relocated_class):
         #sum of lengths of strings + len(strings) (representing 00 delimiters)
         #do not need to ceiling since it is the end of the file
         pass
-        
 #big endian bytes to integer
 def bbtoi(byte_array):
     retint = 0
@@ -411,8 +871,6 @@ def parse_binary_script(byte_array):
     #0x18 of label string
     #4 bytes (or 8?) of index to labeled operation. It's always a PROC command (from what I've seen)
     
-    
-    
     c_off = s.sections[PROC_LABELS].offset
     for i in range(s.sections[PROC_LABELS].count):
         c_str = ""
@@ -424,6 +882,7 @@ def parse_binary_script(byte_array):
         c_pointer = bbtoi(byte_array[c_off+0x18:c_off+0x20])
         s.sections[PROC_LABELS].labels.append(label(c_str,c_pointer))
         c_off+=s.sections[PROC_LABELS].size
+        #print "Appending proc label. Str:",c_str,"Pointer:",c_pointer
     
     #Section 01 - Branch Labels
     #   Size: 0x20 (of all that I've seen)
@@ -571,6 +1030,7 @@ def parse_binary_script(byte_array):
         m.text_size = bbtoi(byte_array[c_off:c_off+4])
         c_off+=4
         m.text_bytes = byte_array[c_off:c_off+m.text_size]
+        m.byte_formed = True
         s.sections[MESSAGES].messages.append(m)
             
     #A bunch of data that looks like gibberish. No idea how to parse it
@@ -614,5 +1074,41 @@ def test_file(fname):
     piped_bytes = obj.toBytes()
     bytesToFile(piped_bytes,"piped_"+fname)
     #Success! The piped version is equal!
+
+def test_funs(fname):
+    '''
+    def changeProcByIndex(self, instructions, relative_labels, index):
+    def changeMessageByIndex(self, message_obj, index):
+    def appendProc(self, instructions, relative_labels, proc_label):
+        calls changeprocbyindex
+    def appendMessage(self, message_label_str, message_str, is_decision = False, name_id = 0):
+    def appendPUSHSTR(self,str):
+    def getMessageIndexByLabel(self, label_str):
+    def getPUSHSTRIndexByStr(self, str):
+    def getProcIndexByLabel(self, label_str):
+    def getProcInstructionsLabelsByIndex(self, proc_index):
+
+    '''
     
-#test_file("scripts/f016.bf")
+    bytes = filenameToBytes(fname)
+    obj = parse_binary_script(bytes)
+    
+    noop_inst1 = instruction(OPCODES["PUSHIS"],0)
+    noop_inst2 = instruction(OPCODES["COMM"],0xe)
+    message_inst = [instruction(OPCODES["COMM"],0x60),instruction(OPCODES["COMM"],1), instruction(OPCODES["PUSHIS"],6),instruction(OPCODES["COMM"],0xc3), instruction(OPCODES["PUSHIS"], 4), instruction(OPCODES["COMM"],0), instruction(OPCODES["COMM"],2), instruction(OPCODES["COMM"],0x61), instruction(OPCODES["PUSHIS"],7), instruction(OPCODES["COMM"],0xc3)]
+    proc_labels = obj.sections[PROC_LABELS].labels
+    #for i in range(len(proc_labels)):
+    for i in range(40,60): #only do first 30 because we don't have the room
+    #if True:
+#        i=0
+        insts, r_labs = obj.getProcInstructionsLabelsByIndex(i)
+        #insts = insts[:-1] + [noop_inst1, noop_inst2] + [insts[-1]]
+        insts = insts[:-1] + message_inst + [insts[-1]]
+        
+        obj.changeProcByIndex(insts, r_labs, i)
+    #print "Total added instructions:",hex(len(proc_labels) * 2)
+    
+    piped_bytes = obj.toBytes()
+    bytesToFile(piped_bytes,"piped_"+fname)
+
+#test_funs("scripts/f016.bf")
