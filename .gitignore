@@ -111,3 +111,4 @@ rom/*.xdelta
 # armips binary and other asm stuff
 asm/armips.exe
 !asm/build/
+!asm/out/
