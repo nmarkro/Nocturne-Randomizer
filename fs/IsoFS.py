@@ -352,7 +352,7 @@ class IsoFS(object):
 # 1. create new directories
 # 2. update path tables
 # and probably some other stuff I'm forgetting
-iso = IsoFS('iso/input.iso')
+iso = IsoFS('../rom/input.iso')
 iso.read_iso()
 
 for path, e in iso.file_entries.items():
@@ -378,9 +378,9 @@ changes = {
     system_cnf_file_path: new_system_cnf_file,
 }
 
-iso.export_iso('iso/test.iso', changes)
+iso.export_iso('../rom/test.iso', changes)
 
-output_iso = IsoFS('iso/test.iso')
+output_iso = IsoFS('../rom/test.iso')
 output_iso.read_iso()
 
 output_test_file = output_iso.get_file_from_path(test_file_path)
