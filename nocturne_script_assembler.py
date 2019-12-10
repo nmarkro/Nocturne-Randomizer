@@ -3,7 +3,6 @@
 #Currently the API is not implemented and this entire piece is a messy WIP, but is useful to see to be able to understand how to interface with bf files.
 import math
 import copy
-#import message #message.py
 
 #Values for the message class
 pixels_per_line = 420
@@ -56,6 +55,9 @@ OPCODES_1_OPERAND_BYNUM = [33,32,31,30,29,11,8,34]
 BF_MAGIC = "FLW0"
 MSG_MAGIC = "MSG1"
 
+MESSAGE_POINTER_SIZE = 8
+
+
 PROC_LABELS = 0
 BR_LABELS = 1
 BYTECODE = 2
@@ -72,6 +74,11 @@ class bf_script:
         self.sections_size = 0 #Not sure what this value is
         self.sections = [] #In a hard typed language this would be a relocated_class pointer
     def toBytes(self):
+        #Update rolling offsets before outputting the bytes.
+        delta_bytes = self.sections[MESSAGES].updateRollingOffsets()
+        self.size += delta_bytes
+        self.sections[MESSAGES].count += delta_bytes
+        self.sections[STRINGS].offset += delta_bytes
         retbytes = [0]*4
         retbytes.extend(itobb(self.size,4)) #possibly needs to change?
         retbytes.extend(ctobb(self.magic,4))
@@ -243,60 +250,115 @@ class bf_script:
             return -1
         indexed_message = self.sections[MESSAGES].messages[index]
         absolute_pointer = self.sections[MESSAGES].message_pointers[index].pointer
-        delta_bytes = len(message_obj.toBytes()) - len(indexed_message.toBytes())
-        message_obj.text_pointers = []
+        
+        #Calculate header size
+        if message_obj.is_decision:
+            header_size = 0x18 + 12 + (len(message_obj.relative_pointers) * 4)
+        else:
+            header_size = 0x18 + 8 + (len(message_obj.relative_pointers) * 4)
+        
         #Turn the relative pointers into fully functional pointers
+        message_obj.text_pointers = []
         for rp in message_obj.relative_pointers:
-            message_obj.text_pointers.append(rp + absolute_pointer)
+            message_obj.text_pointers.append(rp + absolute_pointer + header_size)
+        
+        #Swap the object in
+        self.sections[MESSAGES].messages[index] = message_obj
+        
         #Change the offset of each of the next message pointers
+        byte_len = len(message_obj.toBytes())
+        delta_bytes = byte_len - len(indexed_message.toBytes())
         for mp in self.sections[MESSAGES].message_pointers:
-            if mp.pointer > absolute_pointer:
+            if mp.pointer > absolute_pointer: #+ byte_len?
                 mp.pointer += delta_bytes
+        
+        #Update all text pointers past this since they're absolute
+        for c,mobj in enumerate(self.sections[MESSAGES].messages):
+            for i,tp in enumerate(mobj.text_pointers): #This is probably computationally bad but meh
+                if index != c and tp > absolute_pointer:
+                    mobj.text_pointers[i]+= delta_bytes 
+
         #Update section header for byte change
         self.sections[MESSAGES].count+=delta_bytes # * size which equals 1
+        self.sections[MESSAGES].m_size+=delta_bytes
         self.sections[STRINGS].offset+=delta_bytes
-        for np in self.sections[MESSAGES].names.names_pointers:
-            np.offset+=delta_bytes
+
+        #Update other affected pointers
+        self.sections[MESSAGES].names.names_pointers = [x+delta_bytes for x in self.sections[MESSAGES].names.names_pointers]
         self.sections[MESSAGES].names.offset += delta_bytes
-        self.sections[MESSAGES].unknown_pointer += delta_bytes
+        self.sections[MESSAGES].rolling_pointer += delta_bytes
         self.size += delta_bytes
         return 0
-    def appendProc(self, instructions, relative_labels, proc_label):
+    def appendProc(self, instructions, relative_labels, proc_label_str):
         #TODO: integrity check of proc_label being a valid label
-        self.sections[PROC_LABELS].labels.append(proc_label)
+        self.sections[PROC_LABELS].labels.append(label(proc_label_str,len(self.sections[BYTECODE].instructions)))
+        self.sections[BYTECODE].instructions.extend(instructions)
+        self.sections[PROC_LABELS].count += 1
+        self.sections[BR_LABELS].offset += 0x20
+        self.sections[BYTECODE].offset += 0x20
+        self.sections[BYTECODE].count += len(instructions)
+        self.sections[MESSAGES].offset += 0x20 + (len(instructions)*4)
+        self.sections[STRINGS].offset += 0x20 + (len(instructions)*4)
+        self.size += 0x20 + (len(instructions)*4)
         retval = self.changeProcByIndex(instructions,relative_labels,len(self.sections[PROC_LABELS].labels)-1)
         if retval == -1:
-            #changing proc failed, revert append
-            self.sections[PROC_LABELS].labels = self.sections[PROC_LABELS].labels[:-1]
             return -1
-        self.sections[PROC_LABELS].count += 1
-        self.sections[BYTECODE].offset += 0x20
-        self.sections[MESSAGES].offset += 0x20
-        self.sections[STRINGS].offset += 0x20
         return len(self.sections[PROC_LABELS].labels)-1 #return index of appended proc
-    def appendMessage(self, message_label_str, message_str, is_decision = False, name_id = 0):
+    def appendMessage(self, message_str, message_label_str, is_decision = False, name_id = 0xffff, auto_space = True):
         m = message()
+        
         #New pointer is going to be where the names_obj pointer is
         m.label_str = message_label_str
         m.name_id = name_id
-        m.space_text(message_str)
-        byte_count = len(m.toBytes()) + 4 #+4 is the pointer length
+        
+        #Deal with the textbox and line spacing 
+        if auto_space:
+            m.space_text(message_str) 
+        
+        #Turn the message to a byte form
+        m.message_str_to_bytes()
+        
+        #New message pointer is going to be changed by the size of the pointer itself
+        m_ptr = self.sections[MESSAGES].names.offset + MESSAGE_POINTER_SIZE
+        
+        #Calculate header size
+        if is_decision:
+            header_size = 0x18 + 12 + (len(m.relative_pointers) * 4)
+        else:
+            header_size = 0x18 + 8 + (len(m.relative_pointers) * 4)
+        
+        #Add in the text pointers relative to the message script
+        for rp in m.relative_pointers:
+            m.text_pointers.append(rp + m_ptr + header_size)
+        
+        byte_count = len(m.toBytes()) + MESSAGE_POINTER_SIZE
+        
         #Every message pointer offset is added by the length of a message pointer
         for mp in self.sections[MESSAGES].message_pointers:
-            mp.offset+=4
-        m_ptr = self.sections[MESSAGES].names.offset
+            mp.pointer+=8
+        
+        #Every text pointer is added by the length of a message pointer
+        for mobj in self.sections[MESSAGES].messages:
+            mobj.text_pointers = [x+MESSAGE_POINTER_SIZE for x in mobj.text_pointers]
+        
+        #Add the message pointer
         self.sections[MESSAGES].message_pointers.append(message_pointer(is_decision,m_ptr))
+        self.sections[MESSAGES].pointers_count += 1
+        
         #Add bf section header count to length of added bytes
         self.sections[MESSAGES].count+=byte_count
+        self.sections[MESSAGES].m_size+=byte_count
         self.sections[STRINGS].offset+=byte_count
-        for np in self.sections[MESSAGES].names.names_pointers:
-            np.offset+= byte_count
-        #Add names_obj offset by added bytes
-        #Add unknown_pointer offset by added bytes
-        self.sections[MESSAGES].names.offset += byte_count
-        self.sections[MESSAGES].unknown_pointer += byte_count
+        self.size += byte_count
 
+        #Update both names offset and names pointers
+        self.sections[MESSAGES].names.names_pointers = [x+byte_count for x in self.sections[MESSAGES].names.names_pointers]
+        self.sections[MESSAGES].names.offset += byte_count
+        self.sections[MESSAGES].rolling_pointer += byte_count #rolling offsets are all recalculated during export, but the pointer to it needs to be updated
+
+        #Put the message in
         self.sections[MESSAGES].messages.append(m)
+        
         #Return message index
         return len(self.sections[MESSAGES].messages)-1
     def appendPUSHSTR(self,str):
@@ -316,6 +378,11 @@ class bf_script:
             return -1
         return retval
     def getProcIndexByLabel(self, label_str):
+        for index,proc in enumerate(self.sections[PROC_LABELS].labels):
+            if label_str == proc.label_str:
+                return index
+        return -1
+    def getProcLocByLabel(self, label_str):
         for proc in self.sections[PROC_LABELS].labels:
             if label_str == proc.label_str:
                 return proc.label_offset
@@ -367,8 +434,6 @@ class bf_script:
         #next is .messages
         #.sel or .msg space, [index], space, Message label, space, name or -1 or blank, colon. Perhaps have a way to ignore auto-spacing? Seems kind of bad.
         #String with escape codes. Message MUST end with ^m.
-        #.unknownbytes
-        #put in the unknown bytes as a list of strs
         #return -1 for failure, 0 for success
         pass
     def importASM(self, asmFilename):
@@ -376,8 +441,10 @@ class bf_script:
         #second pass of .instructions to create the bytecode
         #first pass of .messages to create name list
         #second pass of .messages to do everything else
+        #third pass to create a list of rolling pointers
         #return -1 for failure, 0 for success
         pass
+
         
 class relocated_class: #aka section. Is an abstract base class
     def __init__(self):
@@ -443,23 +510,23 @@ class message_script(relocated_class):
         self.m_size = 0 #Should be the same as relocated_class.size
         self.magic = ""
         self.type = 0 #Should always end up being 7
-        self.unknown_pointer = 0
-        self.unknown_size = 0
+        self.rolling_pointer = 0
+        self.rolling_size = 0
         self.pointers_count = 0
         self.unknown_value = 0
         self.m_offset = 0
         self.message_pointers = []
         self.names = None #spot for names_obj
         self.messages = []
-        self.unknown_bytes = []
+        self.rolling_offsets = []
     def toBytes(self):
         retbytes = []
         retbytes.extend(itobb(self.type,4))
         retbytes.extend(itobb(self.m_size,4)) #or self.getSize()
         retbytes.extend(ctobb(self.magic,4))
         retbytes.extend([0]*4)
-        retbytes.extend(itobb(self.unknown_pointer,4)) #pointer to update
-        retbytes.extend(itobb(self.unknown_size,4))
+        retbytes.extend(itobb(self.rolling_pointer,4)) #pointer to update
+        retbytes.extend(itobb(self.rolling_size,4))
         retbytes.extend(itobb(self.pointers_count,4))
         retbytes.extend(itobb(self.unknown_value,4))
         
@@ -486,8 +553,8 @@ class message_script(relocated_class):
         if extra_extend > 0:
             retbytes.extend([0]*extra_extend)
         
-        #unknown_bytes pointer spot
-        retbytes.extend(self.unknown_bytes)
+        #rolling pointer offsets
+        retbytes.extend(self.rolling_offsets)
         return retbytes
             
     def toString(self):
@@ -504,8 +571,43 @@ class message_script(relocated_class):
         #   4 bytes for text_size
         #   text_size bytes ceilinged by 4
         #add size of names_obj
-        #add len of unknown_bytes
-
+        #add len of rolling_offsets
+    #Regenerates the rolling offsets of the message script. Only needs to be ran once before turning into bytes.
+    #Returns the delta bytes to update the bf script header with.
+    def updateRollingOffsets(self):
+        #Rolling numbers are in increments of 2 bytes, so a length of 8 bytes is a value of 4.
+        #Offsets for the message pointers which are consistent
+        #Some of this I understand, some if it makes no sense whatsoever.
+        r_offs = [4] * len(self.message_pointers)
+        r_offs[0] = 2
+        r_offs.append(2)
+        roll = 8
+        for m_obj in self.messages:
+            roll += 12 #label length
+            if m_obj.is_decision:
+                roll += 4
+            else:
+                roll += 2
+            r_offs.append(roll)
+            roll=4
+            if m_obj.textbox_count == 2:
+                r_offs.append(2)
+            elif m_obj.textbox_count > 2:
+                r_offs.append(((m_obj.textbox_count-2) * 8)-1) #WHY???????????????????????
+            #r_offs.extend([2]*(m_obj.textbox_count-1)) #This would actually make sense and be more intuitive. Gotta save those precious bytes I guess??? But this entire section isn't even necessary if you really want to save space. AAAAAAAAAAAAGHGHHGHGHHHHGHHHHHH!!!!!!!!!!!!!
+            roll += (len(m_obj.text_bytes) + (4-(len(m_obj.text_bytes)%4))%4)/2
+        r_offs.append(roll)
+        n = self.names.names_count
+        if n == 2:
+            r_offs.append(2)
+        elif n > 2:
+            r_offs.append(((n-2) * 8)-1)
+        delta_bytes =  len(r_offs) - len(self.rolling_offsets)
+        self.m_size += delta_bytes
+        self.rolling_size += delta_bytes
+        self.rolling_offsets = r_offs
+        return delta_bytes
+            
 class message_pointer:
     def __init__(self, bool_val, pointer):
         self.bool_val = bool_val
@@ -521,10 +623,11 @@ eg = [0xF2, 0x02, 0x05, 0xFF]
 en = [0x0A]
 ex = [0x0A, 0xF1, 0x04, 0xF2, 0x08, 0xFF, 0xFF]
 em = [0x0A, 0xF1, 0x04, 0x00]
+es = [0xF2, 0x08, 0xFF, 0xFF, 0xF2, 0x07, 0x07, 0xFF] #bytes at the start. Not used as an escape but automatically added in.
 class message:
-    def __init__(self):
-        self.str = "" #message in text as str
-        self.label_str = ""
+    def __init__(self, str = "", label_str = ""):
+        self.str = str #message in text as str
+        self.label_str = label_str
         self.textbox_count = 0
         self.name_id = 0
         self.text_pointers = []
@@ -534,6 +637,9 @@ class message:
         self.is_decision = False #decision text (like yes/no) is structured differently than other text
         self.byte_formed = False #message is valid in byte form
         self.text_formed = False #message is valid in string form
+        if str != "" and label_str != "":
+            self.space_text()
+            self.text_formed = True
     def getSize(self):
         #Label str 0x18
         #if msg
@@ -547,9 +653,9 @@ class message:
         if not self.text_formed and givenstr == "":
             print "ERROR: In message.message_str_to_bytes(). Message needs to be text formed to convert from string to bytes."
             return -1
-        byte_count = 0
         in_escape = False
-        bytes_by_int = []
+        byte_count = 8
+        bytes_by_int = copy.deepcopy(es)
         self.relative_pointers = [0]
         if givenstr != "":
             self.str = givenstr
@@ -590,7 +696,8 @@ class message:
                 byte_count+=1
         self.byte_formed = True
         self.text_bytes = bytes_by_int #self
-        self.text_size = len(text_bytes)
+        self.text_size = len(self.text_bytes)
+        self.textbox_count = len(self.relative_pointers)
         return 0
     #Fills in self.str from text_bytes / givenbytes. Writes into text_bytes from givenbytes if given.
     def bytes_to_message_str(self, givenbytes = []):
@@ -755,7 +862,9 @@ class message:
         lines.append("^m")
         self.str = ''.join(lines)
         return 0
-    def toBytes(self):    
+    def toBytes(self):
+        if self.byte_formed == False:
+            self.message_str_to_bytes()
         retbytes = []
             #pointer spot of message_pointers[i]
         retbytes.extend(ctobb(self.label_str,0x18))
@@ -767,6 +876,7 @@ class message:
             retbytes.extend(itobb(self.textbox_count,2))
             retbytes.extend(itobb(self.name_id,2))
         #check if c == len(mo.text_pointers)?
+        
         for tp in self.text_pointers:
             retbytes.extend(itobb(tp,4))
         retbytes.extend(itobb(self.text_size,4))
@@ -937,8 +1047,8 @@ def parse_binary_script(byte_array):
     if s.sections[MESSAGES].magic != "MSG1":
         print "Warning. Message file signature not 'MSG1'"
     #12:16 is 0's
-    s.sections[MESSAGES].unknown_pointer = bbtoi(byte_array[c_off+16:c_off+20]) #pointer to gibberish section
-    s.sections[MESSAGES].unknown_size = bbtoi(byte_array[c_off+20:c_off+24]) #size of gibberish section
+    s.sections[MESSAGES].rolling_pointer = bbtoi(byte_array[c_off+16:c_off+20]) #pointer to gibberish section
+    s.sections[MESSAGES].rolling_size = bbtoi(byte_array[c_off+20:c_off+24]) #size of gibberish section
     s.sections[MESSAGES].pointers_count = bbtoi(byte_array[c_off+24:c_off+28])
     s.sections[MESSAGES].unknown_value = bbtoi(byte_array[c_off+28:c_off+32]) #0x20000 (?)
     
@@ -1033,10 +1143,13 @@ def parse_binary_script(byte_array):
         m.byte_formed = True
         s.sections[MESSAGES].messages.append(m)
             
-    #A bunch of data that looks like gibberish. No idea how to parse it
-    u_p = s.sections[MESSAGES].unknown_pointer
-    u_s = s.sections[MESSAGES].unknown_size
-    s.sections[MESSAGES].unknown_bytes = byte_array[m_off+u_p-0x20:m_off+u_p+u_s-0x20] #for some reason the pointer offset is before the message header instead of after like the other instances?
+    #A list of rolling offsets to the pointers in the message script.
+    #The values are the offset from the previous pointer by every other byte. It starts with 2 and a bunch of 4's because the first pointer is after the 4 byte boolean value, then each pointer object has a length of 8.
+    #This is used to turn the pointers from pointers relative to the message script to pointers absolute in memory.
+    #One last thing: W H Y ? ? ?
+    r_p = s.sections[MESSAGES].rolling_pointer
+    r_s = s.sections[MESSAGES].rolling_size
+    s.sections[MESSAGES].rolling_offsets = byte_array[m_off+r_p-0x20:m_off+r_p+r_s-0x20] #for some reason the pointer offset is before the message header instead of after like the other instances?
     
     #Section 04 - PUSHSTR strings
     #   Size: Variable
@@ -1078,16 +1191,26 @@ def test_file(fname):
 def test_funs(fname):
     '''
     def changeProcByIndex(self, instructions, relative_labels, index):
+        OK
     def changeMessageByIndex(self, message_obj, index):
+        OK
     def appendProc(self, instructions, relative_labels, proc_label):
-        calls changeprocbyindex
+        OK
     def appendMessage(self, message_label_str, message_str, is_decision = False, name_id = 0):
+        OK
     def appendPUSHSTR(self,str):
+        Untested
     def getMessageIndexByLabel(self, label_str):
+        Untested
     def getPUSHSTRIndexByStr(self, str):
+        Untested
     def getProcIndexByLabel(self, label_str):
+        OK
     def getProcInstructionsLabelsByIndex(self, proc_index):
-
+        OK
+        
+    Untested functions don't add much value as of yet, and they're not even that hard.
+    Next focus: ASM
     '''
     
     bytes = filenameToBytes(fname)
@@ -1095,20 +1218,39 @@ def test_funs(fname):
     
     noop_inst1 = instruction(OPCODES["PUSHIS"],0)
     noop_inst2 = instruction(OPCODES["COMM"],0xe)
-    message_inst = [instruction(OPCODES["COMM"],0x60),instruction(OPCODES["COMM"],1), instruction(OPCODES["PUSHIS"],6),instruction(OPCODES["COMM"],0xc3), instruction(OPCODES["PUSHIS"], 4), instruction(OPCODES["COMM"],0), instruction(OPCODES["COMM"],2), instruction(OPCODES["COMM"],0x61), instruction(OPCODES["PUSHIS"],7), instruction(OPCODES["COMM"],0xc3)]
-    proc_labels = obj.sections[PROC_LABELS].labels
+    m_index = obj.appendMessage("This is a totally new message!^xThat's incredible, isn't it!?^n^yIsn't^nIt!?^p","_new_msg_label")
+    #m_index = 4
+    #obj.changeMessageByIndex(message("Different message!^nOh^nBaby^xThis text box is for testing.^xWould a third box change things?","_new_msg_label"), m_index)
+    message_proc = [instruction(OPCODES["PROC"],0),\
+    #instruction(OPCODES["COMM"],0x60),
+    instruction(OPCODES["COMM"],1), \
+    #instruction(OPCODES["PUSHIS"],6),instruction(OPCODES["COMM"],0xc3), 
+    instruction(OPCODES["PUSHIS"], m_index), instruction(OPCODES["COMM"],0), instruction(OPCODES["COMM"],2), \
+    #instruction(OPCODES["COMM"],0x61), instruction(OPCODES["PUSHIS"],7), instruction(OPCODES["COMM"],0xc3),
+    instruction(OPCODES["END"],0)]
+    newproc_index = obj.appendProc(message_proc, [], "extra_message_proc")
+    if newproc_index == -1:
+        print "Append failed"
+        return
+    yoyogi_east_intro_proc_index = obj.getProcIndexByLabel("006_01eve_01")
+    #print "DEBUG: yoyogi_east index:",yoyogi_east_intro_proc_index
+    #proc_labels = obj.sections[PROC_LABELS].labels
     #for i in range(len(proc_labels)):
-    for i in range(40,60): #only do first 30 because we don't have the room
+    #for i in range(40,60): #only do first 30 because we don't have the room
     #if True:
 #        i=0
-        insts, r_labs = obj.getProcInstructionsLabelsByIndex(i)
+    insts, r_labs = obj.getProcInstructionsLabelsByIndex(yoyogi_east_intro_proc_index)
+    insts = insts[:-1] + [instruction(OPCODES["CALL"],newproc_index)] + [insts[-1]]
+    obj.changeProcByIndex(insts,r_labs,yoyogi_east_intro_proc_index)
         #insts = insts[:-1] + [noop_inst1, noop_inst2] + [insts[-1]]
-        insts = insts[:-1] + message_inst + [insts[-1]]
+    #    insts = insts[:-1] + message_inst + [insts[-1]]
         
-        obj.changeProcByIndex(insts, r_labs, i)
+    #obj.changeProcByIndex(insts, r_labs, i)
     #print "Total added instructions:",hex(len(proc_labels) * 2)
     
     piped_bytes = obj.toBytes()
-    bytesToFile(piped_bytes,"piped_"+fname)
+    #bytesToFile(piped_bytes,"piped_scripts/f016check.bf")
+    bytesToFile(piped_bytes,"piped_scripts/f016.bf")
 
+#test_funs("piped_scripts/f016.bf")
 #test_funs("scripts/f016.bf")
