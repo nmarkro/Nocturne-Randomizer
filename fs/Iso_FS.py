@@ -2,76 +2,10 @@ import struct
 import os
 from io import BytesIO
 
+from fs_utils import *
+
 SECTOR_SIZE = 2048
 SYSTEM_HEADER_SIZE = 32768
-
-# TODO: Move ALL of these to a different file and possibly standardize use of them over the entire project
-
-# calculate the size of a file
-def file_len(data):
-    data.seek(0, 2)
-    return data.tell()
-
-# there is no reason to read in be form
-def read_bytes(data, offset, length):
-    data.seek(offset)
-    return data.read(length)
-
-def read_byte(data, offset):
-    data.seek(offset)
-    return struct.unpack("<B", data.read(1))[0]
-
-def read_halfword(data, offset):
-    data.seek(offset)
-    return struct.unpack("<H", data.read(2))[0]
-
-def read_word(data, offset):
-    data.seek(offset)
-    return struct.unpack("<I", data.read(4))[0]
-
-# by default write data in le form
-def write_bytes(data, offset, bytes):
-    data.seek(offset)
-    data.write(bytes)
-
-def write_byte(data, offset, value):
-    write_byte_le(data, offset, value)
-
-def write_halfword(data, offset, value):
-    write_halfword_le(data, offset, value)
-
-def write_word(data, offset, value):
-    write_word_le(data, offset, value)
-
-def write_byte_le(data, offset, value):
-    value = struct.pack("<B", value)
-    data.seek(offset)
-    data.write(value)
-
-def write_byte_be(data, offset, value):
-    value = struct.pack(">B", value)
-    data.seek(offset)
-    data.write(value)
-
-def write_halfword_le(data, offset, value):
-    value = struct.pack("<H", value)
-    data.seek(offset)
-    data.write(value)
-
-def write_halfword_be(data, offset, value):
-    value = struct.pack(">H", value)
-    data.seek(offset)
-    data.write(value)
-
-def write_word_le(data, offset, value):
-    value = struct.pack("<I", value)
-    data.seek(offset)
-    data.write(value)
-
-def write_word_be(data, offset, value):
-    value = struct.pack(">I", value)
-    data.seek(offset)
-    data.write(value)
 
 class IsoFileEntry(object):
     def __init__(self):
@@ -155,19 +89,16 @@ class IsoFS(object):
             current_offset += entry_length
             if entry.name == "." or entry.name == "..":
                 continue
-            if entry.is_dir:
-                if path:
-                    sub_path = '/'.join([path, entry.name])
-                else:
-                    sub_path = entry.name
-                entry.file_path = sub_path
-                self.read_directory(entry, sub_path)
+
+            if path:
+                file_path = '/'.join([path, entry.name])
             else:
-                if path:
-                    file_path = '/'.join([path, entry.name])
-                else:
-                    file_path = entry.name
-                entry.file_path = file_path
+                file_path = entry.name
+            entry.file_path = file_path
+
+            if entry.is_dir:
+                self.read_directory(entry, file_path)
+                
             self.file_entries[entry.file_path] = entry
 
     # return the entry object for provided path
@@ -232,16 +163,16 @@ class IsoFS(object):
 
     def align_iso_to(self, size):
         offset = self.output_iso.tell()
-        padding_needed = size - (offset % size)
-        self.pad_iso_by(padding_needed)
+        if offset % size != 0:
+            padding_needed = size - (offset % size)
+            self.pad_iso_by(padding_needed)
 
-    # copy 1:1 from the original iso in chuncks to save on memory usage
-    def copy_from_input(self, offset, size):
+    # copy 1:1 from the original iso in chunks to save on memory usage
+    def copy_from_input(self, offset, size, chunk_size=1024*1024):
         size_remaining = size
         input_offset = 0
         while size_remaining > 0:
-            # "SECTOR_SIZE * 512" can be changed later, it's just a value that seemed to work well
-            size_to_read = min(size_remaining, SECTOR_SIZE * 512)
+            size_to_read = min(size_remaining, chunk_size)
 
             with open(self.iso_path, 'rb') as iso_file:
                 data = read_bytes(iso_file, offset + input_offset, size_to_read)
@@ -275,6 +206,26 @@ class IsoFS(object):
             data = BytesIO(iso_file.read(size_to_read))
         return data
 
+    # used to read very large files from the iso in chunks
+    def read_file_in_chunks(self, path, chunk_size=1024*1024):
+        entry = self.find_by_path(path)
+        assert entry is not None
+
+        base_offset = entry.location * SECTOR_SIZE
+        size_remaining = entry.size
+        current_offset = 0
+
+        while size_remaining > 0:
+            size_to_read = min(size_remaining, chunk_size)
+
+            with open(self.iso_path, 'rb') as iso_file:
+                data = read_bytes(iso_file, base_offset + current_offset, size_to_read)
+
+            size_remaining -= size_to_read
+            current_offset += size_to_read
+
+            yield data
+
     # make new entries and add them to the correct directory entry
     def add_new_file(self, path, data):
         dirname = os.path.dirname(path)
@@ -306,7 +257,7 @@ class IsoFS(object):
         # make sure any new/changed files get correctly added to each directory's table
         for path in self.changes:
             if not self.find_by_path(path):
-                self.add_new_file(path)
+                self.add_new_file(path, self.changes[path])
 
         self.output_iso = open(output_path, 'wb')
 
@@ -336,9 +287,18 @@ class IsoFS(object):
                 else:
                     offset = entry.location * SECTOR_SIZE
                     self.copy_from_input(offset, size)
+
             if not entry.is_dir:
                 self.update_entry_info(entry, new_location, size)
             self.align_iso_to(SECTOR_SIZE)
+
+        # update a few parts of the primary volume
+        end_size = int(self.output_iso.tell() / SECTOR_SIZE)
+        write_word_le(self.output_iso, SYSTEM_HEADER_SIZE + 80, end_size)
+        write_word_be(self.output_iso, SYSTEM_HEADER_SIZE + 84, end_size)
+
+        write_word_le(self.output_iso, SYSTEM_HEADER_SIZE + 166, SECTOR_SIZE)
+        write_word_be(self.output_iso, SYSTEM_HEADER_SIZE + 170, SECTOR_SIZE)
 
         self.output_iso.close()
         self.output_iso = None
@@ -352,39 +312,40 @@ class IsoFS(object):
 # 1. create new directories
 # 2. update path tables
 # and probably some other stuff I'm forgetting
-iso = IsoFS('../rom/input.iso')
-iso.read_iso()
 
-for path, e in iso.file_entries.items():
-    print(e.name + " - " + str(e.location))
-print()
+# iso = IsoFS('../rom/input.iso')
+# iso.read_iso()
 
-iso.rm_file("DUMMY.DAT;1")
+# for path, e in iso.file_entries.items():
+#     print(e.name + " - " + str(e.location))
+# print()
 
-test_file = BytesIO(b"New test file has been written (and to a sub directory!)")
-test_file_path = "IRX/TEST.TXT;1"
+# iso.rm_file("DUMMY.DAT;1")
 
-iso.add_new_file(test_file_path, test_file)
+# test_file = BytesIO(b"New test file has been written (and to a sub directory!)")
+# test_file_path = "IRX/TEST.TXT;1"
 
-for path, e in iso.file_entries.items():
-    print(e.name + " - " + str(e.location) + " - " + e.file_path)
-print()
+# iso.add_new_file(test_file_path, test_file)
 
-system_cnf_file_path = "SYSTEM.CNF;1"
-system_cnf_file = iso.get_file_from_path(system_cnf_file_path)
-print(system_cnf_file.read().decode())
-new_system_cnf_file = BytesIO(b"File has been updated")
-changes = {
-    system_cnf_file_path: new_system_cnf_file,
-}
+# for path, e in iso.file_entries.items():
+#     print(e.name + " - " + str(e.location) + " - " + e.file_path)
+# print()
 
-iso.export_iso('../rom/test.iso', changes)
+# system_cnf_file_path = "SYSTEM.CNF;1"
+# system_cnf_file = iso.get_file_from_path(system_cnf_file_path)
+# print(system_cnf_file.read().decode())
+# new_system_cnf_file = BytesIO(b"File has been updated")
+# changes = {
+#     system_cnf_file_path: new_system_cnf_file,
+# }
 
-output_iso = IsoFS('../rom/test.iso')
-output_iso.read_iso()
+# iso.export_iso('../rom/test.iso', changes)
 
-output_test_file = output_iso.get_file_from_path(test_file_path)
-print(output_test_file.read().decode())
+# output_iso = IsoFS('../rom/test.iso')
+# output_iso.read_iso()
 
-output_system_cnf_file = output_iso.get_file_from_path(system_cnf_file_path)
-print(output_system_cnf_file.read().decode())
+# output_test_file = output_iso.get_file_from_path(test_file_path)
+# print(output_test_file.read().decode())
+
+# output_system_cnf_file = output_iso.get_file_from_path(system_cnf_file_path)
+# print(output_system_cnf_file.read().decode())
