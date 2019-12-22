@@ -57,7 +57,6 @@ MSG_MAGIC = "MSG1"
 
 MESSAGE_POINTER_SIZE = 8
 
-
 PROC_LABELS = 0
 BR_LABELS = 1
 BYTECODE = 2
@@ -73,6 +72,17 @@ class bf_script:
         self.section_count = 0
         self.sections_size = 0 #Not sure what this value is
         self.sections = [] #In a hard typed language this would be a relocated_class pointer
+    #Shortcuts
+    def p_lbls(self):
+        return self.sections[PROC_LABELS]
+    def b_lbls(self):
+        return self.sections[BR_LABELS]
+    def code(self):
+        return self.sections[BYTECODE]
+    def msgs(self):
+        return self.sections[MESSAGES]
+    def p_strs(self):
+        return self.sections[STRINGS]
     def toBytes(self):
         #Update rolling offsets before outputting the bytes.
         delta_bytes = self.sections[MESSAGES].updateRollingOffsets()
@@ -366,8 +376,8 @@ class bf_script:
         self.sections[STRINGS].strings.append(str)
         return len(self.sections[STRINGS].strings) - 1 #Return str index
     def getMessageIndexByLabel(self, label_str):
-        for i in range (len(self.sections[MESSAGES])):
-            l_s = self.sections[MESSAGES].label_str
+        for i in range (len(self.sections[MESSAGES].messages)):
+            l_s = self.sections[MESSAGES].messages[i].label_str
             if label_str == l_s:
                 return i
         return -1
@@ -588,10 +598,18 @@ class message_script(relocated_class):
                 roll += 4
             else:
                 roll += 2
-            r_offs.append(roll)
+            if roll > 255:
+                roll*=2
+                roll+=1
+                r_offs.extend(itobb(roll,2)) #Just going to say 2 because there's no way it's going past that
+            else:
+                r_offs.append(roll)
             roll=4
             if m_obj.textbox_count == 2:
                 r_offs.append(2)
+            elif m_obj.textbox_count >=30:
+                print "ERROR: Too many textboxes???", m_obj.label_str
+                
             elif m_obj.textbox_count > 2:
                 r_offs.append(((m_obj.textbox_count-2) * 8)-1) #WHY???????????????????????
             #r_offs.extend([2]*(m_obj.textbox_count-1)) #This would actually make sense and be more intuitive. Gotta save those precious bytes I guess??? But this entire section isn't even necessary if you really want to save space. AAAAAAAAAAAAGHGHHGHGHHHHGHHHHHH!!!!!!!!!!!!!
@@ -956,8 +974,8 @@ def parse_binary_script(byte_array):
     
     s.size = bbtoi(byte_array[4:8])
     s.magic = [chr(x) for x in byte_array[8:12]]
-    if s.magic != BF_MAGIC:
-        print "Wrong file type detected. Should be FLW0, found:",s.magic
+    #if s.magic != BF_MAGIC:
+    #    print "Wrong file type detected. Should be FLW0, found:",s.magic #finds ['F','L','W','0'] instead so meh
     s.section_count = bbtoi(byte_array[16:20])
     if s.section_count != 5:
         print "Possible warning? Section count not 5"
@@ -1044,8 +1062,8 @@ def parse_binary_script(byte_array):
     if s.sections[MESSAGES].m_size != s.sections[MESSAGES].count:
         print "Warning. Message file size from relocation / section table (",s.sections[MESSAGES].count,") and message script (",s.sections[MESSAGES].m_size,") do not match."
     s.sections[MESSAGES].magic = [chr(x) for x in byte_array[c_off+8:c_off+12]]
-    if s.sections[MESSAGES].magic != "MSG1":
-        print "Warning. Message file signature not 'MSG1'"
+    #if s.sections[MESSAGES].magic != "MSG1":
+    #    print "Warning. Message file signature not 'MSG1'" #Finds ['M','S','G','1'] instead.
     #12:16 is 0's
     s.sections[MESSAGES].rolling_pointer = bbtoi(byte_array[c_off+16:c_off+20]) #pointer to gibberish section
     s.sections[MESSAGES].rolling_size = bbtoi(byte_array[c_off+20:c_off+24]) #size of gibberish section
@@ -1159,11 +1177,12 @@ def parse_binary_script(byte_array):
     while c_off < len(byte_array): #Possibly better to go until the size of the section but whatever
         p_str = ""
         c = byte_array[c_off]
-        while c != 0:
+        while c != 0 and c_off+1 < len(byte_array):
             p_str+=chr(c)
             c_off+=1
             c=byte_array[c_off]
-        s.sections[STRINGS].strings.append(p_str)
+        if p_str != "":
+            s.sections[STRINGS].strings.append(p_str)
         c_off+=1
     return s
     
@@ -1221,19 +1240,19 @@ def test_funs(fname):
     m_index = obj.appendMessage("This is a totally new message!^xThat's incredible, isn't it!?^n^yIsn't^nIt!?^p","_new_msg_label")
     #m_index = 4
     #obj.changeMessageByIndex(message("Different message!^nOh^nBaby^xThis text box is for testing.^xWould a third box change things?","_new_msg_label"), m_index)
-    message_proc = [instruction(OPCODES["PROC"],0),\
-    #instruction(OPCODES["COMM"],0x60),
-    instruction(OPCODES["COMM"],1), \
-    #instruction(OPCODES["PUSHIS"],6),instruction(OPCODES["COMM"],0xc3), 
-    instruction(OPCODES["PUSHIS"], m_index), instruction(OPCODES["COMM"],0), instruction(OPCODES["COMM"],2), \
-    #instruction(OPCODES["COMM"],0x61), instruction(OPCODES["PUSHIS"],7), instruction(OPCODES["COMM"],0xc3),
-    instruction(OPCODES["END"],0)]
+    message_proc = [
+        instruction(OPCODES["PROC"],0),
+        instruction(OPCODES["COMM"],1), 
+        instruction(OPCODES["PUSHIS"], m_index), 
+        instruction(OPCODES["COMM"],0), 
+        instruction(OPCODES["COMM"],2),
+        instruction(OPCODES["END"],0)
+    ]
     newproc_index = obj.appendProc(message_proc, [], "extra_message_proc")
     if newproc_index == -1:
         print "Append failed"
         return
     yoyogi_east_intro_proc_index = obj.getProcIndexByLabel("006_01eve_01")
-    #print "DEBUG: yoyogi_east index:",yoyogi_east_intro_proc_index
     #proc_labels = obj.sections[PROC_LABELS].labels
     #for i in range(len(proc_labels)):
     #for i in range(40,60): #only do first 30 because we don't have the room
@@ -1247,10 +1266,9 @@ def test_funs(fname):
         
     #obj.changeProcByIndex(insts, r_labs, i)
     #print "Total added instructions:",hex(len(proc_labels) * 2)
-    
     piped_bytes = obj.toBytes()
     #bytesToFile(piped_bytes,"piped_scripts/f016check.bf")
-    bytesToFile(piped_bytes,"piped_scripts/f016.bf")
+    bytesToFile(piped_bytes,"piped_scripts/f024.bf")
 
 #test_funs("piped_scripts/f016.bf")
-#test_funs("scripts/f016.bf")
+#test_funs("scripts/f024.bf")
