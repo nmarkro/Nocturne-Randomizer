@@ -22,10 +22,12 @@ def inst(opcode_str,operand=0):
 def get_script_obj_by_name(iso,script_name):
     file_offset = custom_vals.customizer_offsets[script_name]
     iso.seek(file_offset + 4)
-    fsize = assembler.bbtoi(bytearray(iso.read(4)))
+    #Get script size, but script size only goes to the end of the message script. If you have the actual size then you don't need to do this nasty calculation.
+    fsize = assembler.bbtoi(bytearray(iso.read(4))) 
     iso.seek(file_offset + fsize)
     is0 = False
     c = ord(iso.read(1))
+    #Calculate the size of the final strings section by manually going through it until it stops.
     while not is0 or c != 0:
         fsize += 1
         if c == 0:
@@ -33,8 +35,8 @@ def get_script_obj_by_name(iso,script_name):
         else:
             is0 = False
         c = ord(iso.read(1))
+    #Now that we have the right size, read the file.
     iso.seek(file_offset)
-    #print script_name,fsize
     script_iso = bytearray(iso.read(fsize))
     return assembler.parse_binary_script(script_iso)
 
