@@ -2,7 +2,7 @@ import struct
 import os
 from io import BytesIO
 
-from fs_utils import *
+from fs.fs_utils import *
 
 SECTOR_SIZE = 2048
 SYSTEM_HEADER_SIZE = 32768
@@ -226,6 +226,17 @@ class IsoFS(object):
 
             yield data
 
+    def write_file_in_chunks(self, data, chunk_size=1024*1024):
+        # from https://stackoverflow.com/questions/519633/lazy-method-for-reading-big-file-in-python
+        size = 0
+        while True:
+            chunk = data.read(chunk_size)
+            if not chunk:
+                break
+            self.output_iso.write(chunk)
+            size += len(chunk)
+        return size
+
     # make new entries and add them to the correct directory entry
     def add_new_file(self, path, data):
         dirname = os.path.dirname(path)
@@ -252,7 +263,7 @@ class IsoFS(object):
         self.file_entries[path] = new_entry
         self.changes[path] = data
 
-    def export_iso(self, output_path, changes):
+    def export_iso(self, output_path, changes={}):
         self.changes.update(changes)
         # make sure any new/changed files get correctly added to each directory's table
         for path in self.changes:
@@ -278,8 +289,7 @@ class IsoFS(object):
             if entry.file_path in self.changes:
                 data = self.changes[entry.file_path]
                 data.seek(0)
-                self.output_iso.write(data.read())
-                size = file_len(data)
+                size = self.write_file_in_chunks(data)
             else:
                 # unchanged files should just be copied 1:1 from the input iso
                 if entry.is_dir:

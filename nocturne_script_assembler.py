@@ -108,23 +108,23 @@ class bf_script:
         #   Check that index is not OoB
         proclen = len(self.sections[PROC_LABELS].labels)
         if index >= proclen:
-            print "ERROR: In changeProcByIndex(), given index is out of bounds."
+            print("ERROR: In changeProcByIndex(), given index is out of bounds.")
             return -1
         #   Check that instructions is a valid list of instruction objects
         if not isinstance(instructions,list):
-            print "ERROR: In changeProcByIndex(), parameter 'instructions' is not a list."
+            print("ERROR: In changeProcByIndex(), parameter 'instructions' is not a list.")
             return -1
         if len(instructions) > 0 and not isinstance(instructions[0],instruction):
-            print "ERROR: In changeProcByIndex(), parameter 'instructions' is not an instruction list."
+            print("ERROR: In changeProcByIndex(), parameter 'instructions' is not an instruction list.")
             return -1
         #   Check that relative_labels is a valid list of label objects
         if relative_labels and not isinstance(relative_labels,list):
-            print "ERROR: In changeProcByIndex(), parameter 'relative_labels' is not a list."
+            print("ERROR: In changeProcByIndex(), parameter 'relative_labels' is not a list.")
             return -1
         if not relative_labels:
             relative_labels = []
         if len(relative_labels) > 0 and not isinstance(relative_labels[0],label):
-            print "ERROR: In changeProcByIndex(), parameter 'relative_labels' is not a label list."
+            print("ERROR: In changeProcByIndex(), parameter 'relative_labels' is not a label list.")
             return -1
         #   Check that the index of the labels are within the length of instructions
         proclabel = self.sections[PROC_LABELS].labels[index]
@@ -142,7 +142,7 @@ class bf_script:
         labels_to_remove = []
         for r_lab in relative_labels:
             if r_lab.label_offset > len(instructions) or r_lab.label_offset < 0:
-                print "ERROR: In changeProcByIndex(), given label",r_lab.label_str,"is out of bounds."
+                print("ERROR: In changeProcByIndex(), given label",r_lab.label_str,"is out of bounds.")
                 return -1
             for br_index,br_lab in enumerate(self.sections[BR_LABELS].labels):
                 #Remove overwritten labels
@@ -156,24 +156,24 @@ class bf_script:
                     self.sections[STRINGS].offset -= 0x20
                     #print "+DEBUG: removing label. Name:",br_lab.label_str,"Offset:",br_lab.label_offset, "0x:",hex(br_lab.label_offset)
                 elif r_lab.label_str == br_lab.label_str and br_lab not in labels_to_remove:
-                    print "ERROR: Label string",r_lab.label_str,"is the same name as an already existing branch string"
+                    print("ERROR: Label string",r_lab.label_str,"is the same name as an already existing branch string")
                     #print "-DEBUG: relative offset:",r_lab.label_offset,"0x:",hex(r_lab.label_offset),"absolute proc offset:",proclabel.label_offset,"procsize:",procsize
                     #print "--DEBUG: br absolute offset:",br_lab.label_offset
                     return -1
             for pr_lab in self.sections[PROC_LABELS].labels:
                 if r_lab.label_str == pr_lab.label_str:
-                    print "ERROR: Label string",r_lab.label_str,"is the same name as an already existing procedure string"
+                    print("ERROR: Label string",r_lab.label_str,"is the same name as an already existing procedure string")
                     return -1
         for l in labels_to_remove:
             self.sections[BR_LABELS].labels.remove(l)
         #   Check that the label strs in relative_labels have not been used
         #   Check that the first instruction is PROC. Perhaps add it and add the relative label indices by 1?
         if len(instructions) > 0 and instructions[0].opcode != OPCODES["PROC"]:
-            print "WARNING: In changeProcByIndex(), given first instruction is not PROC. Instruction opcode is:",instructions[0].opcode
+            print("WARNING: In changeProcByIndex(), given first instruction is not PROC. Instruction opcode is:",instructions[0].opcode)
         #   Check any other instructions for invalid logic:
         #       Make sure last instruction is END. Perhaps add it?
         if len(instructions) > 0 and instructions[-1].opcode != OPCODES["END"]:
-            print "WARNING: In changeProcByIndex(), given last instruction is not END. Instruction opcode is:",instructions[-1].opcode
+            print("WARNING: In changeProcByIndex(), given last instruction is not END. Instruction opcode is:",instructions[-1].opcode)
         
         #       Make sure instructions with a label operand have a given relative_label or is in the current list of lables. Perhaps only give a warning?
         #TODO: This integrity check
@@ -207,7 +207,7 @@ class bf_script:
                 if index>ind:
                     n+=1
                 elif index == ind:
-                    print "WARNING or internal logic error: Branch label used outside of procedure. Previous index:",index,"Removed_indices:",removed_indices
+                    print("WARNING or internal logic error: Branch label used outside of procedure. Previous index:",index,"Removed_indices:",removed_indices)
             return index - n
         #recalculate branch indices before
         if len(removed_branch_indices)>0:
@@ -256,7 +256,7 @@ class bf_script:
         if not message_obj.byte_formed and message_obj.text_formed:
             message_obj.message_str_to_bytes()
         elif not message_obj.byte_formed and not message_obj.text_formed:
-            print "ERROR In changeMessageByIndex(). Given message object has no text formed in it!"
+            print("ERROR In changeMessageByIndex(). Given message object has no text formed in it!")
             return -1
         indexed_message = self.sections[MESSAGES].messages[index]
         absolute_pointer = self.sections[MESSAGES].message_pointers[index].pointer
@@ -608,12 +608,12 @@ class message_script(relocated_class):
             if m_obj.textbox_count == 2:
                 r_offs.append(2)
             elif m_obj.textbox_count >=30:
-                print "ERROR: Too many textboxes???", m_obj.label_str
+                print("ERROR: Too many textboxes???", m_obj.label_str)
                 
             elif m_obj.textbox_count > 2:
                 r_offs.append(((m_obj.textbox_count-2) * 8)-1) #WHY???????????????????????
             #r_offs.extend([2]*(m_obj.textbox_count-1)) #This would actually make sense and be more intuitive. Gotta save those precious bytes I guess??? But this entire section isn't even necessary if you really want to save space. AAAAAAAAAAAAGHGHHGHGHHHHGHHHHHH!!!!!!!!!!!!!
-            roll += (len(m_obj.text_bytes) + (4-(len(m_obj.text_bytes)%4))%4)/2
+            roll += (len(m_obj.text_bytes) + (4-(len(m_obj.text_bytes)%4))%4)//2
         r_offs.append(roll)
         n = self.names.names_count
         if n == 2:
@@ -669,7 +669,7 @@ class message:
     #Fills in text_bytes and relative_pointers given self.str / givenstr (writes into self.str if givenstr is given)
     def message_str_to_bytes(self, givenstr = ""):
         if not self.text_formed and givenstr == "":
-            print "ERROR: In message.message_str_to_bytes(). Message needs to be text formed to convert from string to bytes."
+            print("ERROR: In message.message_str_to_bytes(). Message needs to be text formed to convert from string to bytes.")
             return -1
         in_escape = False
         byte_count = 8
@@ -721,7 +721,7 @@ class message:
     def bytes_to_message_str(self, givenbytes = []):
         #Note: Does not fill in relative_pointers
         if not self.byte_formed or givenbytes != []:
-            print "ERROR: In message.bytes_to_message_str(), Message needs to be byte formed to convert from bytes to string"
+            print("ERROR: In message.bytes_to_message_str(), Message needs to be byte formed to convert from bytes to string")
             return -1
         if givenbytes !=[]:
             self.bytes = givenbytes
@@ -744,10 +744,10 @@ class message:
                     elif bc == eg:
                         str+="^g"
                     else:
-                        print "ERROR: In message.bytes_to_str(). Invalid set of bytes"
+                        print("ERROR: In message.bytes_to_str(). Invalid set of bytes")
                         return -1
                 else:
-                    print "ERROR: In message.bytes_to_str(). Invalid set of bytes"
+                    print("ERROR: In message.bytes_to_str(). Invalid set of bytes")
                     return -1
                 i+=4
             elif self.bytes[i] == 0x0A:
@@ -773,7 +773,7 @@ class message:
         return 0
     def space_text(self, givenstr = ""):
         if givenstr == "" and self.str == "":
-            print "ERROR in message.space_text(). No text to space!"
+            print("ERROR in message.space_text(). No text to space!")
             return -1
         if givenstr != "":
             self.str = givenstr
@@ -801,7 +801,7 @@ class message:
             elif ch == "^" or ch == "\\":
                 #check if the escape character is the last character
                 if index+1 == len(processed_str):
-                    print "WARNING: Escape character as last character. Ignoring."
+                    print("WARNING: Escape character as last character. Ignoring.")
                     break
                 esc_ch = processed_str[index+1]
                 #Ignore text coloring. That's for byte conversion
@@ -837,9 +837,9 @@ class message:
                 elif ch == "^" and esc_ch == "m":
                     break #End of message. ^m is automatically added at the end.
                 else:
-                    print "WARNING: Unknown escape character: '",esc_ch,"'. Ignoring."
+                    print("WARNING: Unknown escape character: '",esc_ch,"'. Ignoring.")
             elif ch not in kerning:
-                print "WARNING: Kerning of ",ch," is unknown. Removing character"
+                print("WARNING: Kerning of ",ch," is unknown. Removing character")
             elif ch == " ":
                 if pending_space:
                     lines.append(" ")
@@ -978,7 +978,7 @@ def parse_binary_script(byte_array):
     #    print "Wrong file type detected. Should be FLW0, found:",s.magic #finds ['F','L','W','0'] instead so meh
     s.section_count = bbtoi(byte_array[16:20])
     if s.section_count != 5:
-        print "Possible warning? Section count not 5"
+        print("Possible warning? Section count not 5")
     s.sections_size = bbtoi(byte_array[20:24])
     
     s.sections_offset = 32
@@ -1057,10 +1057,10 @@ def parse_binary_script(byte_array):
     c_off = s.sections[MESSAGES].offset
     s.sections[MESSAGES].type = bbtoi(byte_array[c_off:c_off+4])
     if s.sections[MESSAGES].type != 7:
-        print "Warning? Message file type not 7. Type:",s.sections[MESSAGES].type
+        print("Warning? Message file type not 7. Type:",s.sections[MESSAGES].type)
     s.sections[MESSAGES].m_size = bbtoi(byte_array[c_off+4:c_off+8])
     if s.sections[MESSAGES].m_size != s.sections[MESSAGES].count:
-        print "Warning. Message file size from relocation / section table (",s.sections[MESSAGES].count,") and message script (",s.sections[MESSAGES].m_size,") do not match."
+        print("Warning. Message file size from relocation / section table (",s.sections[MESSAGES].count,") and message script (",s.sections[MESSAGES].m_size,") do not match.")
     s.sections[MESSAGES].magic = [chr(x) for x in byte_array[c_off+8:c_off+12]]
     #if s.sections[MESSAGES].magic != "MSG1":
     #    print "Warning. Message file signature not 'MSG1'" #Finds ['M','S','G','1'] instead.
@@ -1250,7 +1250,7 @@ def test_funs(fname):
     ]
     newproc_index = obj.appendProc(message_proc, [], "extra_message_proc")
     if newproc_index == -1:
-        print "Append failed"
+        print("Append failed")
         return
     yoyogi_east_intro_proc_index = obj.getProcIndexByLabel("006_01eve_01")
     #proc_labels = obj.sections[PROC_LABELS].labels

@@ -1,7 +1,8 @@
 import struct
+import os
 from io import BytesIO
 
-from fs_utils import *
+from fs.fs_utils import *
 
 SECTOR_SIZE = 2048
 
@@ -171,7 +172,8 @@ class DDS3FS(object):
             write_word(self.output_ddt, entry.offset + 4, entry.location)
             write_word(self.output_ddt, entry.offset + 8, entry.size)  
 
-    def export_dds3(self, output_ddt_path, output_img_path, changes):
+
+    def export_dds3(self, output_ddt_path, output_img_path, changes={}):
         self.changes.update(changes)
         self.post_writes = []
 

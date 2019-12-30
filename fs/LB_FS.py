@@ -2,7 +2,7 @@ import struct
 import re
 from io import BytesIO
 
-from fs_utils import *
+from fs.fs_utils import *
 
 SECTOR_SIZE = 2048
 
@@ -10,18 +10,19 @@ SECTOR_SIZE = 2048
 class LBFileEntry(object):
     def __init__(self):
         self.user_id = None 
-        self.handle = None
+        # self.handle = None
 
-    def read(self, handle, offset, data):
-        self.handle = handle
+    def read(self, offset, data):
+        # self.handle = handle
         self.entry_type = int(data[0])
         self.compressed = int(data[1])
         self.user_id = int(struct.unpack('<H', data[2:4])[0])
         self.size = int(struct.unpack('<I', data[4:8])[0]) - 16
-        self.extension = data[8:12].decode()
+        self.extension = data[8:12].decode().replace('\0', '')
         self.decompressed_size = int(struct.unpack('<I', data[12:16])[0])
         self.offset = offset
-        self.name = ''.join([str(handle), '_', str(self.user_id), ".", self.extension.replace('\0', '')])
+        # self.name = ''.join([str(handle), '_', str(self.user_id), ".", self.extension.replace('\0', '')])
+        self.name = ''.join([str(self.user_id), ".", self.extension])
 
     def decompress(self, lb_file):
         self.decompressed = []
@@ -71,7 +72,7 @@ class LBFileEntry(object):
 
         return BytesIO(bytes(self.decompressed))
 
-class LBFS(object):
+class LB_FS(object):
     def __init__(self, lb_file):
         self.lb_file = lb_file
         self.changes = {}
@@ -90,10 +91,10 @@ class LBFS(object):
 
             entry = LBFileEntry()
             entry_offset = self.lb_file.tell()
-            entry_handle = len(self.file_entries)
-            entry.read(entry_handle, entry_offset, entry_data)
+            # entry_handle = len(self.file_entries)
+            entry.read(entry_offset, entry_data)
 
-            self.file_entries[entry.name] = entry
+            self.file_entries[entry.extension] = entry
             current_offset += (entry.size + 16)
             if current_offset % 64 != 0:
                 current_offset += 64 - (current_offset % 64)
@@ -108,43 +109,55 @@ class LBFS(object):
             self.pad_lb_by(padding_needed)
 
     def get_file_by_entry(self, entry):
-        data = read_bytes(lb_file, entry.offset, entry.size)
+        data = read_bytes(self.lb_file, entry.offset, entry.size)
 
-    def add_new_file(self, handle, user_id, extension, data):
-        new_entry = LBFileEntry()
-        new_entry.handle = int(handle)
+        return data
+
+    def get_file_by_extension(self, extension):
+        entry = self.file_entries[extension]
+        assert entry is not None
+
+        return self.get_file_by_entry(entry)
+
+    def add_new_file(self, extension, data):
+        new_entry = LBFileEntry()        
         new_entry.entry_type = 1
         new_entry.compressed = 0
-        new_entry.user_id = int(user_id)
+        if self.file_entries[extension]:
+            new_entry.user_id = self.file_entries[extension].user_id
+        else:
+            new_entry.user_id = len(self.file_entries) + 1
         new_entry.size = file_len(data)
-        new_entry.extension = extension.upper().ljust(4, '\0')
+        new_entry.extension = extension
         new_entry.decompressed_size = new_entry.size
-        new_entry.name = ''.join([str(handle), '_', str(user_id), ".", extension])
+        new_entry.name = ''.join([str(new_entry.user_id), ".", extension])
 
-        self.file_entries[new_entry.name] = new_entry
+        self.file_entries[extension] = new_entry
+        self.changes[extension] = data
 
-    def export_lb(self, changes):
+    def export_lb(self, changes={}):
         self.changes.update(changes)
         self.output_lb = BytesIO()
 
-        for name, data in self.changes.items():
-            name_parts = re.match('([\d]+)\_([\d]+)\.(.+)', name)
-            self.add_new_file(name_parts[1], name_parts[2], name_parts[3], data)
+        for extension in self.changes:
+            #if not self.get_file_by_extension(extension):
+            self.add_new_file(extension, self.changes[extension])
 
         file_entries_in_order = [entry for name, entry in self.file_entries.items()]
-        file_entries_in_order.sort(key=lambda e: e.handle)
+        file_entries_in_order.sort(key=lambda e: e.user_id)
 
         for e in file_entries_in_order:
             current_offset = self.output_lb.tell()
             write_byte(self.output_lb, current_offset, e.entry_type)
             write_byte(self.output_lb, current_offset + 1, e.compressed)
             write_halfword(self.output_lb, current_offset + 2, e.user_id)
+            extension = e.extension.upper().ljust(4, '\0')
             write_word(self.output_lb, current_offset + 4, e.size + 16)
-            write_bytes(self.output_lb, current_offset + 8, e.extension.encode())
+            write_bytes(self.output_lb, current_offset + 8, extension.encode())
             write_word(self.output_lb, current_offset + 12, e.decompressed_size)
 
-            if e.name in self.changes:
-                data = self.changes[e.name]
+            if e.extension in self.changes:
+                data = self.changes[e.extension]
                 data.seek(0)
                 self.output_lb.write(data.read())
             else:

@@ -55,11 +55,6 @@ dds3.export_dds3('DDS3.DDT', 'DDS3.IMG', uncompressed_lb)
 print("exporting new iso")
 iso.rm_file("DUMMY.DAT;1")
 with open('DDS3.DDT', 'rb') as ddt, open('DDS3.IMG', 'rb') as img:
-    changes = {
-        'DDS3.DDT;1': ddt,
-        'DDS3.IMG;1': img
-    }
-
     iso.export_iso('../rom/test.iso', {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
 
 # delete the temp files for the user

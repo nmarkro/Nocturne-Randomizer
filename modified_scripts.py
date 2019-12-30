@@ -3,6 +3,12 @@
 import nocturne_script_assembler as assembler
 import customizer_values as custom_vals
 
+from io import BytesIO
+
+from fs.Iso_FS import *
+from fs.DDS3_FS import *
+from fs.LB_FS import *
+
 ''' Assembler bf_script modification functions:
 def changeProcByIndex(self, instructions, relative_labels, index):
 def changeMessageByIndex(self, message_obj, index):
@@ -19,7 +25,12 @@ def getProcInstructionsLabelsByIndex(self, proc_index):
 def inst(opcode_str,operand=0):
     return assembler.instruction(assembler.OPCODES[opcode_str],operand)
     
-def get_script_obj_by_name(iso,script_name):
+# gets the script object from dds3 fs by provided path
+def get_script_obj_by_path(dds3, script_path):
+    script = bytearray(dds3.get_file_from_path(script_path).read())
+    return assembler.parse_binary_script(script)
+
+'''def get_script_obj_by_name(iso,script_name):
     file_offset = custom_vals.customizer_offsets[script_name]
     iso.seek(file_offset + 4)
     #Get script size, but script size only goes to the end of the message script. If you have the actual size then you don't need to do this nasty calculation.
@@ -39,16 +50,32 @@ def get_script_obj_by_name(iso,script_name):
     iso.seek(file_offset)
     script_iso = bytearray(iso.read(fsize))
     return assembler.parse_binary_script(script_iso)
+'''
+# open the ISO and parse it
+iso = IsoFS('rom/input.iso')
+iso.read_iso()
 
-iso = open('Nocturne_Customizer_v0p2a_test.ISO','r+b')
+# get the ddt and write it out to disk
+ddt_file = iso.get_file_from_path('DDS3.DDT;1')
+with open('rom/old_DDS3.DDT', 'wb') as file:
+    file.write(ddt_file.read())
 
-#Replace e506.bf (intro) with a custom one to set a bunch of initial values.
-#If a full iso builder is implemented this is obsolete
-iso.seek(custom_vals.customizer_offsets['e506'])
-e506 = open('patches/e506.bf','rb').read()
-iso.write(e506)
+# get the img and write it out to disk in chucks due to size
+with open('rom/old_DDS3.IMG', 'wb') as file:
+    for chunk in iso.read_file_in_chunks('DDS3.IMG;1'):
+        file.write(chunk)
 
-e601_obj = get_script_obj_by_name(iso,'e601')
+# parse the dds3 fs
+dds3 = DDS3FS('rom/old_DDS3.DDT', 'rom/old_DDS3.IMG')
+dds3.read_dds3()
+
+# Replace e506.bf (intro) with a custom one to set a bunch of initial values.
+with open('patches/e506.bf','rb') as file:
+    e506 = BytesIO(file.read())
+dds3.add_new_file('/event/e500/e506/scr/e506.bf', e506)
+
+# get the 601 event script and add our hook
+e601_obj = get_script_obj_by_path(dds3, '/event/e600/e601/scr/e601.bf')
 e601_insts = [
     inst("PROC",0), 
     inst("PUSHIS",506), 
@@ -56,21 +83,22 @@ e601_insts = [
     inst("END",0)
 ]
 e601_obj.changeProcByIndex(e601_insts,[],0) #empty list is relative branch labels
-e601_bytes = e601_obj.toBytes()
-iso.seek(custom_vals.customizer_offsets['e601'])
-iso.write(bytearray(e601_bytes))
+# convert the script object to a filelike object and add it to the dds3 file system
+e601_data = BytesIO(bytearray(e601_obj.toBytes()))
+dds3.add_new_file('/event/e600/e601/scr/e601.bf', e601_data)
 
-#Shorten 618 (intro)
-#Cutscene removal in SMC f015
+# Shorten 618 (intro)
+# Cutscene removal in SMC f015
 
-#SMC area flag
-#">You find yourself in a strange place" - "...Show me... the strength...^nof a demon..." - "> The old man and the woman^ndisappeared..."
-#">A voice echoes in your head..." - "> The old man and the woman^ndisappeared..."
-#"...We shall meet again... soon..."
-#"I've never seen a demon like you"
-#"They fell for it. Are you ready?"
-#"..........Blarg?" PROC: 012_start
-f015_obj = get_script_obj_by_name(iso,'f015')
+# SMC area flag
+# ">You find yourself in a strange place" - "...Show me... the strength...^nof a demon..." - "> The old man and the woman^ndisappeared..."
+# ">A voice echoes in your head..." - "> The old man and the woman^ndisappeared..."
+# "...We shall meet again... soon..."
+# "I've never seen a demon like you"
+# "They fell for it. Are you ready?"
+# "..........Blarg?" PROC: 012_start
+# get the uncompressed field script from the folder instead of the LB
+f015_obj = get_script_obj_by_path(dds3, '/fld/f/f015/f015.bf')
 tri_preta_room_index = f015_obj.getProcIndexByLabel("012_start")
 f015_012_start_insts = [
     inst("PROC",tri_preta_room_index),
@@ -119,8 +147,28 @@ f015_012_start_labels = [
     assembler.label("GATE_PASS_OBTAINED",19) #given number is line number
 ]
 f015_obj.changeProcByIndex(f015_012_start_insts, f015_012_start_labels, tri_preta_room_index)
-iso.seek(custom_vals.customizer_offsets['f015'])
-iso.write(bytearray(f015_obj.toBytes()))
+
+# get the field lb and parse it
+f015_lb_data = dds3.get_file_from_path('/fld/f/f015/f015_000.LB')
+f015_lb = LB_FS(f015_lb_data)
+f015_lb.read_lb()
+# add the uncompressed, modified BF file to the LB and add it to the dds3 fs
+f015_lb_data = f015_lb.export_lb({'BF': BytesIO(bytearray(f015_obj.toBytes()))})
+dds3.add_new_file('/fld/f/f015/f015_000.LB', f015_lb_data)
+
+# export the new DDS3 FS
+dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')
+
+# remove the DUMMY file to save disk space and write back the iso
+iso.rm_file("DUMMY.DAT;1")
+with open('rom/DDS3.DDT', 'rb') as ddt, open('rom/DDS3.IMG', 'rb') as img:
+    iso.export_iso('rom/modified_scripts.iso', {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
+
+# remove the temp DDS3 files
+os.remove('rom/old_DDS3.DDT')
+os.remove('rom/old_DDS3.IMG')
+os.remove('rom/DDS3.DDT')
+os.remove('rom/DDS3.IMG')
 
 #">You obtained an ^rAnnex Gate Pass^p." - Also part of 012_start, but may not be worth the effort to shorten
 #"You used the Annex Gate Pass"
@@ -216,6 +264,5 @@ for s_name,s_obj in script_objs.iteritems():
     else:
         iso.write(ba)
         open("piped_scripts/"+s_name+".bf","wb").write(ba)
-'''
-
 iso.close()
+'''
