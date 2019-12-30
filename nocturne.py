@@ -321,11 +321,20 @@ def write_magatamas(rom, new_magatams):
             rom.write_halfword(skill['level'])
             rom.write_halfword(skill['skill_id'])
 
+reward_tbl_offset = 0x001FEE00
+reward_tbl = []
+
 def write_battles(rom, new_battles, preserve_boss_arenas=False):
     for b in new_battles:
         # only write magatama rewards
-        if 345 >= b.reward >= 320:
-            rom.write_halfword(b.reward, b.offset + 0x02)
+        if b.reward:
+            b.reward_index = len(reward_tbl)
+            rom.write_halfword(b.reward_index + 1, b.offset + 0x02)
+            reward_tbl.append(b.reward)
+        else:
+            rom.write_halfword(0x00, b.offset + 0x02)
+        # if 345 >= b.reward >= 320:
+        #     rom.write_halfword(b.reward, b.offset + 0x02)
         rom.write_halfword(b.phase_value, b.offset + 0x04)
         rom.seek(b.offset + 0x06)
         for e in b.enemies:
@@ -335,6 +344,13 @@ def write_battles(rom, new_battles, preserve_boss_arenas=False):
         rom.write_halfword(b.goes_first, b.offset + 0x20)
         rom.write_halfword(b.reinforcement_value, b.offset + 0x22)
         rom.write_halfword(b.music, b.offset + 0x24)
+
+    for i, r in enumerate(reward_tbl):
+        offset = reward_tbl_offset + (i * 0x10)
+        reward_type = 0x01                      # always an item for now, 0x02 will be flags later
+        rom.write_byte(reward_type, offset)
+        #rom.write_byte(1, offset + 0x01)       # Amount
+        rom.write_halfword(r, offset + 0x02)
 
 def patch_fix_tutorials(rom):
     # replaces the 1x preta and 2x sudamas tutorial fights with the unmodified, scipted will o' wisp demons
@@ -346,7 +362,14 @@ def patch_fix_tutorials(rom):
 
 def patch_early_spyglass(rom):
     # change the 3x preta fight's reward to spyglass
-    rom.write_halfword(0x012E, 0x002B0DB0)
+    reward_index = len(reward_tbl)
+    reward_offset = reward_tbl_offset + (reward_index * 0x10)
+
+    rom.write_halfword(reward_index + 1, 0x002B0DB0)
+    rom.write_byte(1, reward_offset)            # item type
+    #rom.write_byte(1, reward_offset + 0x01)     # amount
+    rom.write_halfword(0x12E, reward_offset + 0x02)
+    reward_tbl.append(0x12E)
     # change the selling price of the spyglass to 0 macca
     rom.write_word(0, 0x002DD614)
 
@@ -422,16 +445,16 @@ def fix_nihilo_summons(rom, demon_map):
     replace_summons(dis_summon_offsets)
     replace_summons(incubus_summon_offsets)
 
-def fix_specter_1_reward(rom, reward):
+def fix_specter_1_reward(rom, reward_index):
     # add rewards to each of the fused versions of specter 1
     fused_reward_offsets = [0x002B2842, 0x002B2868, 0x002B288E]
     for offset in fused_reward_offsets:
-        rom.write_halfword(reward, offset)
+        rom.write_halfword(reward_index + 1, offset)
 
-def fix_angel_reward(rom, reward):
+def fix_angel_reward(rom, reward_index):
     # fix the magatama drop for the optional angel fight
     offset = 0x002B63C8
-    rom.write_halfword(reward, offset)
+    rom.write_halfword(reward_index + 1, offset)
 
 def patch_intro_skip(iso_file):
     # overwrite an unused event script with ours
@@ -493,6 +516,8 @@ def write_all(rom, world):
     apply_asm_patch(rom, 'patches/rags.txt')
     # fix most non-recruitable demons and demon races
     apply_asm_patch(rom, 'patches/recruit.txt')
+    # change the reward function to load from a table
+    apply_asm_patch(rom, 'patches/reward.txt')
     # make the pierce skill work on magic
     if randomizer.config_magic_pierce:
         apply_asm_patch(rom, 'patches/pierce.txt')
@@ -530,16 +555,24 @@ def write_all(rom, world):
     # replace the demons summoned by the nihilo minibosses
     fix_nihilo_summons(rom, world.demon_map)
     # fix the magatama drop on the fused versions of specter 1
-    specter_1_reward = world.get_boss("Specter 1").reward
-    if specter_1_reward:
-        specter_1_reward = all_magatamas[specter_1_reward.name].ind
-        specter_1_reward += 320
-        fix_specter_1_reward(rom, specter_1_reward)
+    for b in world.battles.values():
+        if b.offset == world.get_check("Specter 1").offset:
+            if b.reward_index:
+                fix_specter_1_reward(rom, b.reward_index)
+        elif b.offset == world.get_check("Futomimi").offset:
+            if b.reward_index:
+                fix_angel_reward(rom, b.reward_index)
+
+    # specter_1_reward = world.get_boss("Specter 1").reward
+    # if specter_1_reward:
+    #     specter_1_reward = all_magatamas[specter_1_reward.name].ind
+    #     specter_1_reward += 320
+    #     fix_specter_1_reward(rom, specter_1_reward)
     # fix the magatama drop for the optional angel fight
-    futomimi_reward = world.get_check("Futomimi").boss.reward
-    if futomimi_reward:
-        futomimi_reward = all_magatamas[futomimi_reward.name].ind
-        futomimi_reward += 320
-        fix_angel_reward(rom, futomimi_reward)
+    # futomimi_reward = world.get_check("Futomimi").boss.reward
+    # if futomimi_reward:
+    #     futomimi_reward = all_magatamas[futomimi_reward.name].ind
+    #     futomimi_reward += 320
+    #     fix_angel_reward(rom, futomimi_reward)
     # replace the DUMMY personality on certain demons
     patch_fix_dummy_convo(rom)

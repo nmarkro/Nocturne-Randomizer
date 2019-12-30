@@ -461,7 +461,7 @@ def randomize_boss_battles(world):
             new_level = balanced_demon.level
             stat_mod = 1
             if new_boss_demon.name in ['White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)']:
-                stat_mod = 0.1
+                stat_mod = 0.4
                 new_level = round(new_level * 0.6)
             elif new_boss_demon.name == 'Albion (Boss)':
                 stat_mod = 0.5
