@@ -20,6 +20,24 @@ def getProcIndexByLabel(self, label_str):
 def getProcInstructionsLabelsByIndex(self, proc_index):
 '''
 
+'''
+#Example of procedure replacement:
+f0##_obj = get_script_obj_by_name(dds3, 'f0##')
+f0##_xxx_room = f0##_obj.getProcIndexByLabel("PROC_LABEL")
+f0##_xxx_insts = [
+    inst("PROC",f0##_xxx_room),
+    #Insert instructions here
+    inst("END")
+]
+f0##_xxx_labels = [
+    assembler.label("BRANCH_LABEL",LINE_NUMBER)
+]
+
+f0##_obj.changeProcByIndex(f0##_xxx_insts, f0##_xxx_labels, f0##_xxx_room)
+f0##_lb = push_bf_into_lb(f0##_obj, 'f0##')
+dds3.add_new_file(custom_vals.LB0_PATH['f0##'], f0##_lb)
+'''
+
 #instruction creation shortcut
 def inst(opcode_str,operand=0):
     return assembler.instruction(assembler.OPCODES[opcode_str],operand)
@@ -352,6 +370,76 @@ dds3.add_new_file(custom_vals.LB0_PATH['f022'], f022_lb)
 #Cutscene removal in Ikebukuro f023
 #913 set in Ikebukuro. 54b 54c 54d - 540, 549, 56C, 931, 75E
 #Shorten Daisoujou
+
+f023_obj = get_script_obj_by_name(dds3, 'f023')
+f023_03_room = f023_obj.getProcIndexByLabel("003_01eve_02")
+f023_03_insts = [
+    inst("PROC",f023_03_room),
+    inst("PUSHIS",0x1a), #Story trigger to enable Daisoujou
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x753), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x107), #Didn't already beat him
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"), #If not (f[1a] == 1 and f[753] == 0 and f[107] == 0)
+    inst("IF",0), #End label
+    inst("COMM",0x60),#RM_FLD_CONTROL
+    inst("COMM",1), #MSG_WND_DSP
+    inst("PUSHIS",0x1d), #"Do you want to stay here"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x1e), #Yes/no
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #If no is selected, go to label 1. Differs from label 0 in that you set 0x753
+    inst("PUSHIS",0x3e7), #set 3e7, 923, 107
+    inst("COMM",8),
+    inst("PUSHIS",0x923),
+    inst("COMM",8),
+    inst("PUSHIS",0x107),
+    inst("COMM",8),
+    inst("PUSHIS",0x2e6),
+    inst("PUSHIS",0x17),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x406),
+    inst("COMM",0x67), #Fight Daisoujou
+    inst("END"),
+    inst("PUSHIS",0x753),
+    inst("COMM",8),
+    inst("COMM",0x61),#GIVE_FLD_CONTROL
+    inst("END")
+]
+f023_03_labels = [
+    assembler.label("DAISOUJOU_FOUGHT",43),
+    assembler.label("DAISOUJOU_RAN",40)
+]
+
+f023_obj.changeProcByIndex(f023_03_insts, f023_03_labels, f023_03_room)
+
+f023_03_room_2 = f023_obj.getProcIndexByLabel("003_01eve_01") #Completely copy-pasted from the above, but is triggered from a different position. Just call the other one dammit.
+f023_03_2_insts = [
+    inst("PROC",f023_03_room_2),
+    inst("CALL",f023_03_room),
+    inst("END"),
+]
+
+#TODO: Figure out how to have a function call on callback(0x2e6,0x17).
+
+f023_obj.changeProcByIndex(f023_03_2_insts, [], f023_03_room_2)
+f023_lb = push_bf_into_lb(f023_obj, 'f023')
+dds3.add_new_file(custom_vals.LB0_PATH['f023'], f023_lb)
+
+
 
 #Cutscene removal in Mantra HQ f024
 #Shorten Thor Gauntlet
