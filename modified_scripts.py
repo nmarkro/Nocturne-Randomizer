@@ -1,9 +1,8 @@
-#Currently uses a customizer, which is a modification of the iso that has the scripts decompressed.
-#There shouldn't be too much modification needed when an ISO builder is completed.
 import nocturne_script_assembler as assembler
 import customizer_values as custom_vals
 
 from io import BytesIO
+from os import path
 
 from fs.Iso_FS import *
 from fs.DDS3_FS import *
@@ -21,6 +20,24 @@ def getProcIndexByLabel(self, label_str):
 def getProcInstructionsLabelsByIndex(self, proc_index):
 '''
 
+'''
+#Example of procedure replacement:
+f0##_obj = get_script_obj_by_name(dds3, 'f0##')
+f0##_xxx_room = f0##_obj.getProcIndexByLabel("PROC_LABEL")
+f0##_xxx_insts = [
+    inst("PROC",f0##_xxx_room),
+    #Insert instructions here
+    inst("END")
+]
+f0##_xxx_labels = [
+    assembler.label("BRANCH_LABEL",LINE_NUMBER)
+]
+
+f0##_obj.changeProcByIndex(f0##_xxx_insts, f0##_xxx_labels, f0##_xxx_room)
+f0##_lb = push_bf_into_lb(f0##_obj, 'f0##')
+dds3.add_new_file(custom_vals.LB0_PATH['f0##'], f0##_lb)
+'''
+
 #instruction creation shortcut
 def inst(opcode_str,operand=0):
     return assembler.instruction(assembler.OPCODES[opcode_str],operand)
@@ -30,52 +47,49 @@ def get_script_obj_by_path(dds3, script_path):
     script = bytearray(dds3.get_file_from_path(script_path).read())
     return assembler.parse_binary_script(script)
 
-'''def get_script_obj_by_name(iso,script_name):
-    file_offset = custom_vals.customizer_offsets[script_name]
-    iso.seek(file_offset + 4)
-    #Get script size, but script size only goes to the end of the message script. If you have the actual size then you don't need to do this nasty calculation.
-    fsize = assembler.bbtoi(bytearray(iso.read(4))) 
-    iso.seek(file_offset + fsize)
-    is0 = False
-    c = ord(iso.read(1))
-    #Calculate the size of the final strings section by manually going through it until it stops.
-    while not is0 or c != 0:
-        fsize += 1
-        if c == 0:
-            is0 = True
-        else:
-            is0 = False
-        c = ord(iso.read(1))
-    #Now that we have the right size, read the file.
-    iso.seek(file_offset)
-    script_iso = bytearray(iso.read(fsize))
-    return assembler.parse_binary_script(script_iso)
-'''
+def get_script_obj_by_name(dds3,script_name):
+    return get_script_obj_by_path(dds3,custom_vals.SCRIPT_OBJ_PATH[script_name])
+
+def push_bf_into_lb(bf_obj, name):
+    # get the field lb and parse it
+    lb_data = dds3.get_file_from_path(custom_vals.LB0_PATH[name])
+    lb = LB_FS(lb_data)
+    lb.read_lb()
+    # add the uncompressed, modified BF file to the LB and add it to the dds3 fs
+    return lb.export_lb({'BF': BytesIO(bytearray(bf_obj.toBytes()))})
+
+print ("Parsing ISO")
 # open the ISO and parse it
 iso = IsoFS('rom/input.iso')
 iso.read_iso()
 
+print ("Getting DDT")
 # get the ddt and write it out to disk
 ddt_file = iso.get_file_from_path('DDS3.DDT;1')
+
+#if not os.path.isfile('rom/old_DDS3.IMG'): #save some dev time
 with open('rom/old_DDS3.DDT', 'wb') as file:
     file.write(ddt_file.read())
 
+print ("Getting Atlus FileSystem IMG")
 # get the img and write it out to disk in chucks due to size
 with open('rom/old_DDS3.IMG', 'wb') as file:
     for chunk in iso.read_file_in_chunks('DDS3.IMG;1'):
         file.write(chunk)
 
+print ("Parsing Atlus FileSystem IMG")
 # parse the dds3 fs
 dds3 = DDS3FS('rom/old_DDS3.DDT', 'rom/old_DDS3.IMG')
 dds3.read_dds3()
 
+print ("Patching scripts")
 # Replace e506.bf (intro) with a custom one to set a bunch of initial values.
 with open('patches/e506.bf','rb') as file:
     e506 = BytesIO(file.read())
-dds3.add_new_file('/event/e500/e506/scr/e506.bf', e506)
+dds3.add_new_file('/event/e500/e506/scr/e506.bf', e506) #custom_vals.SCRIPT_OBJ_PATH['e506']
 
 # get the 601 event script and add our hook
-e601_obj = get_script_obj_by_path(dds3, '/event/e600/e601/scr/e601.bf')
+e601_obj = get_script_obj_by_name(dds3, 'e601')
 e601_insts = [
     inst("PROC",0), 
     inst("PUSHIS",506), 
@@ -85,18 +99,16 @@ e601_insts = [
 e601_obj.changeProcByIndex(e601_insts,[],0) #empty list is relative branch labels
 # convert the script object to a filelike object and add it to the dds3 file system
 e601_data = BytesIO(bytearray(e601_obj.toBytes()))
-dds3.add_new_file('/event/e600/e601/scr/e601.bf', e601_data)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e601'], e601_data)
+#Don't need to put it into a LB file because it is an event script, not a field script.
 
 # Shorten 618 (intro)
 # Cutscene removal in SMC f015
 
+#TODO: Remove SMC splash with a flag.
+#TODO: Remove SMC exit cutscene with a flag: Set 0x404
+
 # SMC area flag
-# ">You find yourself in a strange place" - "...Show me... the strength...^nof a demon..." - "> The old man and the woman^ndisappeared..."
-# ">A voice echoes in your head..." - "> The old man and the woman^ndisappeared..."
-# "...We shall meet again... soon..."
-# "I've never seen a demon like you"
-# "They fell for it. Are you ready?"
-# "..........Blarg?" PROC: 012_start
 # get the uncompressed field script from the folder instead of the LB
 f015_obj = get_script_obj_by_path(dds3, '/fld/f/f015/f015.bf')
 tri_preta_room_index = f015_obj.getProcIndexByLabel("012_start")
@@ -121,7 +133,7 @@ f015_012_start_insts = [
     inst("PUSHIS",0x5D),
     inst("COMM",0x67), #Initiate battle 0x5D
     inst("END"), #Label: _END - Line number 19 (20th)
-    inst("PUSHIS",0), #Label: _366 - Line number 20 (21st) 
+    inst("PUSHIS",0), #Line number 20 (21st) Label: _366
     inst("PUSHIS",0x453),
     inst("COMM",7),
     inst("PUSHREG"),
@@ -131,6 +143,13 @@ f015_012_start_insts = [
     inst("PUSHREG"),
     inst("AND"),
     inst("IF",1), #Branch to END if (flag 0x453 is unset) is true
+    inst("PUSHSTR",0), # - "01cam_01" - fixed camera
+    inst("COMM",0x94), #Set cam
+    inst("PUSHREG"),
+    inst("COMM",0xA3),
+    inst("PUSHIS",1),
+    inst("MINUS"),
+    inst("COMM",0x12), #Go to fixed camera.
     inst("COMM",1), #Open text box
     inst("PUSHIS",0xe),
     inst("COMM",0), #Print out message index e (You got pass)
@@ -148,92 +167,375 @@ f015_012_start_labels = [
 ]
 f015_obj.changeProcByIndex(f015_012_start_insts, f015_012_start_labels, tri_preta_room_index)
 
-# get the field lb and parse it
-f015_lb_data = dds3.get_file_from_path('/fld/f/f015/f015_000.LB')
-f015_lb = LB_FS(f015_lb_data)
-f015_lb.read_lb()
-# add the uncompressed, modified BF file to the LB and add it to the dds3 fs
-f015_lb_data = f015_lb.export_lb({'BF': BytesIO(bytearray(f015_obj.toBytes()))})
-dds3.add_new_file('/fld/f/f015/f015_000.LB', f015_lb_data)
+#Forneus
+forneus_room_index = f015_obj.getProcIndexByLabel("002_start") #index 18 / 0x12
+#Can't figure out what flag 769 is for. I'll just not set it and see what happens.
+#Flag 8 is definitely the defeat forneus flag.
+#000_dh_plus is the one that has the magatama text that is called after beating forneus. Proc index 60 / 0x3c
+f015_002_start_insts = [
+    inst("PROC",forneus_room_index),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x8),
+    inst("COMM",7), #Check Forneus fought flag
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0), #Branch to first label if fought
+    inst("PUSHIS",1),
+    inst("PUSHIS",0x44f),
+    inst("COMM",7), #2F check
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0),
+    inst("PUSHIS",8),
+    inst("COMM",8), #Set Forneus fought flag
+    inst("PUSHIS",0x1f4),
+    inst("PUSHIS",0xf),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0xe),
+    inst("COMM",0x67), #Fight Forneus
+    inst("END"),
+    inst("PUSHIX", 7),
+    inst("COMM",0x16), #No idea what this does
+    inst("END") #Label 0 here
+]
+#print 0 positions: 002_01eve_04, 005_01eve_05, 007_01eve_06, 007_01eve_08
+f015_002_start_labels = [
+    assembler.label("FORNEUS_DEAD",24)
+]
+f015_obj.changeProcByIndex(f015_002_start_insts, f015_002_start_labels, forneus_room_index)
 
-# export the new DDS3 FS
-dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')
-
-# remove the DUMMY file to save disk space and write back the iso
-iso.rm_file("DUMMY.DAT;1")
-with open('rom/DDS3.DDT', 'rb') as ddt, open('rom/DDS3.IMG', 'rb') as img:
-    iso.export_iso('rom/modified_scripts.iso', {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
-
-# remove the temp DDS3 files
-os.remove('rom/old_DDS3.DDT')
-os.remove('rom/old_DDS3.IMG')
-os.remove('rom/DDS3.DDT')
-os.remove('rom/DDS3.IMG')
-
-#">You obtained an ^rAnnex Gate Pass^p." - Also part of 012_start, but may not be worth the effort to shorten
-#"You used the Annex Gate Pass"
-#"Hey, punk! I've never seen you^naround, and I don't like your face!"
-#"> You feel the presence^nof something...
-#"That old guy... what a client.^nThis is gonna be one tough job." - "Oh well time to get to work" - Maybe skip with a flag?
+#TODO: Shorten Black Rider
+f015_lb = push_bf_into_lb(f015_obj, 'f015')
+dds3.add_new_file(custom_vals.LB0_PATH['f015'], f015_lb)
 
 #Cutscene removal in Shibuya f017
+#SMC Splash removal: 0x440
+#Splash removal: Set 0x480
+#Chiaki removal or shortening: Removal is set 0x9
+#Initial Cathedral cutscene - Remove with 0xA
+#Hijiri Shibuya removal: 0xB
+#Fountain cutscene removal: 0xa2
+#TODO: Shorten Mara
+
+#Shorten e623. e623_trm
+#COMMs: 95 6p, 
+#   TERMINAL: 11A
+#       If result of 11A is the same as reg 6 -> _11: END
+#       94*3 (cam), 13, 4B, 73, 1, 0;D "Did you decide to enter?", 3;E, 2, IF -> _9
+#       94*3 (cam), 13, E, 1, 0;F "I'll send you over", 8;D, 45, 23, E;1, 50;4
+#   _6: 52-PUSH, IF -> _7
+#       D. GOTO _6
+#   _7: 51, 8;5B, 10;1-1, E;1, 97;(26f,12,1): END
+#   _9: If reg 3 is eq 1 -> _TERMINAL
+#       E;1E, 1, 0;10 "Tell me when you're ready", 2, 4B;(A,1), 73
+#       GOTO TERMINAL
+#I give up
 
 #Cutscene removal in Amala Network 1 f018
+#4A0, 4A1, 4A2 (looks weird but eh).
+#Shorten cutscene for 4A3 in 002_start - 4A7 gets set going in and unset immediately. Remove 55 - 164.
+f018_obj = get_script_obj_by_name(dds3, 'f018')
+f018_02_room = f018_obj.getProcIndexByLabel("002_start")
+f018_02_insts, f018_02_labels = f018_obj.getProcInstructionsLabelsByIndex(f018_02_room)
+precut = 55
+postcut = 164
+diff = postcut - precut
+f018_02_insts = f018_02_insts[:precut] + f018_02_insts[postcut:]
+for l in f018_02_labels:
+    if l.label_offset > precut:
+        l.label_offset-=diff
+        if l.label_offset < 0:
+            l.label_offset = 1
+            #TODO: Do better than just move the labels
+f018_obj.changeProcByIndex(f018_02_insts, f018_02_labels, f018_02_room)
+#TODO: Change remaining text to make a little more sense.
+#TODO: Make it not softlock if 4A2 wasn't already set.
+
+#4A4 needs to be set for this
+#4A5 is ???
+#Shorten cutscene for 4A6 in 007_start (shared) - 4A8 gets set going in and unset immediately. Remove lines 91 - 272
+f018_07_room = f018_obj.getProcIndexByLabel("007_start")
+f018_07_insts, f018_07_labels = f018_obj.getProcInstructionsLabelsByIndex(f018_07_room)
+precut = 91
+postcut = 272
+diff = postcut - precut
+f018_07_insts = f018_07_insts[:precut] + f018_07_insts[postcut:]
+for l in f018_07_labels:
+    if l.label_offset > precut:
+        l.label_offset-=diff
+        if l.label_offset < 0:
+            l.label_offset = 1
+            #TODO: Do better than just move the labels
+            
+f018_obj.changeProcByIndex(f018_07_insts, f018_07_labels, f018_07_room)
+
+#Shorten cutscene for Specter 1 in 009_start (shared) - 4AB is defeated flag. 4A9 gets set going in. 4AA gets set during cutscene.
+# 171 - 247
+#Add setting E. PUSHIS 0xe, COMM 8
+#return: 4AB set
+f018_09_room = f018_obj.getProcIndexByLabel("009_start")
+f018_09_insts, f018_09_labels = f018_obj.getProcInstructionsLabelsByIndex(f018_09_room)
+f018_09_insert_insts = [ #Instructions to be inserted before fighting specter 1
+    inst("PUSHSTR", 697), #"atari_hoji_01"
+    inst("PUSHIS", 0),
+    inst("PUSHIS", 0),
+    inst("COMM",0x108), #Remove the barrier
+    inst("PUSHIS", 2),
+    inst("PUSHSTR", 711), #"md_hoji_01"
+    inst("PUSHIS", 0),
+    inst("PUSHIS", 0),
+    inst("COMM",0x104), #Remove the visual barrier
+    inst("PUSHIS", 0xe),
+    inst("COMM", 8) #set flag 0xE
+    #Can also put in a reward message
+]
+precut1 = 35
+postcut1 = 161
+precut2 = 171
+postcut2 = 247
+diff1 = postcut1 - precut1
+diff2 = postcut2 - precut2
+f018_09_insts = f018_09_insts[:precut1] + f018_09_insts[postcut1:precut2] + f018_09_insert_insts + f018_09_insts[postcut2:]
+for l in f018_09_labels:
+    if l.label_offset > precut1:
+        if l.label_offset > precut2:
+            l.label_offset-=diff2
+            l.label_offset+=len(f018_09_insert_insts)
+        l.label_offset-=diff1
+        if l.label_offset < 0:
+            l.label_offset = 1
+            #TODO: Do better than just move the labels
+f018_obj.changeProcByIndex(f018_09_insts, f018_09_labels, f018_09_room)
+f018_lb = push_bf_into_lb(f018_obj, 'f018')
+#open("scripts/f018_test.bfasm",'w').write(f018_obj.exportASM())
+
+dds3.add_new_file(custom_vals.LB0_PATH['f018'], f018_lb)
+
+#75E gets set going into LoA Lobby.
+#4C2 gets set leaving LoA Lobby.
+#4C0 is Ginza splash
 
 #Cutscene removal in Ginza (Hijiri mostly) f019
+#Optional: Shorten Troll (already short)
 
 #Cutscene removal in Ginza Underpass f022
+#Shorten Matador
+#4C3 is Harumi Warehouse splash.
+#510 is Ginza underpass splash
+#512, 513, (517?), 514, 515 - Underpass Manikin cutscenes. 511 is underpass terminal.
+#522 - Gatewatch Manikin, 523 - Collector Manikin, 520 - Yes to Collector Manikin.
+#4C4 and 4C5 for Troll Cutscene. Should be shortened and not removed.
+#529 & 4D6 - Giving the bill to collector. 
+#4D6 unset talking to gatekeeper. Set: 526, 75C
+#11 set fighting Matador in e740 (is it?). After, set: 751 and 3E9. Also 921 and 108
+
+#Plan: Don't even call e740
+#Original Callback after e740 is 013_shuku_mes. Index 27 (0x1b)
+#Callback seems to work, so we can use 013_shuku_mes
+f022_obj = get_script_obj_by_name(dds3, 'f022')
+f022_mata_room = f022_obj.getProcIndexByLabel("013_01eve_01")
+f022_013_e1_insts = [
+    inst("PROC",f022_mata_room),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x108),
+    inst("COMM",7), #Check Matador fought flag
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0), #Branch to label 0 if fought
+    inst("PUSHIS",0x108),
+    inst("COMM",8), #Set Matador fought flag
+    inst("PUSHIS",0x751), #Possibly open LoA flag
+    inst("COMM",8), 
+    inst("PUSHIS",0x3e9), #Matador's Candelabra
+    inst("COMM",8), 
+    inst("PUSHIS",0x921), #Gets set, but not sure what it does? Maybe this is the textbox flag.
+    inst("COMM",8),
+    inst("PUSHIS",0x2e4),
+    inst("PUSHIS",0x16),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x404),
+    inst("COMM",0x67), #Fight Matador
+    inst("END"),#Label 0 here
+]
+f022_013_e1_labels = [
+    assembler.label("MATADOR_GONE",21)
+]
+
+f022_obj.changeProcByIndex(f022_013_e1_insts, f022_013_e1_labels, f022_mata_room)
+f022_lb = push_bf_into_lb(f022_obj, 'f022')
+dds3.add_new_file(custom_vals.LB0_PATH['f022'], f022_lb)
 
 #Cutscene removal in Ikebukuro f023
+#913 set in Ikebukuro. 54b 54c 54d - 540, 549, 56C, 931, 75E
+#Shorten Daisoujou
+
+f023_obj = get_script_obj_by_name(dds3, 'f023')
+f023_03_room = f023_obj.getProcIndexByLabel("003_01eve_02")
+f023_03_insts = [
+    inst("PROC",f023_03_room),
+    inst("PUSHIS",0x1a), #Story trigger to enable Daisoujou
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x753), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x107), #Didn't already beat him
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"), #If not (f[1a] == 1 and f[753] == 0 and f[107] == 0)
+    inst("IF",0), #End label
+    inst("COMM",0x60),#RM_FLD_CONTROL
+    inst("COMM",1), #MSG_WND_DSP
+    inst("PUSHIS",0x1d), #"Do you want to stay here"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x1e), #Yes/no
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #If no is selected, go to label 1. Differs from label 0 in that you set 0x753
+    inst("PUSHIS",0x3e7), #set 3e7, 923, 107
+    inst("COMM",8),
+    inst("PUSHIS",0x923),
+    inst("COMM",8),
+    inst("PUSHIS",0x107),
+    inst("COMM",8),
+    inst("PUSHIS",0x2e6),
+    inst("PUSHIS",0x17),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x406),
+    inst("COMM",0x67), #Fight Daisoujou
+    inst("END"),
+    inst("PUSHIS",0x753),
+    inst("COMM",8),
+    inst("COMM",0x61),#GIVE_FLD_CONTROL
+    inst("END")
+]
+f023_03_labels = [
+    assembler.label("DAISOUJOU_FOUGHT",43),
+    assembler.label("DAISOUJOU_RAN",40)
+]
+
+f023_obj.changeProcByIndex(f023_03_insts, f023_03_labels, f023_03_room)
+
+f023_03_room_2 = f023_obj.getProcIndexByLabel("003_01eve_01") #Completely copy-pasted from the above, but is triggered from a different position. Just call the other one dammit.
+f023_03_2_insts = [
+    inst("PROC",f023_03_room_2),
+    inst("CALL",f023_03_room),
+    inst("END"),
+]
+
+#TODO: Figure out how to have a function call on callback(0x2e6,0x17).
+
+f023_obj.changeProcByIndex(f023_03_2_insts, [], f023_03_room_2)
+f023_lb = push_bf_into_lb(f023_obj, 'f023')
+dds3.add_new_file(custom_vals.LB0_PATH['f023'], f023_lb)
+
+
 
 #Cutscene removal in Mantra HQ f024
+#Shorten Thor Gauntlet
 
 #Cutscene removal in East Nihilo f020
+#Shorten Koppa & Incubus encounter
+#Fix visual puzzle bug
+#Shorten Berith cutscene - Add text box for Berith reward.
+#How to do Kaiwans??? - Automatically have all switches already hit?
+#Shorten spiral staircase down cutscene
+#Shorten Ose
 
 #Cutscene removal in Kabukicho Prison f025
+#Shorten forced Naga
+#Shorten Mizuchi
+#First Umugi stone usage flag
+#Shorten Black Frost (low priority)
 
 #Cutscene removal in Ikebukuro Tunnel (anything at all?) f026
 
 #Cutscene removal in Asakusa (Hijiri mostly) f027
+#Shorten Pale Rider
 
 #Cutscene removal in Mifunashiro f035
+#Shorten and add decision on boss
 
 #Cutscene removal in Obelisk f031
+#Anything? Could probably do everything with flags.
 
 #Cutscene removal in Amala Network 2 f028
+#Shorten Specter 2 and add reward message
 
 #Cutscene removal in Asakusa Tunnel (anything at all?) f029
 
 #Cutscene removal in Yoyogi Park f016
+#TODO: Shorten Pixie stay/part scene to not have splash: Low Priority
+#Shorten Girimekhala and Sakahagi
+#Shorten Mother Harlot
 
-#Cutscene removal in Amala Netowrk 3 f030
+#Cutscene removal in Amala Network 3 f030
+#Shorten the one thing - if even because it's tiny. Add reward message
 
 #Cutscene removal in Amala Temple f034
+#Remove Intro and Fix Red Temple.
+#Shorten pre and post cutscenes. Make sure there are reward messages and a separate message for defeating all 3 that brings down the central pyramid.
+#Shorten ToK cutscene.
+#Look into for future versions: Have doors to temples locked by particular flags.
 #f034_obj = get_script_obj_by_name(iso,'f034')
 #In the procedure that sets the flag 6a0 and displays messages 1f - 25
 #002_start
 #lots of comm 104 and 103
+
 #Cutscene removal in Yurakucho Tunnel f021
+#Shorten Trumpeter
 
 #Cutscene removal in Diet Building f033
+#Shorten Mada and Mithra. Add reward messages for all bosses.
+#Shorten Samael cutscene.
 
 #Cutscene removal in ToK1 f032
+#Shorten Ahriman
+#If possible, have block puzzle already solved
 
 #Cutscene removal in ToK2 f036
+#Shorten Noah
 
 #Cutscene removal in ToK3 f037
+#Shorten Thor 2
+#Shorten Baal
+#Shorten Kagutsuchi and Lucifer
+#If possible, have block puzzle after Thor 2 already solved
 
 #Cutscene removal in LoA Lobby f040
+#If possible, have each hole with 3 options. Jump, Skip, Cancel
+#Don't get put in LoA Lobby after Network 1. Have door always open.
 
 #Cutscene removal in LoA K1 f041
+#Candelabra door, tunnel door.
 
 #Cutscene removal in LoA K2 f042
+#Candelabra door, tunnel door.
+#If possible, have an NPC that is easy to access unlock White Rider
 
 #Cutscene removal in LoA K3 f043
+#SHORTEN DANTE
+#Candelabra door, tunnel door.
 
 #Cutscene removal in LoA K4 f044
+#Shorten Beelzebub. Look into the door unlocking cutscene.
+#Candelabra door, tunnel door.
 
 #Cutscene removal in LoA K5 f045
+#Intro
+#Look into stat requirements.
+#Dante hire - have flags set as if you already said no to him. Shorten the yes.
+#Metatron
 
 #Hint message testing
 ''' Commented out, but still works. Mostly here to show how modifying text works.
@@ -266,3 +568,19 @@ for s_name,s_obj in script_objs.iteritems():
         open("piped_scripts/"+s_name+".bf","wb").write(ba)
 iso.close()
 '''
+
+#Clean up
+print("Writing new ISO")
+# export the new DDS3 FS
+dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')
+
+# remove the DUMMY file to save disk space and write back the iso
+iso.rm_file("DUMMY.DAT;1")
+with open('rom/DDS3.DDT', 'rb') as ddt, open('rom/DDS3.IMG', 'rb') as img:
+    iso.export_iso('rom/modified_scripts.iso', {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
+
+# remove the temp DDS3 files
+#os.remove('rom/old_DDS3.DDT')
+#os.remove('rom/old_DDS3.IMG')
+#os.remove('rom/DDS3.DDT')
+#os.remove('rom/DDS3.IMG')
