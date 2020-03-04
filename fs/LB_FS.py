@@ -123,7 +123,7 @@ class LB_FS(object):
         new_entry = LBFileEntry()        
         new_entry.entry_type = 1
         new_entry.compressed = 0
-        if self.file_entries[extension]:
+        if self.file_entries.get(extension):
             new_entry.user_id = self.file_entries[extension].user_id
         else:
             new_entry.user_id = len(self.file_entries) + 1
@@ -181,8 +181,8 @@ class LB_FS(object):
         decompressed_entries = {}
         for e in self.file_entries.values():
             if e.compressed == 1:
-                decompressed_entries[e.name] = e.decompress(self.lb_file)
+                decompressed_entries[e.extension] = e.decompress(self.lb_file)
             else:
-                decompressed_entries[e.name] = self.get_file_by_entry(e)
+                decompressed_entries[e.extension] = self.get_file_by_entry(e)
 
         return decompressed_entries
