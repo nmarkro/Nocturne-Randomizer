@@ -112,3 +112,7 @@ rom/*.xdelta
 asm/armips.exe
 !asm/build/
 !asm/out/
+rando.sublime-project
+rando.sublime-workspace
+*.DDT
+*.IMG
