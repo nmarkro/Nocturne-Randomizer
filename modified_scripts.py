@@ -12,7 +12,7 @@ from fs.LB_FS import *
 def changeProcByIndex(self, instructions, relative_labels, index):
 def changeMessageByIndex(self, message_obj, index):
 def appendProc(self, instructions, relative_labels, proc_label):
-def appendMessage(self, message_label_str, message_str, is_decision = False, name_id = 0):
+def appendMessage(self, message_str, message_label_str, is_decision = False, name_id = 0):
 def appendPUSHSTR(self,str):
 def getMessageIndexByLabel(self, label_str):
 def getPUSHSTRIndexByStr(self, str):
@@ -58,6 +58,9 @@ def push_bf_into_lb(bf_obj, name):
     # add the uncompressed, modified BF file to the LB and add it to the dds3 fs
     return lb.export_lb({'BF': BytesIO(bytearray(bf_obj.toBytes()))})
 
+def insert_callback(field, location_insert, fun_name_insert):
+    pass
+
 print ("Parsing ISO")
 # open the ISO and parse it
 iso = IsoFS('rom/input.iso')
@@ -88,10 +91,118 @@ with open('patches/e506.bf','rb') as file:
     e506 = BytesIO(file.read())
 dds3.add_new_file('/event/e500/e506/scr/e506.bf', e506) #custom_vals.SCRIPT_OBJ_PATH['e506']
 
+#Missing stuff:
+#Exiting SMC cutscene. 475 or 476
+#Pixie for west yoyogi (splash appeared so skip that)
+#Great Underpass splash
+
 # get the 601 event script and add our hook
+#add in extra flag sets for cutscene removal
 e601_obj = get_script_obj_by_name(dds3, 'e601')
 e601_insts = [
     inst("PROC",0), 
+    inst("PUSHIS",0x440), #SMC Splash removal
+    inst("COMM",8),
+    inst("PUSHIS",0x480), #Shibuya Splash removal
+    inst("COMM",8),
+    inst("PUSHIS",0x9), #Chiaki removal. Can be a setting, but it's not shortened yet.
+    inst("COMM",8),
+    inst("PUSHIS",0xa), #Initial Cathedral cutscene
+    inst("COMM",8),
+    inst("PUSHIS",0xb), #Hijiri Shibuya removal
+    inst("COMM",8),
+    inst("PUSHIS",0xa2), #Fountain cutscene removal
+    inst("COMM",8),
+    inst("PUSHIS",0x404), #SMC exit cutscene removal
+    inst("COMM",8),
+    inst("PUSHIS",0x4a0), #Amala Network 1 cutstscene 1
+    inst("COMM",8),
+    inst("PUSHIS",0x4a1), #AN1c2
+    inst("COMM",8),
+    inst("PUSHIS",0x4a2), #AN1c3. (looks weird but eh)
+    inst("COMM",8),
+    inst("PUSHIS",0x4a4), #AN1c4
+    inst("COMM",8),
+    inst("PUSHIS",0x4a5), #AN1c5
+    inst("COMM",8),
+    inst("PUSHIS",0x4c0), #Ginza splash
+    inst("COMM",8),
+    inst("PUSHIS",0x4c3), #Harumi Warehouse splash
+    inst("COMM",8),
+    inst("PUSHIS",0x510), #Ginza Underpass splash
+    inst("COMM",8),
+    inst("PUSHIS",0x512), #Underpass Manikin 1
+    inst("COMM",8),
+    inst("PUSHIS",0x513), #UM2
+    inst("COMM",8),
+    inst("PUSHIS",0x514), #UM3
+    inst("COMM",8),
+    inst("PUSHIS",0x515), #UM4
+    inst("COMM",8),
+    inst("PUSHIS",0x560), #Thor Gauntlet shorten
+    inst("COMM",8),
+    inst("PUSHIS",0x540), #Ikebukuro enter flag 1
+    inst("COMM",8),
+    inst("PUSHIS",0x54a), #Ikebukuro 2
+    inst("COMM",8),
+    inst("PUSHIS",0x931), #Ikebukuro 3
+    inst("COMM",8),
+    inst("PUSHIS",0x56c), #Ikebukuro 4
+    inst("COMM",8),
+    inst("PUSHIS",0x54b), #Ikebukuro 5
+    inst("COMM",8),
+    inst("PUSHIS",0x54c), #Ikebukuro 6
+    inst("COMM",8),
+    inst("PUSHIS",0x54d), #Ikebukuro 7
+    inst("COMM",8),
+    inst("PUSHIS",0x912), #Ikebukuro 8
+    inst("COMM",8),
+    inst("PUSHIS",0x4ec), #East Nihilo textbox. 4e0 should NOT be set.
+    inst("COMM",8),
+    inst("PUSHIS",0x4f4), #Kaiwan maze 1
+    inst("COMM",8),
+    inst("PUSHIS",0x4f5), #Kaiwan maze 2
+    inst("COMM",8),
+    inst("PUSHIS",0x4f6), #Kaiwan maze 3
+    inst("COMM",8),
+    inst("PUSHIS",0x700), #Kaiwan empty cube
+    inst("COMM",8),
+    inst("PUSHIS",0x6c5), #Kaiwan scene 1
+    inst("COMM",8),
+    inst("PUSHIS",0x6c6), #Kaiwan scene 2
+    inst("COMM",8),
+    inst("PUSHIS",0x6c7), #Kaiwan scene 3
+    inst("COMM",8),
+    inst("PUSHIS",0x580), #Kabukicho Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x5a0), #Ikebukuro Tunnel Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x5e0), #Amala Network 2 Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x600), #Asakusa Tunnel Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x640), #Obelisk Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x650), #Sisters Talk (Consider to keep on, but change their models to the randomized boss)
+    inst("COMM",8),
+    inst("PUSHIS",0x680), #Diet Building Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x69E), #Diet Building Message 1
+    inst("COMM",8),
+    inst("PUSHIS",0x688), #Diet Building Message 2
+    inst("COMM",8),
+    inst("PUSHIS",0x689), #Diet Building Message 3
+    inst("COMM",8),
+    inst("PUSHIS",0x760), #1st Kalpa splash
+    inst("COMM",8),
+    inst("PUSHIS",0x780), #2nd Kalpa splash
+    inst("COMM",8),
+    inst("PUSHIS",0x7a0), #3rd Kalpa splash
+    inst("COMM",8),
+    inst("PUSHIS",0x7c0), #4th Kalpa splash
+    inst("COMM",8),
+    inst("PUSHIS",0x7e0), #5th Kalpa splash
+    inst("COMM",8),
     inst("PUSHIS",506), 
     inst("COMM",0x66), 
     inst("END",0)
@@ -104,9 +215,6 @@ dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e601'], e601_data)
 
 # Shorten 618 (intro)
 # Cutscene removal in SMC f015
-
-#TODO: Remove SMC splash with a flag.
-#TODO: Remove SMC exit cutscene with a flag: Set 0x404
 
 # SMC area flag
 # get the uncompressed field script from the folder instead of the LB
@@ -210,12 +318,6 @@ f015_lb = push_bf_into_lb(f015_obj, 'f015')
 dds3.add_new_file(custom_vals.LB0_PATH['f015'], f015_lb)
 
 #Cutscene removal in Shibuya f017
-#SMC Splash removal: 0x440
-#Splash removal: Set 0x480
-#Chiaki removal or shortening: Removal is set 0x9
-#Initial Cathedral cutscene - Remove with 0xA
-#Hijiri Shibuya removal: 0xB
-#Fountain cutscene removal: 0xa2
 #TODO: Shorten Mara
 
 #Shorten e623. e623_trm
@@ -272,7 +374,6 @@ f018_obj.changeProcByIndex(f018_07_insts, f018_07_labels, f018_07_room)
 
 #Shorten cutscene for Specter 1 in 009_start (shared) - 4AB is defeated flag. 4A9 gets set going in. 4AA gets set during cutscene.
 # 171 - 247
-#Add setting E. PUSHIS 0xe, COMM 8
 #return: 4AB set
 f018_09_room = f018_obj.getProcIndexByLabel("009_start")
 f018_09_insts, f018_09_labels = f018_obj.getProcInstructionsLabelsByIndex(f018_09_room)
@@ -314,7 +415,6 @@ dds3.add_new_file(custom_vals.LB0_PATH['f018'], f018_lb)
 
 #75E gets set going into LoA Lobby.
 #4C2 gets set leaving LoA Lobby.
-#4C0 is Ginza splash
 
 #Cutscene removal in Ginza (Hijiri mostly) f019
 #Optional: Shorten Troll (already short)
@@ -434,23 +534,467 @@ f023_03_2_insts = [
 ]
 
 #TODO: Figure out how to have a function call on callback(0x2e6,0x17).
-
 f023_obj.changeProcByIndex(f023_03_2_insts, [], f023_03_room_2)
+f023_daisoujou_rwms_index = f023_obj.appendMessage("You defeated Daisoujou (or its check).^nYou got some ^bmagatama^p.^nYou got some ^rterminal or flag^p.", "DAI_RWMS")
+# appendProc(self, instructions, relative_labels, proc_label):
+f023_proclen = len(f023_obj.p_lbls().labels)
+f023_daisoujou_rwmspr_insts = [ #reward message proc
+    inst("PROC",f023_proclen),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f023_daisoujou_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+f023_obj.appendProc(f023_daisoujou_rwmspr_insts, [], "DAI_RWMSPR")
+#seek to 0x284 of f023.wap. write 02 then "DAI_RWMSPR"
+
+#pushis 0x32a, comm 0x66 is call dante
+#set bit 0x100
+#dante start code is short enough I'll just rewrite the whole thing
+f023_01_dante_proc = f023_obj.getProcIndexByLabel("001_01eve_03")
+f023_01_dante_insts = [
+    inst("PROC",f023_01_dante_proc),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x100),
+    inst("COMM",7),#Check that Dante isn't beaten
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0x549),
+    inst("COMM",7),#Check that Thor is beaten
+    inst("PUSHREG"),
+    inst("AND"),
+    inst("IF",0),#end proc if not both #???inst("COMM",0x60),#remove player control
+    inst("PUSHIS",0x100),
+    inst("COMM",8), #Set 0x100
+    inst("PUSHIS",0x2d3),
+    inst("PUSHIS",0x17),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("PUSHIS",1033), #TODO: Set a callback for reward message
+    inst("COMM",0x67), #Fight Dante
+    inst("END")
+]
+f023_01_dante_labels = [
+    assembler.label("DANTE_FOUGHT",19)
+]
+
+f023_obj.changeProcByIndex(f023_01_dante_insts, f023_01_dante_labels, f023_01_dante_proc)
+
 f023_lb = push_bf_into_lb(f023_obj, 'f023')
 dds3.add_new_file(custom_vals.LB0_PATH['f023'], f023_lb)
 
-
-
 #Cutscene removal in Mantra HQ f024
+#560 on. Put into jail cell scene.
 #Shorten Thor Gauntlet
+#   We can use 001_start to optionally warp to Thor Gauntlet. All it has is the "Chiaki Left" message, which we just straight up don't need. It uses flag 0x572.
+
+f024_obj = get_script_obj_by_name(dds3, 'f024')
+f024_01_room = f024_obj.getProcIndexByLabel("001_start")
+f024_thor_gauntlet_msg_index = f024_obj.appendMessage("Do you want to go directly to the Thor gauntlet?", "THOR_GAUNTLET_MSG")
+f024_thor_gauntlet_msg_no_index = f024_obj.appendMessage("If you would like to do the Thor gauntlet, go to the center room^non the 3rd floor.", "THOR_GAUNTLET_MSG_NO")
+f024_yesno_sel = 174 #that is the literal label name
+
+f024_01_insts = [
+    inst("PROC",f024_01_room),
+    inst("PUSHIS", 0),
+    inst("PUSHIS", 0x572), #Make sure this gets set when you fight Thor.
+    inst("COMM", 7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF", 0), #End label
+    inst("PUSHIS", 0x572), 
+    inst("COMM", 8), #set the bit to not show the messsage again.
+    inst("COMM", 0x60),
+    inst("COMM", 1),
+    inst("PUSHIS", f024_thor_gauntlet_msg_index),
+    inst("COMM", 0),
+    inst("PUSHIS",0),
+    inst("PUSHIS", f024_yesno_sel),
+    inst("COMM", 3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #Semi-end label. Show the "no" textbox and give control back.
+    inst("COMM", 0x61),
+    inst("COMM", 2),
+    inst("PUSHIS",0x565),
+    inst("COMM",0x8), #TODO in here. Close the Thor gauntlet jail if that setting is on.
+    inst("PUSHIS",0x1f4),
+    inst("PUSHIS",0x18),
+    inst("PUSHIS",0x1),
+    inst("COMM",0x97),
+    inst("PUSHIS",0x53),
+    inst("COMM",0x67),
+    inst("END"),
+    inst("PUSHIS", f024_thor_gauntlet_msg_no_index),
+    inst("COMM",0),
+    inst("COMM", 0x61),
+    inst("COMM", 2),
+    inst("END")
+]
+f024_01_labels = [
+    assembler.label("_01_END",34),
+    assembler.label("_01_NO", 30)
+]
+
+f024_obj.changeProcByIndex(f024_01_insts, f024_01_labels, f024_01_room)
+
+f024_10_room = f024_obj.getProcIndexByLabel("010_start")
+f024_10_insts, f024_10_labels = f024_obj.getProcInstructionsLabelsByIndex(f024_10_room)
+f024_10_insert_insts = [
+    inst("PUSHIS", 82), #Orthrus's ID
+    inst("PUSHIS",6),
+    inst("COMM",0x15),
+    inst("PUSHREG"),
+    inst("POPLIX",0x3a), #store the result in a global variable
+    inst("PUSHSTR",1576), #01pos_12
+    inst("COMM",0x94),
+    inst("PUSHREG"),
+    inst("PUSHLIX",0x3a),
+    inst("COMM",0x4a),
+    inst("PUSHLIX",0x3a),
+    inst("COMM",0x21e)
+]
+f024_10_insert_insts_thor_pre = [
+    inst("PUSHIS", 22), #Thor's ID
+    inst("PUSHIS",6),
+    inst("COMM",0x15),
+    inst("PUSHREG"),
+    inst("POPLIX",0x39), #store the result in a global variable
+    inst("PUSHSTR",1576), #01pos_12
+    inst("COMM",0x94),
+    inst("PUSHREG"),
+    inst("PUSHLIX",0x39),
+    inst("COMM",0x4a),
+    inst("PUSHLIX",0x39),
+    inst("COMM",0x21e)
+]
+#from  726-881
+f024_10_insert_insts_thor_post = [ #double-check the flags here. Dante might not spawn.
+    inst("COMM",0x60), #remove player control
+    inst("PUSHIS",0x567), #Don't fight Thor in here again.
+    inst("COMM",8),
+    inst("PUSHIS",0x840), #??? Flag on
+    inst("COMM",8),
+    inst("PUSHIS",0x549), #Dante Flag. 0x100 needs to not be set for this to work correctly.
+    inst("COMM",8),
+    inst("COMM",1), #display message window
+    inst("PUSHIS",97), #Magatama get message
+    inst("COMM",0),
+    inst("COMM",2), #close message window
+    inst("PUSHIS",0x21),
+    inst("COMM",0x20f)#warp
+]
+precut1 = 125
+postcut1 = 335
+precut2 = 549 
+postcut2 = 649
+precut3 = 726
+postcut3 = 881
+diff1 = (postcut1 - precut1) - len(f024_10_insert_insts)
+diff2 = (postcut2 - precut2) - len(f024_10_insert_insts_thor_pre)
+diff3 = (postcut3 - precut3) - len(f024_10_insert_insts_thor_post)
+
+f024_10_insts = f024_10_insts[:precut1] + f024_10_insert_insts + f024_10_insts[postcut1:precut2] + f024_10_insert_insts_thor_pre + f024_10_insts[postcut2:precut3] + f024_10_insert_insts_thor_post + f024_10_insts[postcut3:]
+#TODO: Put the Orthrus model and collision
+#TODO: Shorten pre and post-Thor.
+
+for l in f024_10_labels:
+    if l.label_offset > precut1:
+        if l.label_offset < postcut1:
+            l.label_offset=1
+        else:
+            if l.label_offset > precut2:
+                if l.label_offset < postcut2:
+                    l.label_offset = 1
+                else:
+                    if l.label_offset > precut3:
+                        if l.label_offset < postcut3:
+                            l.label_offset = 1
+                        else:
+                            l.label_offset-=diff3
+                    l.label_offset-=diff2
+            l.label_offset-=diff1
+        if l.label_offset < 0:
+            l.label_offset = 1
+            #TODO: Do better than just move the labels
+
+f024_obj.changeProcByIndex(f024_10_insts, f024_10_labels, f024_10_room)
+
+f024_lb = push_bf_into_lb(f024_obj, 'f024')
+assembler.bytesToFile(f024_obj.toBytes(),"piped_scripts/f024.bf")
+#outfile = open("piped_scripts/f024.bfasm",'w')
+#outfile.write(f024_obj.exportASM())
+#outfile.close()
+dds3.add_new_file(custom_vals.LB0_PATH['f024'], f024_lb)
+dds3.add_new_file(custom_vals.LB0_PATH['f024b'], f024_lb) #for some reason there's regular, b and c
+dds3.add_new_file(custom_vals.LB0_PATH['f024c'], f024_lb)
 
 #Cutscene removal in East Nihilo f020
 #Shorten Koppa & Incubus encounter
-#Fix visual puzzle bug
-#Shorten Berith cutscene - Add text box for Berith reward.
+#Fix visual puzzle bug.
+#Shorten Berith cutscene - Add text box for Berith reward. (0xf4 in f020.wap)
 #How to do Kaiwans??? - Automatically have all switches already hit?
 #Shorten spiral staircase down cutscene
 #Shorten Ose
+#018 is 1st block maze
+#019 is 2nd block maze
+#020 is 3rd block maze with kaiwans
+
+#001_start, 002_start, 014_start - cut these completely. They turn on the 0x4e0 flag for initializing the block puzzles. 001 works (which is vanilla behavior) but has a cutscene associated with it. 002 and 014 also set the flag but don't do the stuff needed. The stuff done with the 4e0 flag also appears in 018 so we'll just use that code (it'd be ideal to insert it there, but it's already there).
+f020_obj = get_script_obj_by_name(dds3, 'f020')
+f020_01_room = f020_obj.getProcIndexByLabel("001_start")
+f020_01_insts = [
+    inst("PROC",f020_01_room),
+    inst("END")
+]
+f020_02_room = f020_obj.getProcIndexByLabel("002_start")
+f020_02_insts = [
+    inst("PROC",f020_02_room),
+    inst("END")
+]
+f020_14_room = f020_obj.getProcIndexByLabel("014_start")
+f020_14_insts = [
+    inst("PROC",f020_14_room),
+    inst("END")
+]
+no_labels = []
+f020_obj.changeProcByIndex(f020_01_insts, no_labels, f020_01_room)
+f020_obj.changeProcByIndex(f020_02_insts, no_labels, f020_02_room)
+f020_obj.changeProcByIndex(f020_14_insts, no_labels, f020_14_room)
+
+#008_start - koppa / incubus. cut 47 - 179
+f020_08_room = f020_obj.getProcIndexByLabel("008_start")
+f020_08_insts, f020_08_labels = f020_obj.getProcInstructionsLabelsByIndex(f020_08_room)
+precut = 48
+postcut = 179
+diff = postcut-precut
+
+#turn on 4eb, submerge the floor, display message saying the kilas were inserted
+#kilas: 3d2, 3d3, 3d4, 3d5
+#inserted kilas: 4ea, 4e7, 4e8, 4e9
+#start poplix with 0x58
+f020_08_auto_kila_label_index = len(f020_08_labels)
+f020_08_insert_insts_autokilacheck = [
+    #if (4e7 or 3d2) and (4ea or 3d3) and (4e8 or 3d4) and (4e9 or 3d5):
+    inst("PUSHIS",0x4e7), #Kila 1 inserted or in inventory
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("POPLIX",0x58),
+    inst("PUSHIS",0x3d2),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHLIX",0x58),
+    inst("OR"),
+    inst("POPLIX",0x60),
+
+    inst("PUSHIS",0x4ea), #Kila 2 inserted or in inventory
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("POPLIX",0x5a),
+    inst("PUSHIS",0x3d3),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHLIX",0x5a),
+    inst("OR"),
+    inst("POPLIX",0x61),
+
+    inst("PUSHIS",0x4e8), #Kila 3 inserted or in inventory
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("POPLIX",0x5c),
+    inst("PUSHIS",0x3d4),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHLIX",0x5c),
+    inst("OR"),
+    inst("POPLIX",0x62),
+
+    inst("PUSHIS",0x4e9), #Kila 4 inserted or in inventory
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("POPLIX",0x5e),
+    inst("PUSHIS",0x3d5),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHLIX",0x5e),
+    inst("OR"),
+    inst("POPLIX",0x63),
+
+    inst("PUSHIS",0x4eb), #Haven't completed insertion yet
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("EQ"),
+    inst("POPLIX",0x64),
+    
+    inst("PUSHIS",0x4e3), #4e3 set and 6d9 unset. For Koppa / Incubus. (Note: Possibly doesn't work, but doesn't seem to harm things either way. It's also a super edge-case scenario for randomizing kilas in with other stuff.)
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x6d9),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("EQ"),
+    inst("AND"),
+    inst("PUSHIS",0),
+    inst("EQ"),
+    inst("POPLIX",0x65),
+
+    #58 := 4e7, 59 := 3d2, 5a := 4ea, 5b := 3d3, 5c := 4e8, 5d := 3d4, 5e := 4e9, 5f := 3d5
+    inst("PUSHLIX",0x60),
+    inst("PUSHLIX",0x61),
+    inst("AND"),
+    inst("PUSHLIX",0x62),
+    inst("AND"),
+    inst("PUSHLIX",0x63),
+    inst("AND"),
+    inst("PUSHLIX",0x64),
+    inst("AND"),
+    inst("PUSHLIX",0x65),
+    inst("AND"),
+    inst("PUSHIS",0),
+    inst("EQ"),
+    inst("IF",f020_08_auto_kila_label_index)
+]
+for l in f020_08_labels:
+    if l.label_offset > precut:
+        l.label_offset-=diff
+        if l.label_offset < 0:
+            l.label_offset = 1
+    l.label_offset += len(f020_08_insert_insts_autokilacheck)
+f020_08_auto_kila_label_offset = len(f020_08_insts) + len(f020_08_insert_insts_autokilacheck) - diff
+f020_08_labels.append(assembler.label("AUTO_INSERT_KILA",f020_08_auto_kila_label_offset))
+auto_kila_text = f020_obj.appendMessage("Kilas automatically inserted.", "AUTO_KILA")
+f020_08_insert_insts_autokila_do = [
+    inst("END"),#My math is off by one so instead of making it correct I'm adding what's supposed to be the instruction before to here to make it work. :)
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",auto_kila_text),
+    inst("COMM",0),
+    inst("COMM",2),#first display a the message
+
+    inst("PUSHIS",0), #Mostly copied code. It works but I don't even know what half of this does.
+    inst("PUSHSTR",1457), #path_hoji_01
+    inst("COMM",0x94), 
+    inst("PUSHREG"),
+    inst("PUSHSTR",1443), #atari_hoji_01
+    inst("COMM",0x94),
+    inst("PUSHREG"),
+    inst("COMM",0x6b),
+    inst("PUSHSTR",1470), #atari_hoji_02
+    inst("PUSHIS",0),
+    inst("PUSHIS",0),
+    inst("COMM",0x107),
+    inst("PUSHIS",0),
+    inst("PUSHSTR",1484), #md_hoji_03
+    inst("PUSHIS",0),
+    inst("PUSHIS",0),
+    inst("COMM",0x104),
+    inst("PUSHIS",0x64),
+    inst("COMM",0x215),
+    inst("PUSHIS",1),
+    inst("PUSHSTR",1495), #md_hoji_04
+    inst("PUSHIS",0),
+    inst("PUSHIS",0),
+    inst("COMM",0x103),
+    inst("PUSHIS",1),
+    inst("PUSHIS",8),
+    inst("PUSHIS",0),
+    inst("COMM",0x112),
+    inst("PUSHIS",3),
+    inst("PUSHIS",8),
+    inst("PUSHIS",0),
+    inst("COMM",0x111),
+    inst("PUSHIS",0x4eb),
+    inst("COMM",8),
+    
+    inst("COMM",0x61),
+    inst("END")
+]
+
+f020_08_insts = [f020_08_insts[0]] + f020_08_insert_insts_autokilacheck + f020_08_insts[1:precut] + f020_08_insts[postcut:-1] + f020_08_insert_insts_autokila_do
+#TODO: make sure 4e0 is NOT set in e506, or replace it altogether.
+f020_obj.changeProcByIndex(f020_08_insts, f020_08_labels, f020_08_room)
+#Cut waits on switches. These numbers are the index of the pushis instruction with the next one being the comm e (wait) instruction. 
+f020_18_01_waits = [47,58,67,76,146,215,220, 234, 246]
+f020_18_02_waits = [47,58,64,69,78,135,191,196,210,222]
+f020_19_01_waits = [47,58,67,76,130,183,188,202,214]
+f020_19_02_waits = [47,58,67,76,121,165,170,184,196]
+f020_19_03_waits = [47,58,67,76,130,183,188,202,214]
+#20 room kaiwan flags are: 4f4,4f5,4f6
+#28 room kaiwan flags are: 6c5,6c6,6c7
+f020_20_01_waits = [24,50,59,79,98,124,140,146,155,225,243,257,262,279] 
+f020_20_02_waits = [24,50,59,79,98,124,140,146,155,225,243,257,262,279]
+f020_20_03_waits = [24,50,59,79,98,129,145,156,165,210,228,242,247,264]
+f020_20_04_waits = [24,50,59,79,98,124,140,146,155,216,234,248,253,270]
+f020_20_05_waits = [61,72,81,90,164,237,242,256,268]
+f020_20_06_waits = [61,72,81,90,139,187,192,206,218]
+f020_20_07_waits = [61,72,81,90,155,219,224,238,250]
+f020_proc_waits = [("018_01eve_01",f020_18_01_waits), ("018_01eve_02",f020_18_02_waits), ("019_01eve_01",f020_19_01_waits), ("019_01eve_02",f020_19_02_waits), ("019_01eve_03",f020_19_03_waits), ("020_01eve_01",f020_20_01_waits), ("020_01eve_02",f020_20_02_waits), ("020_01eve_03",f020_20_03_waits), ("020_01eve_04",f020_20_04_waits), ("020_01eve_05",f020_20_05_waits), ("020_01eve_06",f020_20_06_waits), ("020_01eve_07",f020_20_07_waits)]
+for p_name, p_waits in f020_proc_waits:
+    p_proc = f020_obj.getProcIndexByLabel(p_name)
+    p_insts, p_labels = f020_obj.getProcInstructionsLabelsByIndex(p_proc)
+    new_insts = []
+    curr_cut = 0
+    for p_wait in p_waits:
+        new_insts.extend(p_insts[curr_cut:p_wait])
+        curr_cut = p_wait+2 #2 because a wait is 2 instructions
+        for label in p_labels:
+            if label.label_offset > len(new_insts):
+                label.label_offset-=2
+    new_insts.extend(p_insts[curr_cut:])
+    f020_obj.changeProcByIndex(new_insts,p_labels,p_proc)
+
+#Shorten Ose.
+#Door event is 013_01eve_01
+#Cut out 50-58 (inclusive both)
+#Ose ID is 117
+precut = 50
+postcut = 59
+diff = postcut - precut
+f020_13_proc = f020_obj.getProcIndexByLabel("013_01eve_01")
+f020_13_insts, f020_13_labels = f020_obj.getProcInstructionsLabelsByIndex(f020_13_proc)
+f020_13_insert_insts = [
+    inst("PUSHIS",0x56c),#I don't know what these flags do, but they are set here.
+    inst("COMM",8),
+    inst("PUSHIS",0x56d),
+    inst("COMM",8),
+    inst("PUSHIS",0x27a),
+    inst("PUSHIS",0x14),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",117),
+    inst("COMM",0x67) #Fight Ose
+]
+#Callback: f020.wap at 0x7fc
+for l in f020_13_labels:
+    if l.label_offset > precut:
+        l.label_offset-=diff
+        l.label_offset+=len(f020_13_insert_insts)
+f020_13_insts = f020_13_insts[:precut] + f020_13_insert_insts + f020_13_insts[postcut:]
+f020_obj.changeProcByIndex(f020_13_insts,f020_13_labels,f020_13_proc)
+
+f020_lb = push_bf_into_lb(f020_obj, 'f020')
+dds3.add_new_file(custom_vals.LB0_PATH['f020'], f020_lb)
+#outfile = open("piped_scripts/f020.bfasm",'w')
+#outfile.write(f020_obj.exportASM())
+#outfile.close()
+
+#kilas: 3d2, 3d3, 3d4, 3d5
+#inserted kilas: 4ea, 4e7, 4e8, 4e9
+#probably just want to do path_hoji_01 and other stuff.
+#4e7 - 3d2, 4ea - 3d3, 4e8 - 3d4, 4e9 - 3d5
+#best way to auto-insert kilas is to have the respective flags also set.
+#change 008_start to include a fast version of descending the floor to reveal the spiral down to ose. It will only happen if 4e7, 4ea, 4e8 and 4e9 are set (kila insertion flags).
+#Kaiwan flags: 0x700, 0x6c5, 0x6c6, 0x6c7
+#013_01eve_01 is event that calls ose, which is e634.
+#e634:
+#0x16, 0x56c, 0x56d on - 0x4e1 off. 0x29 also on, but is only used here.
+
+#Cutscene removal for Hell Biker f004
 
 #Cutscene removal in Kabukicho Prison f025
 #Shorten forced Naga
