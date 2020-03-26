@@ -45,6 +45,7 @@ OPCODES = {
     "POPLFX":33,
     "PUSHSTR":34
 }
+OPCODE_STR = ["PUSHI","PUSHF","PUSHIX","PUSHIF","PUSHREG","POPIX","POPFX", "PROC","COMM","END","JUMP","CALL","RUN","GOTO","ADD","SUB","MUL","DIV","MINUS","NOT","OR","AND","EQ","NEQ","S","L","SE","LE","IF","PUSHIS","PUSHLIX","PUSHLFX","POPLIX","POPLFX","PUSHSTR"]
 OPCODES_0_OPERAND = ["PUSHI", "PUSHF", "PUSHIX", "PUSHIF", "PUSHREG", "POPIX", "POPFX",  "END", "ADD", "SUB", "MUL", "DIV", "MINUS", "NOT", "OR", "AND", "EQ", "NEQ", "S", "L", "SE", "LE"]
 OPCODES_0_OPERAND_BYNUM = [0,1,2,3,4,5,6,9,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
 OPCODES_LABEL_OPERAND = ["JUMP", "GOTO", "IF","PROC"] #Proc specifically marks the beginning of a function and uses different labels
@@ -314,10 +315,9 @@ class bf_script:
         if retval == -1:
             return -1
         return len(self.sections[PROC_LABELS].labels)-1 #return index of appended proc
-    def appendMessage(self, message_str, message_label_str, is_decision = False, name_id = 0xffff, auto_space = True):
+    def appendMessage(self, message_str, message_label_str, is_decision = False, name_id = NULL_NAME_ID, auto_space = True):
         m = message()
         
-        #New pointer is going to be where the names_obj pointer is
         m.label_str = message_label_str
         m.name_id = name_id
         
@@ -328,7 +328,7 @@ class bf_script:
         #Turn the message to a byte form
         m.message_str_to_bytes()
         
-        #New message pointer is going to be changed by the size of the pointer itself
+        #New pointer is going to be where the names_obj pointer is, and changed by the size of the pointer itself
         m_ptr = self.sections[MESSAGES].names.offset + MESSAGE_POINTER_SIZE
         
         #Calculate header size
@@ -429,7 +429,11 @@ class bf_script:
                 inst.operand = relative_label_indices.index(inst.operand)
         return (ret_instructions, relative_labels)
  
-    def exportASM(self, asmFilename):
+    def exportASM(self):
+        import func_descs
+        ret_str = ".instructions\n"
+        proc_ind = 0
+        proc_count = 0
         #start with .instructions
         #iterate through instructions with index i.
         #   if there is a br label at that index, then put that string in.
@@ -440,12 +444,63 @@ class bf_script:
         #   if opcode string is PUSHSTR, put the string of the indexed pushstr in
         #   if opcode string has an operand, put in the operand number
         #   otherwise (opcode string with 0 operands) - Nothing!
-        
+        #print("PUSHSTRS: ",self.sections[STRINGS].strings,"\nLength:",len(self.sections[STRINGS].strings))
+        for i, inst in enumerate(self.sections[BYTECODE].instructions):
+            extra_comment = ""
+            for br_lab in self.sections[BR_LABELS].labels:
+                if i == br_lab.label_offset:
+                    ret_str += br_lab.label_str + ":\n"
+            if inst.opcode == OPCODES["PROC"]:
+                if len(self.sections[PROC_LABELS].labels) > proc_count:
+                    ret_str += "\nPROC\t" + self.sections[PROC_LABELS].labels[proc_count].label_str+ "\t"
+                else:
+                    ret_str += "\nPROC\tOut of Bounds!!!\t"
+                extra_comment = "Proc index: "+str(proc_count)
+                proc_count+=1
+                proc_ind=0
+            elif inst.opcode == OPCODES["COMM"]:
+                ret_str += "COMM\t" + hex(inst.operand)+"\t"
+                if inst.operand in func_descs.COMM_FUNS:
+                    extra_comment = func_descs.COMM_FUNS[inst.operand].lineDesc()
+            elif inst.opcode == OPCODES["PUSHSTR"]:
+                #print("PUSHSTR operand:",inst.operand)
+                ret_str += "PUSHSTR" + "\t" + self.sections[STRINGS].readStr(inst.operand) +"\t"
+                extra_comment = "String index: "+str(inst.operand)
+            elif inst.opcode in OPCODES_0_OPERAND_BYNUM:
+                ret_str += OPCODE_STR[inst.opcode]+"\t\t"
+            elif inst.opcode in OPCODES_1_OPERAND_BYNUM:
+                ret_str += OPCODE_STR[inst.opcode]+"\t"+hex(inst.operand)+"\t"
+            elif inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
+                ret_str += OPCODE_STR[inst.opcode]+"\t"+self.sections[BR_LABELS].labels[inst.operand].label_str+"\t"
+                extra_comment = "Label index: "+str(inst.operand)
+            else:
+                ret_str += "Unknown opcode " + str(inst.opcode)
+            ret_str += "\t\t#"+str(proc_ind)+";"+str(i)+"\t"+extra_comment+"\n"
+            proc_ind+=1
         #next is .messages
         #.sel or .msg space, [index], space, Message label, space, name or -1 or blank, colon. Perhaps have a way to ignore auto-spacing? Seems kind of bad.
         #String with escape codes. Message MUST end with ^m.
-        #return -1 for failure, 0 for success
-        pass
+        ret_str += ".messages\n\n"
+        for i, msg in enumerate(self.sections[MESSAGES].messages):
+            if msg.is_decision:
+                ret_str+="Sel "
+            else:
+                ret_str+="Msg "
+            ret_str+=str(i) + " " + msg.label_str + " Name:"
+            if msg.name_id == NULL_NAME_ID:
+                ret_str+="NO_NAME"
+            else:
+                if msg.name_id < len(self.sections[MESSAGES].names.names):
+                    ret_str+=self.sections[MESSAGES].names.names[msg.name_id]
+                else:
+                    ret_str+="OoB Name"
+            ret_str+="\n\t"
+            if not msg.text_formed:
+                msg.bytes_to_message_str()
+                msg.space_text()
+            ret_str+=msg.str
+            ret_str+="\n"
+        return ret_str
     def importASM(self, asmFilename):
         #first pass of .instructions used to create proc_labels, br_labels, and pushstrs
         #second pass of .instructions to create the bytecode
@@ -640,6 +695,7 @@ ey = [0xF2, 0x02, 0x04, 0xFF]
 eg = [0xF2, 0x02, 0x05, 0xFF]
 en = [0x0A]
 ex = [0x0A, 0xF1, 0x04, 0xF2, 0x08, 0xFF, 0xFF]
+exx = [0xF1, 0x04, 0xF2, 0x08, 0xFF, 0xFF] #alternate of ex
 em = [0x0A, 0xF1, 0x04, 0x00]
 es = [0xF2, 0x08, 0xFF, 0xFF, 0xF2, 0x07, 0x07, 0xFF] #bytes at the start. Not used as an escape but automatically added in.
 class message:
@@ -647,7 +703,7 @@ class message:
         self.str = str #message in text as str
         self.label_str = label_str
         self.textbox_count = 0
-        self.name_id = 0
+        self.name_id = NULL_NAME_ID
         self.text_pointers = []
         self.relative_pointers = []
         self.text_size = 0
@@ -726,26 +782,36 @@ class message:
         if givenbytes !=[]:
             self.bytes = givenbytes
             self.byte_formed = True
+        else:
+            self.bytes = self.text_bytes
+            print (self.bytes)
+            print (len(self.bytes))
         bytelen = len(self.bytes)
         i=0
-        str = ""
+        m_str = ""
+        if self.bytes[:8] == bytearray(es):
+            i=8
+        loopcheck = -1
         while i<bytelen:
+            if loopcheck == i:
+                i+=1
+            loopcheck=i
             if self.bytes[i] == 0xF2:
                 if i+3 < bytelen:
                     bc = self.bytes[i:i+4] #byte check
-                    if bc == ep:
-                        str+="^p"
-                    elif bc == er:
-                        str+="^r"
-                    elif bc == eb:
-                        str+="^b"
-                    elif bc == ey:
-                        str+="^y"
-                    elif bc == eg:
-                        str+="^g"
+                    if bc == bytearray(ep):
+                        m_str+="^p"
+                    elif bc == bytearray(er):
+                        m_str+="^r"
+                    elif bc == bytearray(eb):
+                        m_str+="^b"
+                    elif bc == bytearray(ey):
+                        m_str+="^y"
+                    elif bc == bytearray(eg):
+                        m_str+="^g"
                     else:
-                        print("ERROR: In message.bytes_to_str(). Invalid set of bytes")
-                        return -1
+                        print("Warning: In message.bytes_to_str(). Unknown set of bytes:",bc)
+                        m_str+="^u("+str(bc)+")"
                 else:
                     print("ERROR: In message.bytes_to_str(). Invalid set of bytes")
                     return -1
@@ -753,23 +819,32 @@ class message:
             elif self.bytes[i] == 0x0A:
                 checkdone = False
                 if i+5 < bytelen: #check ^x first
-                    if self.bytes[i:i+6] == ex:
-                        str+="^x"
+                    if self.bytes[i:i+6] == bytearray(ex):
+                        m_str+="^x"
                         i+=6
                         checkdone = True
                 if i+3 < bytelen and not checkdone:
-                    if self.bytes[i:i+4] == em:
-                        str+="^m"
+                    if self.bytes[i:i+4] == bytearray(em):
+                        m_str+="^m"
                         i+=4
                         checkdone = True
                 if not checkdone:
-                    str+="^n"
+                    m_str+="^n"
                     i+=1
+            elif self.bytes[i] == 0xf1:
+                if i+4 < bytelen:
+                    if self.bytes[i:i+5] == bytearray(exx):
+                        m_str+="^x"
+                        i+=5
+                    else:
+                        print("Warning: In message.bytes_to_str(). Unknown bytes from 0xF1")
+                        m_str+="^u(f1)"
+                        i+=1
             else:
-                str+=chr(self.bytes[i])
+                m_str+=chr(self.bytes[i])
                 i+=1
         self.text_formed = True
-        self.str = str
+        self.str = m_str
         return 0
     def space_text(self, givenstr = ""):
         if givenstr == "" and self.str == "":
@@ -930,6 +1005,18 @@ class pushstrs(relocated_class):
         #sum of lengths of strings + len(strings) (representing 00 delimiters)
         #do not need to ceiling since it is the end of the file
         pass
+    #Given an offset of the entirety of the consecutive PUSHSTRs, return the given string.
+    def readStr(self,offset):
+        current_offset = offset
+        for s in self.strings:
+            if current_offset == 0:
+                return s
+            elif current_offset < len(s):
+                return s[current_offset:]
+            current_offset -= len(s)+1 #+1 is for \0
+        print("WARNING: in readStr(). Given offset for PUSHSTRs is out of bounds. Returning empty string.")
+        return ''
+        
 #big endian bytes to integer
 def bbtoi(byte_array):
     retint = 0
@@ -1147,7 +1234,7 @@ def parse_binary_script(byte_array):
         if m.textbox_count == 0: #structured differently for decision text
             m.textbox_count = bbtoi(byte_array[c_off+2:c_off+4])
             m.is_decision = True
-            m.name_id = 0 #isn't going to be stored but just setting it
+            m.name_id = NULL_NAME_ID #isn't going to be stored but just setting it
             c_off+=4 #4 bytes of 0
         else:
             m.name_id = bbtoi(byte_array[c_off+2:c_off+4])
@@ -1270,5 +1357,7 @@ def test_funs(fname):
     #bytesToFile(piped_bytes,"piped_scripts/f016check.bf")
     bytesToFile(piped_bytes,"piped_scripts/f024.bf")
 
+
+#piped_bytes = obj.toBytes()
 #test_funs("piped_scripts/f016.bf")
 #test_funs("scripts/f024.bf")
