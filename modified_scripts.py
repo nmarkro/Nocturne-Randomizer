@@ -63,8 +63,17 @@ class Script_Modifier:
         # add the uncompressed, modified BF file to the LB and add it to the dds3 fs
         return lb.export_lb({'BF': BytesIO(bytearray(bf_obj.toBytes()))})
 
-    def insert_callback(self, field, location_insert, fun_name_insert):
-        pass
+    def insert_callback(self, field_string, location_insert, fun_name_insert, overwrite_warning=True):
+        if len(fun_name_insert) > 15:
+            print("ERROR: In insert_callback().",fun_name_insert,"is over 15 characters long")
+            return
+        file_path = custom_vals.WAP_PATH[field_string]
+        wap_file = self.dds3.get_file_from_path(file_path).read()
+        print("Inserting",fun_name_insert,"as callback for",field_string,". wap_file len:",len(wap_file))
+        if wap_file[location_insert] != 0 and overwrite_warning:
+            print("WARNING: Callback insertion of",fun_name_insert,"overwriting data.")
+        wap_file = wap_file[:location_insert] + bytes([2]) + bytes(assembler.ctobb(fun_name_insert,15)) + wap_file[location_insert+16:]
+        self.dds3.add_new_file(file_path,BytesIO(wap_file))
 
     def run(self):
         # Replace e506.bf (intro) with a custom one to set a bunch of initial values.
@@ -294,6 +303,8 @@ class Script_Modifier:
         ]
         f015_obj.changeProcByIndex(f015_002_start_insts, f015_002_start_labels, forneus_room_index)
 
+        f015_obj.changeMessageByIndex(assembler.message("Forneus reward placeholder","FORNEUS_REWARD"),0x5b)
+
         #TODO: Shorten Black Rider
         f015_lb = self.push_bf_into_lb(f015_obj, 'f015')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f015'], f015_lb)
@@ -370,8 +381,9 @@ class Script_Modifier:
             inst("COMM",0x104), #Remove the visual barrier
             inst("PUSHIS", 0xe),
             inst("COMM", 8) #set flag 0xE
-            #Can also put in a reward message
         ]
+        #change 0x16 for specter 1 reward.
+        f018_obj.changeMessageByIndex(assembler.message("Specter 1 reward placeholder","SPEC1_REWARD"),0x16)
         precut1 = 35
         postcut1 = 161
         precut2 = 171
@@ -390,8 +402,6 @@ class Script_Modifier:
                     #TODO: Do better than just move the labels
         f018_obj.changeProcByIndex(f018_09_insts, f018_09_labels, f018_09_room)
         f018_lb = self.push_bf_into_lb(f018_obj, 'f018')
-        #open("scripts/f018_test.bfasm",'w').write(f018_obj.exportASM())
-
         self.dds3.add_new_file(custom_vals.LB0_PATH['f018'], f018_lb)
 
         #75E gets set going into LoA Lobby.
@@ -399,6 +409,24 @@ class Script_Modifier:
 
         #Cutscene removal in Ginza (Hijiri mostly) f019
         #Optional: Shorten Troll (already short)
+        #Should be done as an entry point
+        f019_obj = self.get_script_obj_by_name("f019")
+        f019_troll_rwms_index = f019_obj.appendMessage("Troll reward placeholder","TROLL_REWARD")
+        f019_troll_callback_str = "TROLL_CB"
+        f019_troll_callback_insts = [
+            inst("PROC",len(f019_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",2),
+            inst("PUSHIS",f019_troll_rwms_index),
+            inst("COMM",0),
+            inst("COMM",1),
+            inst("COMM",0x61),
+            inst("END")
+        ]
+        f019_obj.appendProc(f019_troll_callback_insts,[],f019_troll_callback_str)
+        self.insert_callback('f019',0x1350,f019_troll_callback_str)
+        f019_lb = self.push_bf_into_lb(f019_obj, 'f019')
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f019'], f019_lb)
 
         #Cutscene removal in Ginza Underpass f022
         #Shorten Matador
@@ -443,6 +471,19 @@ class Script_Modifier:
         f022_013_e1_labels = [
             assembler.label("MATADOR_GONE",21)
         ]
+        f022_mata_callback = f022_obj.getProcIndexByLabel("013_shuku_mes")
+        f022_mata_callback_insts = [
+            inst("PROC",f022_mata_callback),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",0x1d),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+            inst("END")
+        ]
+        f022_obj.changeMessageByIndex(assembler.message("Matador reward placeholder","MATA_REWARD"),0x1d)
+        f022_obj.changeProcByIndex(f022_mata_callback_insts,[],f022_mata_callback)
 
         f022_obj.changeProcByIndex(f022_013_e1_insts, f022_013_e1_labels, f022_mata_room)
         f022_lb = self.push_bf_into_lb(f022_obj, 'f022')
@@ -514,10 +555,10 @@ class Script_Modifier:
             inst("END"),
         ]
 
-        #TODO: Figure out how to have a function call on callback(0x2e6,0x17).
         f023_obj.changeProcByIndex(f023_03_2_insts, [], f023_03_room_2)
-        f023_daisoujou_rwms_index = f023_obj.appendMessage("You defeated Daisoujou (or its check).^nYou got some ^bmagatama^p.^nYou got some ^rterminal or flag^p.", "DAI_RWMS")
-        # appendProc(self, instructions, relative_labels, proc_label):
+        f023_daisoujou_callback_str = "DAI_CB"
+        f023_daisoujou_rwms_index = f023_obj.appendMessage("Daisoujou reward placeholder", "DAI_REWARD")
+
         f023_proclen = len(f023_obj.p_lbls().labels)
         f023_daisoujou_rwmspr_insts = [ #reward message proc
             inst("PROC",f023_proclen),
@@ -529,7 +570,8 @@ class Script_Modifier:
             inst("COMM",0x61),
             inst("END")
         ]
-        f023_obj.appendProc(f023_daisoujou_rwmspr_insts, [], "DAI_RWMSPR")
+        f023_obj.appendProc(f023_daisoujou_rwmspr_insts, [], f023_daisoujou_callback_str)
+        self.insert_callback('f023',0x284,f023_daisoujou_callback_str)
         #seek to 0x284 of f023.wap. write 02 then "DAI_RWMSPR"
 
         #pushis 0x32a, comm 0x66 is call dante
@@ -547,22 +589,36 @@ class Script_Modifier:
             inst("COMM",7),#Check that Thor is beaten
             inst("PUSHREG"),
             inst("AND"),
-            inst("IF",0),#end proc if not both #???inst("COMM",0x60),#remove player control
+            inst("IF",0),#end proc if not both
             inst("PUSHIS",0x100),
             inst("COMM",8), #Set 0x100
             inst("PUSHIS",0x2d3),
             inst("PUSHIS",0x17),
             inst("PUSHIS",1),
             inst("COMM",0x97),
-            inst("PUSHIS",1033), #TODO: Set a callback for reward message
+            inst("PUSHIS",1033),
             inst("COMM",0x67), #Fight Dante
             inst("END")
         ]
         f023_01_dante_labels = [
             assembler.label("DANTE_FOUGHT",19)
         ]
-
         f023_obj.changeProcByIndex(f023_01_dante_insts, f023_01_dante_labels, f023_01_dante_proc)
+
+        f023_dante_callback_str = "DANTE_CB"
+        f023_dante_reward_index = f023_obj.appendMessage("Dante reward placeholder", "DANTE_REWARD")
+        f023_dante_reward_insts = [
+            inst("PROC",f023_proclen + 1), #+1 from Daisoujou one.
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f023_dante_reward_index),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+            inst("END")
+        ]
+        f023_obj.appendProc(f023_dante_reward_insts, [], f023_dante_callback_str)
+        self.insert_callback('f023',0x220,f023_dante_callback_str)
 
         f023_lb = self.push_bf_into_lb(f023_obj, 'f023')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f023'], f023_lb)
@@ -653,6 +709,7 @@ class Script_Modifier:
             inst("COMM",0x21e)
         ]
         #from  726-881
+        f024_obj.changeMessageByIndex(assembler.message("Thor reward placeholder","THOR_REWARD"),97)
         f024_10_insert_insts_thor_post = [ #double-check the flags here. Dante might not spawn.
             inst("COMM",0x60), #remove player control
             inst("PUSHIS",0x567), #Don't fight Thor in here again.
@@ -705,15 +762,13 @@ class Script_Modifier:
         f024_obj.changeProcByIndex(f024_10_insts, f024_10_labels, f024_10_room)
 
         f024_lb = self.push_bf_into_lb(f024_obj, 'f024')
-        # TODO: Ask PPJ about this
         # assembler.bytesToFile(f024_obj.toBytes(),"piped_scripts/f024.bf")
         #outfile = open("piped_scripts/f024.bfasm",'w')
         #outfile.write(f024_obj.exportASM())
         #outfile.close()
         self.dds3.add_new_file(custom_vals.LB0_PATH['f024'], f024_lb)
-        # TODO: Ask PPJ about this 
-        # self.dds3.add_new_file(custom_vals.LB0_PATH['f024b'], f024_lb) #for some reason there's regular, b and c
-        # self.dds3.add_new_file(custom_vals.LB0_PATH['f024c'], f024_lb)
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f024b'], f024_lb) #for some reason there's regular, b and c
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f024c'], f024_lb)
 
         #Cutscene removal in East Nihilo f020
         #Shorten Koppa & Incubus encounter
@@ -965,6 +1020,25 @@ class Script_Modifier:
         #outfile = open("piped_scripts/f020.bfasm",'w')
         #outfile.write(f020_obj.exportASM())
         #outfile.close()
+        f003_obj = self.get_script_obj_by_name('f003')
+        f003_proclen = len(f003_obj.p_lbls().labels)
+        f003_ose_callback_message = f003_obj.appendMessage("Ose reward placeholder","OSE_REWARD")
+        f003_ose_callback_proc_str = "OSE_CB"
+        f003_ose_callback_insts = [
+            inst("PROC",f003_proclen),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f003_ose_callback_message),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+            inst("END"),
+        ]
+        f003_obj.appendProc(f003_ose_callback_insts,[],f003_ose_callback_proc_str)
+        f003_lb = self.push_bf_into_lb(f003_obj, 'f003')
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f003'], f003_lb)
+        self.insert_callback('f020', 0x7fc, f003_ose_callback_proc_str)
+        #The callback is in f020, but the proc is in f003 (outside Ginza).
 
         #kilas: 3d2, 3d3, 3d4, 3d5
         #inserted kilas: 4ea, 4e7, 4e8, 4e9
@@ -978,12 +1052,112 @@ class Script_Modifier:
         #0x16, 0x56c, 0x56d on - 0x4e1 off. 0x29 also on, but is only used here.
 
         #Cutscene removal for Hell Biker f004
+        f004_obj = self.get_script_obj_by_name('f004')
+        f004_biker_event = f004_obj.getProcIndexByLabel("001_01eve_03")
+        f004_biker_insts = [
+            inst("PROC",f004_biker_event),
+            inst("PUSHIS",0),
+            inst("PUSHIS",0x754),#Didn't already run away.
+            inst("COMM",7),
+            inst("PUSHREG"),
+            inst("EQ"),
+            inst("PUSHIS",0),
+            inst("PUSHIS",0x10a),#Didn't already fight.
+            inst("COMM",7),
+            inst("PUSHREG"),
+            inst("EQ"),
+            inst("AND"),
+            inst("IF",0),#End label
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",5), #Do you want to stay here?
+            inst("COMM",0),
+            inst("PUSHIS",0),
+            inst("PUSHIS",6), #Yes/no
+            inst("COMM",3),
+            inst("PUSHREG"),
+            inst("EQ"),
+            inst("COMM",2),
+            inst("IF",1),
+            inst("PUSHIS",0x10a), #turn on fought flag.
+            inst("COMM",8),
+            inst("PUSHIS",0x922), #turn on ???
+            inst("COMM",8),
+            inst("PUSHIS",0x3e8), #give candelabra
+            inst("COMM",8),
+            inst("PUSHIS",0x2e5),
+            inst("PUSHIS",4),
+            inst("PUSHIS",1),
+            inst("COMM",0x97), #call next
+            inst("PUSHIS",1029),
+            inst("COMM",0x67), #fight biker
+            inst("END"),
+            inst("PUSHIS",0x754),
+            inst("COMM",0x8),
+            inst("COMM",0x61),
+            inst("END")
+        ]
+        f004_biker_labels = [
+            assembler.label("BIKER_RAN",40),
+            assembler.label("BIKER_FOUGHT",37)
+        ]
+        f004_obj.changeProcByIndex(f004_biker_insts,f004_biker_labels,f004_biker_event)
+        f004_biker_callback_proc_str = "HB_CB"
+        f004_biker_callback_msg = f004_obj.appendMessage("Hell Biker reward placeholder","HB_REWARD")
+        f004_biker_callback_insts = [
+            inst("PROC",len(f004_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f004_biker_callback_msg),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+            inst("END")
+        ]
+        f004_obj.appendProc(f004_biker_callback_insts,[],f004_biker_callback_proc_str)
+        self.insert_callback('f004', 0x540, f004_biker_callback_proc_str)
+        f004_lb = self.push_bf_into_lb(f004_obj, 'f004')
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f004'], f004_lb)
 
         #Cutscene removal in Kabukicho Prison f025
         #Shorten forced Naga
         #Shorten Mizuchi
         #First Umugi stone usage flag
         #Shorten Black Frost (low priority)
+        #set 0x583
+        #change mizuchi intro to not set 0x59c. (Might as well also shorten it). It also sets 0x595
+        #Mizuchi is in 025_start
+        #0x589 is spoon cutscene.
+        f025_obj = self.get_script_obj_by_name("f025")
+        f025_mizuchi_room = f025_obj.getProcIndexByLabel("025_start")
+        f025_mizuchi_room_insts, f025_mizuchi_room_labels = f025_obj.getProcInstructionsLabelsByIndex(f025_mizuchi_room)
+        #28 - 87 both inclusive. Insert 595 and 863.
+        #Probably don't need to change labels, but if you don't _443 is OoB, but it doesn't seem like it does anything since it was compiler made.
+        precut = 28
+        postcut = 88
+        f025_mizuchi_room_insert_insts = [
+            inst("PUSHIS",0x595),
+            inst("COMM",8),
+            inst("PUSHIS",0x863),
+            inst("COMM",8)
+        ]
+        f025_mizuchi_room_labels[-1].label_offset = 0 #fixes _443 OoB warning.
+        f025_mizuchi_room_insts = f025_mizuchi_room_insts[:precut] + f025_mizuchi_room_insert_insts + f025_mizuchi_room_insts[postcut:]
+        f025_obj.changeProcByIndex(f025_mizuchi_room_insts, f025_mizuchi_room_labels, f025_mizuchi_room)
+
+        f025_021_05 = f025_obj.getProcIndexByLabel("021_01eve_05")
+        f025_021_insts = [
+            inst("PROC",f025_021_05),
+            inst("END")
+        ]
+        f025_obj.changeProcByIndex(f025_021_insts,[],f025_021_05)
+
+        f025_lb = self.push_bf_into_lb(f025_obj, 'f025')
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f025'], f025_lb)
+        self.dds3.add_new_file("/fld/f/f025.bf",BytesIO(bytes(f025_obj.toBytes())))
+        #f025_bfasm = open("piped_scripts/f025.bfasm",'w')
+        #f025_bfasm.write(f025_obj.exportASM())
+        #f025_bfasm.close()
 
         #Cutscene removal in Ikebukuro Tunnel (anything at all?) f026
 
