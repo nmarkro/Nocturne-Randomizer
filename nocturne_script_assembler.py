@@ -486,7 +486,7 @@ class bf_script:
                 ret_str+="Sel "
             else:
                 ret_str+="Msg "
-            ret_str+=str(i) + " " + msg.label_str + " Name:"
+            ret_str+=hex(i) + " " + msg.label_str + " Name:"
             if msg.name_id == NULL_NAME_ID:
                 ret_str+="NO_NAME"
             else:
