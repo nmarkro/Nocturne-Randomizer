@@ -1106,7 +1106,6 @@ if __name__ == '__main__':
     # get the ddt and write it out to disk
     ddt_file = iso.get_file_from_path('DDS3.DDT;1')
 
-    '''
     #if not os.path.isfile('rom/old_DDS3.IMG'): #save some dev time
     with open('rom/old_DDS3.DDT', 'wb') as file:
         file.write(ddt_file.read())
@@ -1116,7 +1115,6 @@ if __name__ == '__main__':
     with open('rom/old_DDS3.IMG', 'wb') as file:
         for chunk in iso.read_file_in_chunks('DDS3.IMG;1'):
             file.write(chunk)
-    '''
 
     print ("Parsing Atlus FileSystem IMG")
     # parse the dds3 fs
