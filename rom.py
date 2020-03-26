@@ -7,12 +7,8 @@ BINARY_SIZE = 0x457410
 # Wrapper class around low level reads/writes
 # code modified from https://github.com/samfin/mmbn3-random/tree/cleanup
 class Rom(object):
-    def __init__(self, rom_path):
-        with open(rom_path, 'rb') as file:
-            file.seek(BINARY_ADDR)
-            #self.rom_data = file.read(BINARY_SIZE)
-            self.buffer = bytearray(file.read(BINARY_SIZE))
-        #self.buffer = bytearray(self.rom_data)
+    def __init__(self, rom_file):
+        self.buffer = bytearray(rom_file.read())
         self.w_offset = 0
         self.r_offset = 0
         self.stack = []
