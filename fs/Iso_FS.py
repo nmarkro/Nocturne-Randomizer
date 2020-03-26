@@ -194,7 +194,13 @@ class IsoFS(object):
         self.output_iso.seek(saved_pos)
 
     # used to read full files from the iso
-    def get_file_from_path(self, path):
+    def get_file_from_path(self, path, access_changes=True):
+        if access_changes:
+            if path in self.changes:
+                data = self.changes[path]
+                data.seek(0)
+                return data
+
         entry = self.find_by_path(path)
         assert entry is not None
 

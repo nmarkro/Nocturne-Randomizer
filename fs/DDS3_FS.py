@@ -81,7 +81,13 @@ class DDS3FS(object):
         return entry
 
     # used to read full files from the .img file
-    def get_file_from_path(self, path):
+    def get_file_from_path(self, path, access_changes=True):
+        if access_changes:
+            if path in self.changes:
+                data = self.changes[path]
+                data.seek(0)
+                return data
+
         entry = self.find_by_path(path)
         assert entry is not None
 
@@ -179,7 +185,7 @@ class DDS3FS(object):
 
         for path in self.changes:
             if not self.find_by_path(path):
-                self.add_new_file(path)
+                self.add_new_file(path, self.changes[path])
 
         self.output_ddt = open(output_ddt_path, 'wb')
         self.output_img = open(output_img_path, 'wb')

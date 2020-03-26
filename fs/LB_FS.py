@@ -113,7 +113,13 @@ class LB_FS(object):
 
         return data
 
-    def get_file_by_extension(self, extension):
+    def get_file_by_extension(self, extension, access_changes=True):
+        if access_changes:
+            if extension in self.changes:
+                data = self.changes[extension]
+                data.seek(0)
+                return data
+
         entry = self.file_entries[extension]
         assert entry is not None
 
