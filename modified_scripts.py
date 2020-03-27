@@ -64,7 +64,7 @@ def insert_callback(field_string, location_insert, fun_name_insert, overwrite_wa
         return
     file_path = custom_vals.WAP_PATH[field_string]
     wap_file = dds3.get_file_from_path(file_path).read()
-    print("Inserting",fun_name_insert,"as callback for",field_string,". wap_file len:",len(wap_file))
+    #print("Inserting",fun_name_insert,"as callback for",field_string,". wap_file len:",len(wap_file))
     if wap_file[location_insert] != 0 and overwrite_warning:
         print("WARNING: Callback insertion of",fun_name_insert,"overwriting data.")
     wap_file = wap_file[:location_insert] + bytes([2]) + bytes(assembler.ctobb(fun_name_insert,15)) + wap_file[location_insert+16:]
@@ -183,6 +183,10 @@ e601_insts = [
     inst("PUSHIS",0x6c7), #Kaiwan scene 3
     inst("COMM",8),
     inst("PUSHIS",0x580), #Kabukicho Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x583), #Cutscene before Mizuchi
+    inst("COMM",8),
+    inst("PUSHIS",0x594), #Cutscene with Futomimi after Mizuchi
     inst("COMM",8),
     inst("PUSHIS",0x5a0), #Ikebukuro Tunnel Splash
     inst("COMM",8),
@@ -1036,9 +1040,7 @@ f020_obj.changeProcByIndex(f020_13_insts,f020_13_labels,f020_13_proc)
 
 f020_lb = push_bf_into_lb(f020_obj, 'f020')
 dds3.add_new_file(custom_vals.LB0_PATH['f020'], f020_lb)
-#outfile = open("piped_scripts/f020.bfasm",'w')
-#outfile.write(f020_obj.exportASM())
-#outfile.close()
+
 f003_obj = get_script_obj_by_name(dds3, 'f003')
 f003_proclen = len(f003_obj.p_lbls().labels)
 f003_ose_callback_message = f003_obj.appendMessage("Ose reward placeholder","OSE_REWARD")
@@ -1058,6 +1060,8 @@ f003_lb = push_bf_into_lb(f003_obj, 'f003')
 dds3.add_new_file(custom_vals.LB0_PATH['f003'], f003_lb)
 insert_callback('f020', 0x7fc, f003_ose_callback_proc_str)
 #The callback is in f020, but the proc is in f003 (outside Ginza).
+#interesting note: 001_01eve_08 happens going from Rainbow Bridge to Shiba, 001_01eve_07 happens going from Shiba to Rainbow Bridge. Probably responsible for changing encounter tables.
+
 
 #kilas: 3d2, 3d3, 3d4, 3d5
 #inserted kilas: 4ea, 4e7, 4e8, 4e9
@@ -1121,8 +1125,8 @@ f004_biker_labels = [
     assembler.label("BIKER_FOUGHT",37)
 ]
 f004_obj.changeProcByIndex(f004_biker_insts,f004_biker_labels,f004_biker_event)
-f004_biker_callback_proc_str = "HB_CB"
-f004_biker_callback_msg = f004_obj.appendMessage("Hell Biker reward placeholder","HB_REWARD")
+f004_biker_callback_proc_str = "HBIKER_CB"
+f004_biker_callback_msg = f004_obj.appendMessage("Hell Biker reward placeholder","HBIKER_REWARD")
 f004_biker_callback_insts = [
     inst("PROC",len(f004_obj.p_lbls().labels)),
     inst("COMM",0x60),
@@ -1143,7 +1147,7 @@ dds3.add_new_file(custom_vals.LB0_PATH['f004'], f004_lb)
 #Shorten Mizuchi
 #First Umugi stone usage flag
 #Shorten Black Frost (low priority)
-#set 0x583
+#set 0x583, 0x594
 #change mizuchi intro to not set 0x59c. (Might as well also shorten it). It also sets 0x595
 #Mizuchi is in 025_start
 #0x589 is spoon cutscene.
@@ -1163,36 +1167,53 @@ f025_mizuchi_room_insert_insts = [
 f025_mizuchi_room_labels[-1].label_offset = 0 #fixes _443 OoB warning.
 f025_mizuchi_room_insts = f025_mizuchi_room_insts[:precut] + f025_mizuchi_room_insert_insts + f025_mizuchi_room_insts[postcut:]
 f025_obj.changeProcByIndex(f025_mizuchi_room_insts, f025_mizuchi_room_labels, f025_mizuchi_room)
+f025_obj.changeMessageByIndex(assembler.message("Mizuchi reward placeholder","MIZUCHI_REWARD"),0x62)
 
-f025_021_05 = f025_obj.getProcIndexByLabel("021_01eve_05")
+f025_021_05 = f025_obj.getProcIndexByLabel("021_01eve_05") #I don't think this gets executed, but I was frustrated when I chose the wrong LB file and this also has the Mizuchi text.
 f025_021_insts = [
     inst("PROC",f025_021_05),
     inst("END")
 ]
 f025_obj.changeProcByIndex(f025_021_insts,[],f025_021_05)
 
-f025_lb = push_bf_into_lb(f025_obj, 'f025')
-dds3.add_new_file(custom_vals.LB0_PATH['f025'], f025_lb)
-dds3.add_new_file("/fld/f/f025.bf",BytesIO(bytes(f025_obj.toBytes())))
+f025_lb = push_bf_into_lb(f025_obj, 'f025b')
+dds3.add_new_file(custom_vals.LB0_PATH['f025b'], f025_lb)
+#dds3.add_new_file("/fld/f/f025.bf",BytesIO(bytes(f025_obj.toBytes())))
 #f025_bfasm = open("piped_scripts/f025.bfasm",'w')
 #f025_bfasm.write(f025_obj.exportASM())
 #f025_bfasm.close()
 
 #Cutscene removal in Ikebukuro Tunnel (anything at all?) f026
 
-#Cutscene removal in Asakusa (Hijiri mostly) f027
+#Cutscene removal in Asakusa (Hijiri?) f027
 #Shorten Pale Rider
+
+#Hijiri is e646_trm and trm_1st
+#1st message is: "It's up to you to stop whatever's^ngoing on inside the Obelisk"
 
 #Cutscene removal in Mifunashiro f035
 #Shorten and add decision on boss
+#6e2,6e3,6e7 - Mifunashiro splash/entrance
+#6e5 - Angels asking for opinion
 
 #Cutscene removal in Obelisk f031
 #Anything? Could probably do everything with flags.
+#000_dh_plus is sisters callback. Any added flags can be put there.
+f031_obj = get_script_obj_by_name(dds3,"f031")
+f031_obj.changeMessageByIndex(assembler.message("Sisters reward placeholder","SIS_REWARD"),0x2d)
+f031_lb = push_bf_into_lb(f031_obj,'f031')
+dds3.add_new_file(custom_vals.LB0_PATH['f031'],f031_lb)
+#relevant story flags:
+#Obelisk Yuko turns on: 0x46, 0x4e, 0x4c3. Turns off 0x48f.
+#0x50 is the cutscene with Hijiri after Obelisk.
 
 #Cutscene removal in Amala Network 2 f028
 #Shorten Specter 2 and add reward message
+#Remove waits on that dude?
+#Flag ending cutscene with Isamu as already viewed.
 
 #Cutscene removal in Asakusa Tunnel (anything at all?) f029
+#Trumpeter
 
 #Cutscene removal in Yoyogi Park f016
 #TODO: Shorten Pixie stay/part scene to not have splash: Low Priority
@@ -1209,15 +1230,55 @@ dds3.add_new_file("/fld/f/f025.bf",BytesIO(bytes(f025_obj.toBytes())))
 #Look into for future versions: Have doors to temples locked by particular flags.
 #f034_obj = get_script_obj_by_name(iso,'f034')
 #In the procedure that sets the flag 6a0 and displays messages 1f - 25
-#002_start
+#002_start is outside.
 #lots of comm 104 and 103
+#002 -> 001 is entrance
+#002 -> 012 is red entrance
+#002 -> 004 is black entrance
+#002 -> 021 is white entrance
+f034_obj = get_script_obj_by_name(dds3,"f034")
+a_msg = f034_obj.appendMessage("a_lb","A_LB")
+b_msg = f034_obj.appendMessage("b_lb","B_LB")
+c_msg = f034_obj.appendMessage("c_lb","C_LB")
+d_msg = f034_obj.appendMessage("d_lb","D_LB")
+
+bfcheck_insts = [
+    inst("PROC",len(f034_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",a_msg),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+
+proc_index = f034_obj.appendProc(bfcheck_insts,[],"001_start")
+f034a_lb = push_bf_into_lb(f034_obj, 'f034')
+dds3.add_new_file(custom_vals.LB0_PATH['f034'], f034a_lb)
+
+bfcheck_insts[3] = inst("PUSHIS",b_msg)
+f034_obj.changeProcByIndex(bfcheck_insts,[],proc_index)
+f034b_lb = push_bf_into_lb(f034_obj, 'f034b')
+dds3.add_new_file(custom_vals.LB0_PATH['f034b'], f034b_lb)
+
+bfcheck_insts[3] = inst("PUSHIS",c_msg)
+f034_obj.changeProcByIndex(bfcheck_insts,[],proc_index)
+f034c_lb = push_bf_into_lb(f034_obj, 'f034c')
+dds3.add_new_file(custom_vals.LB0_PATH['f034c'], f034c_lb)
+
+bfcheck_insts[3] = inst("PUSHIS",d_msg)
+f034_obj.changeProcByIndex(bfcheck_insts,[],proc_index)
+f034d_lb = push_bf_into_lb(f034_obj, 'f034d')
+dds3.add_new_file(custom_vals.LB0_PATH['f034d'], f034d_lb)
+
 
 #Cutscene removal in Yurakucho Tunnel f021
 #Shorten Trumpeter
 
 #Cutscene removal in Diet Building f033
 #Shorten Mada and Mithra. Add reward messages for all bosses.
-#Shorten Samael cutscene.
+#Shorten Samael cutscene, as well as force Samael.
 
 #Cutscene removal in ToK1 f032
 #Shorten Ahriman
