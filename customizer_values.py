@@ -405,6 +405,8 @@ LB0_PATH = {
     'f024b':'/fld/f/f024/f024_00b.LB',#It is a mystery
     'f024c':'/fld/f/f024/f024_00c.LB',#It is a mystery
     'f025':'/fld/f/f025/f025_000.LB',
+    'f025b':'/fld/f/f025/f025_00b.LB',
+    'f025c':'/fld/f/f025/f025_00c.LB',
     'f026':'/fld/f/f026/f026_000.LB',
     'f027':'/fld/f/f027/f027_000.LB',
     'f028':'/fld/f/f028/f028_000.LB',
@@ -414,6 +416,9 @@ LB0_PATH = {
     'f032':'/fld/f/f032/f032_000.LB',
     'f033':'/fld/f/f033/f033_000.LB',
     'f034':'/fld/f/f034/f034_000.LB',
+    'f034b':'/fld/f/f034/f034_00b.LB',
+    'f034c':'/fld/f/f034/f034_00c.LB',
+    'f034d':'/fld/f/f034/f034_00d.LB',
     'f035':'/fld/f/f035/f035_000.LB',
     'f036':'/fld/f/f036/f036_000.LB',
     'f037':'/fld/f/f037/f037_000.LB',
