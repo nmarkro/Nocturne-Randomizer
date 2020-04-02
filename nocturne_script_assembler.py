@@ -422,8 +422,9 @@ class bf_script:
                     #print "DEBUG: Adding relative label:",lab.label_str,"Index:",br_ind
         #print "DEBUG: relative label indices:",relative_label_indices
         if islast:
-            ret_instrucitons = copy.deepcopy(self.sections[BYTECODE].instructions[proc.label_offset:])
-        ret_instructions = copy.deepcopy(self.sections[BYTECODE].instructions[proc.label_offset:next_proc.label_offset])
+            ret_instructions = copy.deepcopy(self.sections[BYTECODE].instructions[proc.label_offset:])
+        else:
+            ret_instructions = copy.deepcopy(self.sections[BYTECODE].instructions[proc.label_offset:next_proc.label_offset])
         for inst in ret_instructions:
             if inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
                 inst.operand = relative_label_indices.index(inst.operand)

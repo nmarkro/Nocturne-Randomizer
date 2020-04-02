@@ -89,14 +89,35 @@ commE = func(0xE,"WAIT",desc="Waits 1/30 of a second * given param", params=[u_i
 commF = func(0xF,"FADE_IN",desc="Flashes the screen with color (param2) and fades back at (param1) centiseconds.", params=[u_int_param,u_int_param])
 comm10 = func(0x10,"FADE_OUT",desc="Fades the screen with color (param2) and fades in at (param1) centiseconds.", params=[u_int_param,u_int_param])
 comm11 = func(0x11,"UNUSED_11",desc=unused_desc)
+#comm12
+#comm13 "CAM_PATH_MOVE"
+#comm14
 comm15 = func(0x15,"LOAD_DEMON_MODEL", params=[demonIdParam,u_int_param])
+#comm16
+#comm17
 comm18 = func(0x18,"UNUSED_18",desc=unused_desc)
+#comm19
 comm1A = func(0x1a,"CAMERA_SHAKE",params=[u_int_param,u_int_param,u_int_param])
+#comm1B
+#comm1C
+#comm1D
+#comm1E
 comm1F = func(0x1F,"UNUSED_1F",desc=unused_desc)
 #comm20 = Shows up once in waking up cutscene
-#comm24 = Shows up only in e500 6 times.
+#comm21 "PMV_LOAD"
+#comm22 "PMV_RUN2"
+#comm23 "FLD_EVENT_END2". No parameters. Used in events.
+#comm24 = Shows up only in e500 6 times. Known as "PUT"
 #comm25 = Shows up once in 4th Kalpa
+#comm26 "UNIT_ALL_CLEAR". Unused
 comm27 = func(0x27,"GET_PHASE","int",desc="Returns current Kagutsuchi phase as 0-8")
+#comm28 "CALL_EVENT_BATTLE". Pretty useful.
+#comm29 "UNIT_ALL_CLEAR". Unused.
+#comm2A "IMAGE_LOAD"
+#comm2B
+#comm2C
+#comm2D "IMAGE_DISPLAY"
+#comm2E
 comm2F = func(0x2F,"UNUSED_2F",desc=unused_desc)
 comm32 = func(0x32,"UNUSED_32",desc=unused_desc)
 comm39 = func(0x39,"UNUSED_39",desc=unused_desc)
@@ -106,6 +127,7 @@ comm3B = func(0x3B,"UNUSED_3B",desc=unused_desc)
 comm4A = func(0x4A,"POSITION_MODEL",params=[u_int_param,u_int_param],desc="(guess) Takes the return from the loaded position of the 1st param, and loads the return from the loaded model in the 2nd param")
 comm4C = func(0x4C,"UNUSED_4C",desc=unused_desc)
 comm4F = func(0x4F,"UNUSED_4F",desc=unused_desc)
+#comm50 = Unconfirmed: Display video cutscene.
 #comm54 = Shows up in 799, which is unknown
 #comm57 = Puzzle boy related (play when already done?)
 comm58 = func(0x58,"UNUSED_58",desc=unused_desc)
@@ -134,8 +156,21 @@ comm7D = func(0x7D,"UNUSED_7D",desc=unused_desc)
 #comm80 = Shows up in ai.bf 3 times
 comm84 = func(0x84,"UNUSED_84",desc=unused_desc)
 #comm90 single parameter that is a location. Used for the location callback on Dante 1.
+#comm91 No parameters. Only shows up in field scripts. Total of 46.
+#comm92 No parameters. Only shows up in field scripts. Total of 38.
+#comm93 1 parameter of 0 or 1. Only shows up in event scripts. Total of 19
 comm94 = func(0x94,"LOAD_POS_ASSET","int",params=[u_str_param],desc="Loads external assets such as cameras or positions")
+#comm95 6 parameters, 1st is a demon model. Seems related to manikins?
+#comm96 3 parameters. Total 18
 comm97 = func(0x97,"CALL_NEXT",params=[u_int_param,fieldIdParam,locationIdParam],desc="Sets a callback to a field and position in that field. 1st param is universally 1.")
+#comm98 2 parameters. Int and Position. VERY common in Diet building.
+#comm99 event only. 190 count
+comm9A = func(0x9A,"UNUSED_9A",desc=unused_desc)#Shows up in 501, 502, 503 which are unused events.
+#comm9B takes BED file. Shows up twice outside of events. Once in Nihilo and once in initialization of ToK1.
+#comm9C very rare and only in events: Gozu Tennoh 2nd, Fusion, Evolution.
+#comm9D takes BED file. Total of 412
+#comm9E event only. Total of 175.
+#comm9F event only. Total of 68. Shows up most in Hikiawa in Ikebukuro cutscene (termial model related?)
 commA2 = func(0xA2,"UNUSED_A2",desc=unused_desc)
 commA8 = func(0xA8,"UNUSED_A8",desc=unused_desc)
 commA9 = func(0xA9,"UNUSED_A9",desc=unused_desc)
@@ -292,7 +327,7 @@ comm13 = func(0x13,"CAM_PATH_MOVE",params=[u_int_param,u_int_param])
 comm21 = func(0x21,"PMV_LOAD","int?",params=[u_int_param,u_int_param])
 comm22 = func(0x22,"PMV_RUN2","int?",params=[u_int_param])
 comm23 = func(0x23,"FLD_EVENT_END2","int?")
-comm24 = func(0x24,"PUT","int?",params=[u_int_param])
+comm24 = func(0x24,"PUT","int?",params=[u_int_param], desc="Unused function")
 comm26 = func(0x26,"UNIT_ALL_CLEAR","int?", desc="Unused function")
 comm28 = func(0x28,"CALL_EVENT_BATTLE","int?",params=[u_int_param,u_int_param])
 comm29 = func(0x29,"UNIT_ALL_CLEAR","int?", desc="Unused function")

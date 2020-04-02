@@ -114,11 +114,11 @@ e601_insts = [
     inst("COMM",8),
     inst("PUSHIS",0x480), #Shibuya Splash removal
     inst("COMM",8),
-    inst("PUSHIS",0x9), #Chiaki removal. Can be a setting, but it's not shortened yet.
+    inst("PUSHIS",0x9), #Shibuya Chiaki cutscene
     inst("COMM",8),
     inst("PUSHIS",0xa), #Initial Cathedral cutscene
     inst("COMM",8),
-    inst("PUSHIS",0xb), #Hijiri Shibuya removal
+    inst("PUSHIS",0xb), #Hijiri Shibuya cutscene
     inst("COMM",8),
     inst("PUSHIS",0xa2), #Fountain cutscene removal
     inst("COMM",8),
@@ -190,13 +190,45 @@ e601_insts = [
     inst("COMM",8),
     inst("PUSHIS",0x5a0), #Ikebukuro Tunnel Splash
     inst("COMM",8),
-    inst("PUSHIS",0x5e0), #Amala Network 2 Splash
+    #inst("PUSHIS",0x5e0), #Amala Network 2 Splash
+    #inst("COMM",8),
+    inst("PUSHIS",0x5eb), #Amala Network 2 Cutscene
+    inst("COMM",8),
+    inst("PUSHIS",0x43), #Amala Network 2 Cutscene 2
+    inst("COMM",8),
+    inst("PUSHIS",0x5ed), #Amala Network 2 Cutscene 3
     inst("COMM",8),
     inst("PUSHIS",0x600), #Asakusa Tunnel Splash
     inst("COMM",8),
     inst("PUSHIS",0x640), #Obelisk Splash
     inst("COMM",8),
-    inst("PUSHIS",0x650), #Sisters Talk (Consider to keep on, but change their models to the randomized boss)
+    inst("PUSHIS",0x650), #Sisters Talk at entrance (Consider to keep on, but change their models to the randomized boss)
+    inst("COMM",8),
+    inst("PUSHIS",0x46), #Obelisk flag 1
+    inst("COMM",8),
+    inst("PUSHIS",0x4e), #Obelisk flag 2
+    inst("COMM",8),
+    inst("PUSHIS",0x4c3), #Obelisk flag 3 (possibly Mara flag?)
+    inst("COMM",8),
+    inst("PUSHIS",0x50), #Hijiri cutscene post Obelisk
+    inst("COMM",8),
+    inst("PUSHIS",0x464), #Yoyogi Park 1
+    inst("COMM",8),
+    inst("PUSHIS",0x465), #Yoyogi Park 2
+    inst("COMM",8),
+    inst("PUSHIS",0x466), #Yoyogi Park 3
+    inst("COMM",8),
+    inst("PUSHIS",0x467), #Yoyogi Park 4
+    inst("COMM",8),
+    inst("PUSHIS",0x474), #Yoyogi Park 5
+    inst("COMM",8),
+    inst("PUSHIS",0x4b),  #Yuko in Yoyogi (no cutscene possible)
+    inst("COMM",8),
+    inst("PUSHIS",0x3dd), #Yoyogi Key
+    inst("COMM",8),
+    inst("PUSHIS",0x500), #Yurakucho Splash
+    inst("COMM",8),
+    inst("PUSHIS",0x506), #Auto-Shige (Kimon Stone location)
     inst("COMM",8),
     inst("PUSHIS",0x680), #Diet Building Splash
     inst("COMM",8),
@@ -1031,6 +1063,7 @@ f020_13_insert_insts = [
     inst("COMM",0x67) #Fight Ose
 ]
 #Callback: f020.wap at 0x7fc
+#TODO: Change it so you can't fight Ose multiple times.
 for l in f020_13_labels:
     if l.label_offset > precut:
         l.label_offset-=diff
@@ -1187,14 +1220,51 @@ dds3.add_new_file(custom_vals.LB0_PATH['f025b'], f025_lb)
 
 #Cutscene removal in Asakusa (Hijiri?) f027
 #Shorten Pale Rider
+#Move Black Frost to Sakahagi room.
 
-#Hijiri is e646_trm and trm_1st
-#1st message is: "It's up to you to stop whatever's^ngoing on inside the Obelisk"
 
 #Cutscene removal in Mifunashiro f035
 #Shorten and add decision on boss
 #6e2,6e3,6e7 - Mifunashiro splash/entrance
 #6e5 - Angels asking for opinion
+#009_01eve_01 is platform that takes you to boss decision.
+#156-157 inclusive is removed. Put in setting 0x56 then calling Futomimi fight. Return is already included.
+#Insert callback for reward message. 0xf68
+#Fight Futomimi always.
+f035_obj = get_script_obj_by_name(dds3,'f035')
+f035_futomimi_insert_insts = [
+    inst("PUSHIS",0x56),
+    inst("COMM",8),
+    inst("PUSHIS",0x2a2), #0x2a1 is archangels
+    inst("COMM",0x67)
+]
+f035_09_index = f035_obj.getProcIndexByLabel('009_01eve_01')
+f035_09_insts, f035_09_labels = f035_obj.getProcInstructionsLabelsByIndex(f035_09_index)
+precut = 156
+postcut = 158
+diff = postcut-precut
+for l in f035_09_labels:
+    if l.label_offset > precut:
+        l.label_offset -= diff
+        l.label_offset += len(f035_futomimi_insert_insts)
+f035_09_insts = f035_09_insts[:precut] + f035_futomimi_insert_insts + f035_09_insts[postcut:]
+f035_obj.changeProcByIndex(f035_09_insts, f035_09_labels, f035_09_index)
+f035_futomimi_rwms_index = f035_obj.appendMessage("Futomimi reward placeholder","FUTO_RWMS")
+f035_futomimi_callback_insts = [
+    inst("PROC",len(f035_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f035_futomimi_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+f035_futomimi_callback_str = "FUTO_CB"
+f035_obj.appendProc(f035_futomimi_callback_insts,[],f035_futomimi_callback_str)
+f035_lb = push_bf_into_lb(f035_obj, 'f035')
+dds3.add_new_file(custom_vals.LB0_PATH['f035'], f035_lb)
+insert_callback('f035',0xf68,f035_futomimi_callback_str)
 
 #Cutscene removal in Obelisk f031
 #Anything? Could probably do everything with flags.
@@ -1211,14 +1281,249 @@ dds3.add_new_file(custom_vals.LB0_PATH['f031'],f031_lb)
 #Shorten Specter 2 and add reward message
 #Remove waits on that dude?
 #Flag ending cutscene with Isamu as already viewed.
+#0x5eb
+#001_start has code for 
+#011_01eve_02 is specter 2. remove 7 - 162 inclusive
+f028_obj = get_script_obj_by_name(dds3,"f028")
+f028_011_index = f028_obj.getProcIndexByLabel("011_01eve_02")
+f028_011_insts, f028_011_labels = f028_obj.getProcInstructionsLabelsByIndex(f028_011_index)
+precut = 7
+postcut = 163
+diff = postcut - precut
+#nothing to insert.
+f028_011_insts = f028_011_insts[:precut] + f028_011_insts[postcut:]
+#only one label.
+f028_011_labels[0].label_offset -= diff
+f028_obj.changeProcByIndex(f028_011_insts, f028_011_labels, f028_011_index)
+f028_specter2_rwms_index = f028_obj.appendMessage("Specter 2 placeholder","SPEC2_RWMS")
+f028_specter2_callback_insts = [
+    inst("PROC",len(f028_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f028_specter2_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    #inst("PUSHIS",0x44), #Needs to be set at some time so why not now? Flag for Hijiri to not take you back into Network 2.
+    #inst("COMM",8),
+    inst("END")
+]
+f028_specter2_callback_str = "SPEC2_CB"
+f028_obj.appendProc(f028_specter2_callback_insts,[],f028_specter2_callback_str)
+f028_lb = push_bf_into_lb(f028_obj, 'f028')
+dds3.add_new_file(custom_vals.LB0_PATH['f028'], f028_lb)
+insert_callback('f028',0xf4,f028_specter2_callback_str)
+#set 0x43, 0x5ed
+#0x5f9 gets set on finish of network 2.
+
+#e652 - e652_trm
+#0-30 init
+#{
+#   Transfer to Network 2? 32-64
+#   {
+#       Go into Network 2. Set bit 0x41. 66-90
+#       return
+#   }{
+#       Say no. 92-122
+#   }{
+#       blah blah blah 123-152
+#   }
+#}
+#155-156 end
+
+#Write as:
+#0-30 init
+#   Check 0x5f9.
+#   Unset {
+#       Transfer to Network 2?
+#       Yes {
+#           Go into Network 2. Set bit 0x41. Return.
+#       }
+#   }Set{
+#       Check 0x4a.
+#       Unset {
+#           "Come back after you've completed yoyogi park."
+#       } Set {
+#           Transfer to Network 3?
+#           Yes {
+#               Go into Network 3. Set 0x53 to make Hikawa in Asakusa disappear.
+#           }
+#       }
+#   }
+#   Go to TERMINAL
+
+e652_obj = get_script_obj_by_name(dds3,'e652')
+e652_proc = e652_obj.getProcIndexByLabel('e652_trm')
+e652_insts, e652_labels = e652_obj.getProcInstructionsLabelsByIndex(e652_proc)
+e652_terminal_label_index = 0 #relative index for TERMINAL label. Absolute is 13
+e652_kept_insts = e652_insts[:52] #0-31 is terminal code. 32-51 has camera to hijiri code.
+e652_network2_msg = e652_obj.appendMessage("Would you like me to take you to Amala Network 2?","NETWORK2_MSG")
+e652_network3_msg = e652_obj.appendMessage("Would you like me to take you to Amala Network 3, leading to Amala Temple?","NETWORK3_MSG")
+e652_locked_msg = e652_obj.appendMessage("Come back after you've completed Yoyogi Park and I will take you to Amala Network 3.","LOCKED_MSG")
+e652_gl_msg = e652_obj.appendMessage("Good luck!","GL_MSG")
+e652_insert_insts = [
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x5f9), #Check if gone in Network 2
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #0x5f9 check (Network 2) scope
+    inst("COMM",1),
+    inst("PUSHIS",e652_network2_msg),
+    inst("COMM",0),
+    inst("PUSHIS",7), #Sure/No thanks
+    inst("COMM",3), #MSG_DEC
+    inst("PUSHREG"),
+    inst("POPIX"),
+    inst("COMM",2),
+    inst("PUSHIS",0),
+    inst("PUSHIX"),
+    inst("EQ"),
+    inst("IF",3), #Go to Network 2 scope. If not return to terminal.
+    inst("COMM",1),
+    inst("PUSHIS",e652_gl_msg),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("PUSHIS",0x41), #turn on flag 0x41. Not sure why but eh.
+    inst("COMM",8),
+    inst("COMM",0x45),
+    inst("COMM",0x23),
+    inst("PUSHIS",0x28c),
+    inst("PUSHIS",0x1c),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("END"), #End go to Network 2 scope
+    inst("PUSHIS",0),#Start Network 3 locked check scope.
+    inst("PUSHIS",0x4a), 
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",2), #Network 3 Locked scope
+    inst("COMM",1),
+    inst("PUSHIS",e652_locked_msg),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("GOTO",0),
+    inst("COMM",1), #Network 3 Unlocked scope
+    inst("PUSHIS",e652_network3_msg),
+    inst("COMM",0),
+    inst("PUSHIS",7),
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("POPIX"),
+    inst("COMM",2),
+    inst("PUSHIS",0),
+    inst("PUSHIX"),
+    inst("EQ"),
+    inst("IF",3),
+    inst("COMM",1),
+    inst("PUSHIS",e652_gl_msg),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("PUSHIS",0x53), #Change Asakusa terminal to not have Hijiri.
+    inst("COMM",8),
+    inst("COMM",0x45),
+    inst("COMM",0x23),
+    inst("PUSHIS",0x296),
+    inst("PUSHIS",0x1e),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("END"),
+    inst("PUSHIS",8),#Returning to beginning code. Resetting camera.
+    inst("PUSHIX"),
+    inst("COMM",0x4b),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0xa),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0xb),
+    inst("PUSHIX"),
+    inst("COMM",0x73),
+    inst("PUSHSTR",344),
+    inst("COMM",0x94),
+    inst("PUSHREG"),
+    inst("COMM",0x12),
+    inst("PUSHSTR",356),
+    inst("COMM",0x94),
+    inst("PUSHREG"),
+    inst("PUSHSTR",350),
+    inst("COMM",0x94),
+    inst("PUSHREG"),
+    inst("COMM",0x13),
+    inst("GOTO",0),
+    inst("END") #end label location. Also here to not trip off a warning in the assembler.
+]
+e652_kept_insts[31] = inst("IF",4) #END label for the kept portion.
+e652_labels = [
+    e652_labels[e652_terminal_label_index], #TERMINAL label.
+    assembler.label("NETWORK2_SCOPE",len(e652_kept_insts) + 31),
+    assembler.label("NETWORK3_SCOPE",len(e652_kept_insts) + 42),
+    assembler.label("NETWORK3_SCOPE",len(e652_kept_insts) + 67),
+    assembler.label("END_LABEL",len(e652_kept_insts) + 88)
+]
+e652_obj.changeProcByIndex(e652_kept_insts + e652_insert_insts, e652_labels, e652_proc)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e652'],BytesIO(bytes(e652_obj.toBytes())))
+#file = open("piped_scripts/e652.bfasm",'w')
+#file.write(e652_obj.exportASM())
+#file.close()
 
 #Cutscene removal in Asakusa Tunnel (anything at all?) f029
-#Trumpeter
 
 #Cutscene removal in Yoyogi Park f016
 #TODO: Shorten Pixie stay/part scene to not have splash: Low Priority
 #Shorten Girimekhala and Sakahagi
 #Shorten Mother Harlot
+#Flags for each short cutscene in the area
+#set: 0x464, 0x465, 0x466, 0x467, 0x474
+#set: 0x4b. 0x3dd is yoyogi key.
+#0x4a is gary fight. e658. Door is 01d_10
+#wap entry of 0x1b94 in 
+#e701_main is Yuko differentiator in Yoyogi park. 
+e658_obj = get_script_obj_by_name(dds3,"e658")
+e658_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x4a),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0),
+    inst("PUSHIS",0x4a),
+    inst("COMM",8),
+    inst("PUSHIS",658),
+    inst("PUSHIS",0x133),
+    inst("COMM",0x28),#CALL_EVENT_BATTLE
+    inst("END"),
+    inst("PUSHIS",658),
+    inst("PUSHIS",16),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("COMM",0x23),
+    inst("COMM",0x2e),
+    inst("END")
+]
+e658_labels = [
+    assembler.label("GARY_FOUGHT",13)
+]
+e658_obj.changeProcByIndex(e658_insts,e658_labels,0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e658'],BytesIO(bytes(e658_obj.toBytes())))
+
+f016_obj = get_script_obj_by_name(dds3,"f016")
+f016_gary_reward_msg = f016_obj.appendMessage("Gary reward placeholder","GARY_MSG")
+f016_gary_reward_insts = [
+    inst("PROC",len(f016_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f016_gary_reward_msg),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+f016_gary_reward_proc_str = "GARY_CB"
+f016_obj.appendProc(f016_gary_reward_insts, [], f016_gary_reward_proc_str)
+f016_lb = push_bf_into_lb(f016_obj,'f016')
+dds3.add_new_file(custom_vals.LB0_PATH['f016'],f016_lb)
+insert_callback('f016', 0x1b84, f016_gary_reward_proc_str)
 
 #Cutscene removal in Amala Network 3 f030
 #Shorten the one thing - if even because it's tiny. Add reward message
@@ -1237,48 +1542,214 @@ dds3.add_new_file(custom_vals.LB0_PATH['f031'],f031_lb)
 #002 -> 004 is black entrance
 #002 -> 021 is white entrance
 f034_obj = get_script_obj_by_name(dds3,"f034")
-a_msg = f034_obj.appendMessage("a_lb","A_LB")
-b_msg = f034_obj.appendMessage("b_lb","B_LB")
-c_msg = f034_obj.appendMessage("c_lb","C_LB")
-d_msg = f034_obj.appendMessage("d_lb","D_LB")
 
-bfcheck_insts = [
-    inst("PROC",len(f034_obj.p_lbls().labels)),
+#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAok
+
+f034_lb = push_bf_into_lb(f034_obj, 'f034')
+dds3.add_new_file(custom_vals.LB0_PATH['f034'], f034_lb)
+
+
+#Cutscene removal in Yurakucho Tunnel f021
+#Shorten Trumpeter
+#add archangels to room north of bead of life chest
+f021_obj = get_script_obj_by_name(dds3,"f021")
+#Trumpeter is 001_01eve_04
+f021_toot_proc = f021_obj.getProcIndexByLabel("001_01eve_04")
+f021_toot_insts = [
+    inst("PROC",f021_toot_proc),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x75a),#Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x118),#Didn't already fight
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("IF",0),#End label
     inst("COMM",0x60),
     inst("COMM",1),
-    inst("PUSHIS",a_msg),
+    inst("PUSHIS",0x39),#Do you want to stay here?
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x3a),#Yes/no
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("COMM",2),
+    inst("IF",1),
+    inst("PUSHIS",0x118), #turn on fought flag.
+    inst("COMM",8),
+    inst("PUSHIS",0x3e5), #give candelabra
+    inst("COMM",8),
+    inst("PUSHIS",0x925), #Fusion flag???
+    inst("COMM",8),
+    inst("PUSHIS",0x2ec),
+    inst("PUSHIS",0x15),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("PUSHIS",0x408),
+    inst("COMM",0x67),
+    inst("END"),
+    inst("PUSHIS",0x75a),
+    inst("COMM",0x8),
+    inst("COMM",0x61),
+    inst("END")
+]
+f021_toot_labels = [
+    assembler.label("TOOT_RAN",40),
+    assembler.label("TOOT_FOUGHT",37)
+]
+f021_obj.changeProcByIndex(f021_toot_insts,f021_toot_labels,f021_toot_proc)
+
+f021_toot_rwms = f021_obj.appendMessage("Trumpeter reward placeholder","TOOT_RWMS")
+f021_toot_rwms_insts = [
+    inst("PROC",len(f021_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f021_toot_rwms),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+f021_toot_reward_proc_str = "TOOT_CB"
+f021_obj.appendProc(f021_toot_rwms_insts,[],f021_toot_reward_proc_str)
+insert_callback('f021', 0xf4, f021_toot_reward_proc_str)
+
+f021_lb = push_bf_into_lb(f021_obj, 'f021')
+dds3.add_new_file(custom_vals.LB0_PATH['f021'], f021_lb)
+
+#Cutscene removal in Diet Building f033
+#Shorten Mada and Mithra. Add reward messages for all bosses.
+#Shorten Samael cutscene, as well as force Samael.
+#001_01eve_01 is Surt cutscene. No shortnening needed, but a callback is needed.
+#   Location value is: 0x226
+#0x694 set going into 007_start is Mada. No shortening needed, but a callback is needed.
+#   Location value is: 0x227
+#024_01eve_01 - 08 is Mot. "> Mot's magic is coming undone." can be used as reward message in 018_start.
+#   Message ID is: 0xd
+#029_01eve_01 is Mithra. Shortening possibly needed, but pretty low priority. 029_start has callback on the text: "O Kagutsuchi... Hath the destroyer (ry"
+#   Message ID is: 0x2d
+#e674_main is event with Samael. Shorten like Gary.
+f033_obj = get_script_obj_by_name(dds3,"f033")
+
+f033_surt_rwms = f033_obj.appendMessage("Surt reward message","SURT_RWMS")
+f033_surt_rwms_insts = [
+    inst("PROC",len(f033_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f033_surt_rwms),
     inst("COMM",0),
     inst("COMM",2),
     inst("COMM",0x61),
     inst("END")
 ]
 
-proc_index = f034_obj.appendProc(bfcheck_insts,[],"001_start")
-f034a_lb = push_bf_into_lb(f034_obj, 'f034')
-dds3.add_new_file(custom_vals.LB0_PATH['f034'], f034a_lb)
+f033_surt_reward_proc_str = "SURT_CB"
+f033_obj.appendProc(f033_surt_rwms_insts,[],f033_surt_reward_proc_str)
+insert_callback('f033', 0x37a4, f033_surt_reward_proc_str)
 
-bfcheck_insts[3] = inst("PUSHIS",b_msg)
-f034_obj.changeProcByIndex(bfcheck_insts,[],proc_index)
-f034b_lb = push_bf_into_lb(f034_obj, 'f034b')
-dds3.add_new_file(custom_vals.LB0_PATH['f034b'], f034b_lb)
+f033_mada_rwms = f033_obj.appendMessage("Mada reward message","MADA_RWMS")
+f033_mada_rwms_insts = [
+    inst("PROC",len(f033_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f033_mada_rwms),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
 
-bfcheck_insts[3] = inst("PUSHIS",c_msg)
-f034_obj.changeProcByIndex(bfcheck_insts,[],proc_index)
-f034c_lb = push_bf_into_lb(f034_obj, 'f034c')
-dds3.add_new_file(custom_vals.LB0_PATH['f034c'], f034c_lb)
-
-bfcheck_insts[3] = inst("PUSHIS",d_msg)
-f034_obj.changeProcByIndex(bfcheck_insts,[],proc_index)
-f034d_lb = push_bf_into_lb(f034_obj, 'f034d')
-dds3.add_new_file(custom_vals.LB0_PATH['f034d'], f034d_lb)
+f033_mada_reward_proc_str = "MADA_CB"
+f033_obj.appendProc(f033_mada_rwms_insts,[],f033_mada_reward_proc_str)
+insert_callback('f033', 0x3808, f033_mada_reward_proc_str)
 
 
-#Cutscene removal in Yurakucho Tunnel f021
-#Shorten Trumpeter
+f033_obj.changeMessageByIndex(assembler.message("Mot reward placeholder","MOT_REWARD"),0xd)
 
-#Cutscene removal in Diet Building f033
-#Shorten Mada and Mithra. Add reward messages for all bosses.
-#Shorten Samael cutscene, as well as force Samael.
+f033_29_proc = f033_obj.getProcIndexByLabel('029_01eve_01') #Mithra
+f033_29_insts = [
+    inst("PROC",f033_29_proc),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x691),
+    inst("COMM",0x7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0),
+    inst("PUSHIS",0x691),
+    inst("COMM",0x8),
+    inst("PUSHIS",0x919), #Fusion flag I think. Probably not necessary
+    inst("COMM",0x8),
+    inst("PUSHIS",0x22a),
+    inst("PUSHIS",0x21),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("PUSHIS",0x3ca),
+    inst("COMM",0x67),
+    inst("END")
+]
+f033_29_labels = [
+    assembler.label("MITHRA_FOUGHT",17)
+]
+f033_obj.changeProcByIndex(f033_29_insts, f033_29_labels, f033_29_proc)
+f033_obj.changeMessageByIndex(assembler.message("Mithra Reward Placeholder","MITHRA_REWARD"),0x2d)
+
+f033_samael_rwms = f033_obj.appendMessage("Samael reward message","MADA_RWMS")
+f033_samael_rwms_insts = [
+    inst("PROC",len(f033_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f033_samael_rwms),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+
+f033_samael_reward_proc_str = "SAMAEL_CB"
+f033_obj.appendProc(f033_samael_rwms_insts,[],f033_samael_reward_proc_str)
+insert_callback('f033', 0x3998, f033_samael_reward_proc_str)
+
+f033_lb = push_bf_into_lb(f033_obj, 'f033')
+dds3.add_new_file(custom_vals.LB0_PATH['f033'], f033_lb)
+
+#e674_main
+#set bits: 0x904, 0x72 (then calls battle 0x2a0). 0x73 (closes door), 0x3da, 0x870, 0x6b7 (off), 0x76, 0x70, 0x71, 
+e674_obj = get_script_obj_by_name(dds3,'e674')
+e674_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x73),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0),
+    inst("PUSHIS",0x73),
+    inst("COMM",8),
+    inst("PUSHIS",0x3da),
+    inst("COMM",8),
+    inst("PUSHIS",0x2a2),
+    inst("PUSHIS",0x2a0),
+    inst("COMM",0x28),
+    inst("END"),
+    inst("PUSHIS",0x2a2),#guess
+    inst("PUSHIS",33),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("COMM",0x23),#FLD_EVENT_END2
+    inst("COMM",0x2e),
+    inst("END")
+]
+e674_labels = [
+    assembler.label("SAMAEL_DEFEATED",15)
+]
+e674_obj.changeProcByIndex(e674_insts,e674_labels,0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e674'], BytesIO(bytes(e674_obj.toBytes())))
+
 
 #Cutscene removal in ToK1 f032
 #Shorten Ahriman
