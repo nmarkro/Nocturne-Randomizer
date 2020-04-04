@@ -70,6 +70,8 @@ def insert_callback(field_string, location_insert, fun_name_insert, overwrite_wa
     wap_file = wap_file[:location_insert] + bytes([2]) + bytes(assembler.ctobb(fun_name_insert,15)) + wap_file[location_insert+16:]
     dds3.add_new_file(file_path,BytesIO(wap_file))
 
+
+
 print ("Parsing ISO")
 # open the ISO and parse it
 iso = IsoFS('rom/input.iso')
@@ -191,7 +193,7 @@ e601_insts = [
     inst("PUSHIS",0x5a0), #Ikebukuro Tunnel Splash
     inst("COMM",8),
     #inst("PUSHIS",0x5e0), #Amala Network 2 Splash
-    #inst("COMM",8),
+    #inst("COMM",8), #Turned off because it's short and has a bunch of necessary code so I'm not going to bother with it yet. If I get to it I'll probably want to keep this off anyway.
     inst("PUSHIS",0x5eb), #Amala Network 2 Cutscene
     inst("COMM",8),
     inst("PUSHIS",0x43), #Amala Network 2 Cutscene 2
@@ -226,6 +228,8 @@ e601_insts = [
     inst("COMM",8),
     inst("PUSHIS",0x3dd), #Yoyogi Key
     inst("COMM",8),
+    inst("PUSHIS",0x51), #Amala Temple dropping Hijiri cutscene
+    inst("COMM",8),
     inst("PUSHIS",0x500), #Yurakucho Splash
     inst("COMM",8),
     inst("PUSHIS",0x506), #Auto-Shige (Kimon Stone location)
@@ -237,6 +241,8 @@ e601_insts = [
     inst("PUSHIS",0x688), #Diet Building Message 2
     inst("COMM",8),
     inst("PUSHIS",0x689), #Diet Building Message 3
+    inst("COMM",8),
+    inst("PUSHIS",0x660), #ToK entrance cutscene
     inst("COMM",8),
     inst("PUSHIS",0x760), #1st Kalpa splash
     inst("COMM",8),
@@ -1542,12 +1548,258 @@ insert_callback('f016', 0x1b84, f016_gary_reward_proc_str)
 #002 -> 004 is black entrance
 #002 -> 021 is white entrance
 f034_obj = get_script_obj_by_name(dds3,"f034")
+#Bit checks in 001_start:
+#6ac, 6ae, 6ad, 6a0, 63. 6a7 off.
+#possibly cut 202-298 inclusive
+f034_02_proc = f034_obj.getProcIndexByLabel("002_start")
+f034_02_insts, f034_02_labels = f034_obj.getProcInstructionsLabelsByIndex(f034_02_proc)
+precut = 151
+postcut = 299
+diff = postcut - precut
+f034_02_insert_insts = [
+    inst("PUSHIS",0x4a0),
+    inst("COMM",8)
+]
+f034_02_insts = f034_02_insts[:precut] + f034_02_insert_insts + f034_02_insts[postcut:]
+for l in f034_02_labels:
+    if l.label_offset > precut:
+        if l.label_offset < postcut:
+            l.label_offset = 0
+        else:
+            l.label_offset -= diff
+            l.label_offset += len(f034_02_insert_insts)
+f034_obj.changeProcByIndex(f034_02_insts, f034_02_labels, f034_02_proc)
 
-#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAok
+#Plan: Completely gut the 002_01 events. The underground magatsuhi flows into the center won't show, but who gives a shit.
+#6aX:
+#   9 - Aciel spawn
+#   a - Skadi spawn
+#   b - Albion spawn
+#   c - Aciel callback (defeat confirmed)
+#   d - Skadi callback (defeat confirmed)
+#   e - Albion callback (defeat confirmed)
+#   f - Gets set after all 3 defeats are confirmed (cde), then enables 003_start in the center instead of 002_start.
 
-f034_lb = push_bf_into_lb(f034_obj, 'f034')
-dds3.add_new_file(custom_vals.LB0_PATH['f034'], f034_lb)
+#Temp plan. Gut out 002_01 events and see what happens.
+f034_02_1_proc = f034_obj.getProcIndexByLabel('002_01eve_01')
+f034_02_2_proc = f034_obj.getProcIndexByLabel('002_01eve_02')
+f034_02_3_proc = f034_obj.getProcIndexByLabel('002_01eve_03')
+f034_obj.changeProcByIndex([inst("PROC",f034_02_1_proc),inst("END")], [], f034_02_1_proc)
+f034_obj.changeProcByIndex([inst("PROC",f034_02_2_proc),inst("END")], [], f034_02_2_proc)
+f034_obj.changeProcByIndex([inst("PROC",f034_02_3_proc),inst("END")], [], f034_02_3_proc)
 
+f034_wap_file_path = custom_vals.WAP_PATH['f034']
+f034_wap_file = bytes(dds3.get_file_from_path(f034_wap_file_path).read())
+wap_empty_entry = bytes([0]*0x38) + bytes(assembler.ctobb("01pos_01",8)) + bytes([0]*6) + bytes(assembler.ctobb("01cam_01",8)) + bytes([0,0,0,0,1,1]) + bytes([0]*0x10)
+
+#"Deleting" 2nd, 4th and 6th wap entries.
+f034_wap_file = f034_wap_file[:0xa0 + 0x64] + wap_empty_entry + f034_wap_file[0xa0 + (0x64*2):0xa0 + (0x64*3)] + wap_empty_entry + f034_wap_file[0xa0 + (0x64*4):0xa0 + (0x64*5)] + wap_empty_entry + f034_wap_file[0xa0 + (0x64*6):]
+#Thankfully there aren't any callbacks that need to be inserted.
+
+dds3.add_new_file(f034_wap_file_path,BytesIO(f034_wap_file)) #Write in normal WAP spot, but this isn't what we 'really' need.
+#What we really need to do is to write the WAP into all 4 LB files.
+f034a_lb_data = dds3.get_file_from_path(custom_vals.LB0_PATH['f034'])
+f034b_lb_data = dds3.get_file_from_path(custom_vals.LB0_PATH['f034b'])
+f034c_lb_data = dds3.get_file_from_path(custom_vals.LB0_PATH['f034c'])
+f034d_lb_data = dds3.get_file_from_path(custom_vals.LB0_PATH['f034d'])
+f034a_lb = LB_FS(f034a_lb_data)
+f034b_lb = LB_FS(f034b_lb_data)
+f034c_lb = LB_FS(f034c_lb_data)
+f034d_lb = LB_FS(f034d_lb_data)
+f034a_lb.read_lb()
+f034b_lb.read_lb()
+f034c_lb.read_lb()
+f034d_lb.read_lb()
+#f034a_lb = f034a_lb.export_lb({'WAP': BytesIO(f034_wap_file)})
+#f034b_lb = f034b_lb.export_lb({'WAP': BytesIO(f034_wap_file)})
+#f034c_lb = f034c_lb.export_lb({'WAP': BytesIO(f034_wap_file)})
+#f034d_lb = f034d_lb.export_lb({'WAP': BytesIO(f034_wap_file)})
+#dds3.add_new_file(custom_vals.LB0_PATH['f034'], f034a_lb)
+#dds3.add_new_file(custom_vals.LB0_PATH['f034b'], f034b_lb)
+#dds3.add_new_file(custom_vals.LB0_PATH['f034c'], f034c_lb)
+#dds3.add_new_file(custom_vals.LB0_PATH['f034d'], f034d_lb)
+
+#6aX:
+#   9 - Aciel spawn
+#   a - Skadi spawn
+#   b - Albion spawn
+#   c - Aciel callback (defeat confirmed)
+#   d - Skadi callback (defeat confirmed)
+#   e - Albion callback (defeat confirmed)
+#   f - Gets set after all 3 defeats are confirmed (cde), then enables 
+
+f034_temple_bosses_done_msg = f034_obj.appendMessage("All temple bosses defeated.^nThe central temple is now open.","CENTER_TEMPLE_MSG")
+
+#Albion callback
+f034_25_2_proc = f034_obj.getProcIndexByLabel('025_01eve_02')
+#Set 6ae, check 6ac and 6ad. If both are set then set 6af
+f034_albion_rwms = f034_obj.appendMessage("Albion reward placeholder","ALBION_RWMS") #Could change a message, but this is just easier.
+f034_25_2_insts = [
+    inst("PROC",f034_25_2_proc),
+    inst("PUSHIS",0x6ae),
+    inst("COMM",8),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f034_albion_rwms),
+    inst("COMM",0),
+    inst("PUSHIS",0x6ac),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x6ad),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("AND"),
+    inst("IF",0),#Check if other two bosses defeated.
+    inst("PUSHIS",f034_temple_bosses_done_msg),
+    inst("COMM",0),
+    inst("PUSHIS",0x6af),
+    inst("COMM",8),
+    inst("COMM",2),#Label here. 19
+    inst("COMM",0x61),
+    inst("END")
+]
+f034_25_2_labels = [
+    assembler.label("ALBION_TO_CENTER",19)
+]
+f034_obj.changeProcByIndex(f034_25_2_insts, f034_25_2_labels, f034_25_2_proc)
+
+#Skadi callback
+#Set 6ad, check 6ac and 6ae. If both are set then set 6af
+f034_18_2_proc = f034_obj.getProcIndexByLabel('018_01eve_02')
+f034_skadi_rwms = f034_obj.appendMessage("Skadi reward placeholder", "SKADI_RWMS")
+f034_18_2_insts = [
+    inst("PROC",f034_18_2_proc),
+    inst("PUSHIS",0x6ad),
+    inst("COMM",8),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f034_skadi_rwms),
+    inst("COMM",0),
+    inst("PUSHIS",0x6ac),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x6ae),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("AND"),
+    inst("IF",0),#Check if other two bosses defeated.
+    inst("PUSHIS",f034_temple_bosses_done_msg),
+    inst("COMM",0),
+    inst("PUSHIS",0x6af),
+    inst("COMM",8),
+    inst("COMM",2),#Label here. 19
+    inst("COMM",0x61),
+    inst("END")
+]
+f034_18_2_labels = [
+    assembler.label("SKADI_TO_CENTER",19)
+]
+f034_obj.changeProcByIndex(f034_18_2_insts, f034_18_2_labels, f034_18_2_proc)
+
+#Aciel callback
+f034_10_2_proc = f034_obj.getProcIndexByLabel('010_01eve_02')
+#Set 6ac, check 6ae and 6ad. If both are set then set 6af
+f034_aciel_rwms = f034_obj.appendMessage("Aciel reward placeholder","ACIEL_RWMS")
+f034_10_2_insts = [
+    inst("PROC",f034_10_2_proc),
+    inst("PUSHIS",0x6ac),
+    inst("COMM",8),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f034_aciel_rwms),
+    inst("COMM",0),
+    inst("PUSHIS",0x6ad),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x6ae),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("AND"),
+    inst("IF",0),#Check if other two bosses defeated.
+    inst("PUSHIS",f034_temple_bosses_done_msg),
+    inst("COMM",0),
+    inst("PUSHIS",0x6af),
+    inst("COMM",8),
+    inst("COMM",2),#Label here. 19
+    inst("COMM",0x61),
+    inst("END")
+]
+f034_10_2_labels = [
+    assembler.label("ACIEL_TO_CENTER",19)
+]
+f034_obj.changeProcByIndex(f034_10_2_insts, f034_10_2_labels, f034_10_2_proc)
+
+#Center temple: 1st scene sets 0x864 and 0x52. 0x51 is the check. Keeping 0x51 set is probably safe.
+#   2nd scene checks 0x73. We want it to check Pyramidion instead.
+f034_03_01_proc = f034_obj.getProcIndexByLabel('003_01eve_01')
+f034_03_01_insts, f034_03_01_labels = f034_obj.getProcInstructionsLabelsByIndex(f034_03_01_proc)
+f034_03_01_insts[61] = inst("PUSHIS",0x3da) #Change flag check to key item (Himorogi)
+f034_obj.changeProcByIndex(f034_03_01_insts, f034_03_01_labels, f034_03_01_proc)
+
+#Swap out Markro's INF.
+#Black Temple - Checks flag 0x03C0
+#    MSG 1 - 0x10
+#    MSG 2 - 0x13
+#White Temple - Checks flag 0x03C1
+#    MSG 1 - 0x11
+#    MSG 2 - 0x13
+#Red Temple - Checks flag 0x03C2
+#    MSG 1 - 0x12
+#    MSG 2 - 0x13
+f034_inf_patched = BytesIO(bytes(open('patches/Doors_F034.INF','rb').read()))
+dds3.add_new_file('/fld/f/f034/F034.INF', f034_inf_patched)
+f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is held by ^gsome dude^p.","BLACK_LOCK"),0x10)
+f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is held by ^gsome dude^p.","WHITE_LOCK"),0x11)
+f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is held by ^gsome dude^p.","RED_LOCK"),0x12)
+f034_obj.changeMessageByIndex(assembler.message("You have opened the locked door.","DOOR_OPEN"),0x13)
+#f034_lb = push_bf_into_lb(f034_obj, 'f034')
+#f034b_lb = push_bf_into_lb(f034_obj, 'f034b')
+#f034c_lb = push_bf_into_lb(f034_obj, 'f034c')
+#f034d_lb = push_bf_into_lb(f034_obj, 'f034d')
+
+f034_amb_a = dds3.get_file_from_path('/fld/f/f034/f034.amb')
+f034_amb_b = dds3.get_file_from_path('/fld/f/f034/f034b.amb')
+f034_amb_c = dds3.get_file_from_path('/fld/f/f034/f034c.amb')
+f034_amb_d = dds3.get_file_from_path('/fld/f/f034/f034d.amb')
+
+f034a_lb = f034a_lb.export_lb({'WAP': BytesIO(f034_wap_file), 'BF': BytesIO(bytes(f034_obj.toBytes())), 'ATMP': f034_amb_a, 'INF': f034_inf_patched})
+f034b_lb = f034b_lb.export_lb({'WAP': BytesIO(f034_wap_file), 'BF': BytesIO(bytes(f034_obj.toBytes())), 'ATMP': f034_amb_b, 'INF': f034_inf_patched})
+f034c_lb = f034c_lb.export_lb({'WAP': BytesIO(f034_wap_file), 'BF': BytesIO(bytes(f034_obj.toBytes())), 'ATMP': f034_amb_c, 'INF': f034_inf_patched})
+f034d_lb = f034d_lb.export_lb({'WAP': BytesIO(f034_wap_file), 'BF': BytesIO(bytes(f034_obj.toBytes())), 'ATMP': f034_amb_d, 'INF': f034_inf_patched})
+#Modified WAP is to remove the warping outside when you defeat one of the bosses (because internally you get warped outside, view the cutscene, then warped back in).
+#Modified BF as usual.
+#Modified ATMP/AMB because if I don't the map stays on the outside one whenever you go into a temple.
+#Modified INF for locked doors (though probably fine as just a_lb).
+
+dds3.add_new_file(custom_vals.LB0_PATH['f034'], f034a_lb)
+dds3.add_new_file(custom_vals.LB0_PATH['f034b'], f034b_lb)
+dds3.add_new_file(custom_vals.LB0_PATH['f034c'], f034c_lb)
+dds3.add_new_file(custom_vals.LB0_PATH['f034d'], f034d_lb)
+#set 0x51
+
+e703_obj = get_script_obj_by_name(dds3,'e703')
+e703_msg = e703_obj.appendMessage("The Tower of Kagutsuchi has been lowered onto the Obelisk.^nFinish it at the Tower of Kagutsuchi!","TOK_LOWERED")
+e703_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0x10),
+    inst("PUSHIS",1),
+    inst("COMM",0xf),
+    inst("COMM",1),
+    inst("PUSHIS",e703_msg),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("PUSHIS",0x96),
+    inst("COMM",8),
+    inst("COMM",0x23),#FLD_EVENT_END2
+    inst("COMM",0x2e),
+    inst("END")
+]
+e703_obj.changeProcByIndex(e703_insts,[],0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e703'], BytesIO(bytes(e703_obj.toBytes())))
+
+#file = open("piped_scripts/f034.bfasm",'w')
+#file.write(f034_obj.exportASM())
+#file.close()
 
 #Cutscene removal in Yurakucho Tunnel f021
 #Shorten Trumpeter
@@ -1750,19 +2002,31 @@ e674_labels = [
 e674_obj.changeProcByIndex(e674_insts,e674_labels,0)
 dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e674'], BytesIO(bytes(e674_obj.toBytes())))
 
+#Going into ToK is 015_01eve_02 of Obelisk
 
 #Cutscene removal in ToK1 f032
 #Shorten Ahriman
 #If possible, have block puzzle already solved
+#Block puzzle to ahriman is in 017. Probably initialized with 017_start.
+#9&10 is middle block. 5&7 is front block. 6&8 is far block.
+#e681 is Ahriman. e678 is Ahriman dead.
 
 #Cutscene removal in ToK2 f036
 #Shorten Noah
+#013_01eve_09 is block. (inverse is 10)
+#e680 is noah. e677 is noah dead.
 
 #Cutscene removal in ToK3 f037
 #Shorten Thor 2
 #Shorten Baal
 #Shorten Kagutsuchi and Lucifer
 #If possible, have block puzzle after Thor 2 already solved
+#Thor 2 is 007_01eve_05. 007_THOR_AFTER exists.
+#007_01eve_03 is center block. (inverse is 04)
+#Baal is e682. e679 is baal dead.
+#0x665 is ToK3 top splash.
+#027_01eve_04 is left pillar, 05 is middle, 06 is right. 07 is central pillar to Kagutsuchi.
+#e705?
 
 #Cutscene removal in LoA Lobby f040
 #If possible, have each hole with 3 options. Jump, Skip, Cancel
