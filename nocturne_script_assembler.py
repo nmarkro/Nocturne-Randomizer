@@ -226,12 +226,12 @@ class bf_script:
                     #if r != l_inst.operand:
                     #    print "DEBUG: Rewriting later branch instruction from",l_inst.operand,"to",r
                     l_inst.operand = recalc_index(l_inst.operand,removed_branch_indices)
-            #turn branch instruction indices from relative to absolute
-            for inst in instructions:
-                if inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
-                    #print "DEBUG: Rewriting instruction from relative label to absolute.",inst.operand,"to",inst.operand + len(self.sections[BR_LABELS].labels) #- len(removed_branch_indices)
-                    inst.operand += len(self.sections[BR_LABELS].labels) #- len(removed_branch_indices)
-            #print "DEBUG: Done fixing"
+        #turn branch instruction indices from relative to absolute
+        for inst in instructions:
+            if inst.opcode in OPCODES_LABEL_OPERAND_BRANCH_BYNUM:
+                #print "DEBUG: Rewriting instruction from relative label to absolute.",inst.operand,"to",inst.operand + len(self.sections[BR_LABELS].labels) #- len(removed_branch_indices)
+                inst.operand += len(self.sections[BR_LABELS].labels) #- len(removed_branch_indices)
+        #print "DEBUG: Done fixing"
         #Append added labels (maybe its own function?):
         #   Add relative_labels offset by current instruction count (in label header)
         #   Add relative_labels to BR_LABELS
@@ -380,22 +380,26 @@ class bf_script:
             l_s = self.sections[MESSAGES].messages[i].label_str
             if label_str == l_s:
                 return i
+        print("WARNING In getMessageIndexByLabel(): Given label string",label_str,"was not found.")
         return -1
     def getPUSHSTRIndexByStr(self, str):
         try:
             retval = self.sections[STRINGS].strings.index(str)
         except ValueError as e:
+            print("WARNING In getPUSHSTRIndexByStr(): Given string",str,"was not found.")
             return -1
         return retval
     def getProcIndexByLabel(self, label_str):
         for index,proc in enumerate(self.sections[PROC_LABELS].labels):
             if label_str == proc.label_str:
                 return index
+        print("WARNING In getProcIndexByLabel(): Given label string",label_str,"was not found.")
         return -1
     def getProcLocByLabel(self, label_str):
         for proc in self.sections[PROC_LABELS].labels:
             if label_str == proc.label_str:
                 return proc.label_offset
+        print("WARNING In getProcLocByLabel(): Given label string",label_str,"was not found.")
         return -1
     #Returns a tuple of instructions and relative labels. Branches are all returned as relative labels. 
     #All values are returned as a deep copy as modifications can have huge ramifications elsewhere, which needs to be handled separately.

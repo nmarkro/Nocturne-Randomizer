@@ -1,5 +1,6 @@
 import nocturne_script_assembler as assembler
 import customizer_values as custom_vals
+import copy
 
 from io import BytesIO
 from os import path
@@ -244,6 +245,8 @@ e601_insts = [
     inst("COMM",8),
     inst("PUSHIS",0x660), #ToK entrance cutscene
     inst("COMM",8),
+    inst("PUSHIS",0x95), #Neutral reason
+    inst("COMM",8),
     inst("PUSHIS",0x760), #1st Kalpa splash
     inst("COMM",8),
     inst("PUSHIS",0x780), #2nd Kalpa splash
@@ -253,6 +256,18 @@ e601_insts = [
     inst("PUSHIS",0x7c0), #4th Kalpa splash
     inst("COMM",8),
     inst("PUSHIS",0x7e0), #5th Kalpa splash
+    inst("COMM",8),
+    inst("PUSHIS",0x3c0), #Black Key (testing purposes)
+    inst("COMM",8),
+    inst("PUSHIS",0x3c1), #White Key (testing purposes)
+    inst("COMM",8),
+    inst("PUSHIS",0x3c2), #Red Key (testing purposes)
+    inst("COMM",8),
+    inst("PUSHIS",0x3c3), #Apocalypse Stone (unlocks white rider check - testing purposes)
+    inst("COMM",8),
+    inst("PUSHIS",0x3c4), #Golden Goblet (unlocks mother harlot check - testing purposes)
+    inst("COMM",8),
+    inst("PUSHIS",0x3c5), #Eggplant (unlocks mara check - testing purposes)
     inst("COMM",8),
     inst("PUSHIS",506), 
     inst("COMM",0x66), 
@@ -366,12 +381,238 @@ f015_obj.changeProcByIndex(f015_002_start_insts, f015_002_start_labels, forneus_
 
 f015_obj.changeMessageByIndex(assembler.message("Forneus reward placeholder","FORNEUS_REWARD"),0x5b)
 
-#TODO: Shorten Black Rider
+#Black Rider
+f015_br_proc = f015_obj.getProcIndexByLabel('014_b_rider')
+f015_br_insts, f015_br_labels = f015_obj.getProcInstructionsLabelsByIndex(f015_br_proc)
+f015_br_insts[4] = inst("PUSHIS",0x3c3) #Change rider trigger check from 7b8 to key item
+f015_br_insts[7] = inst("PUSHIS",0x3c3) #"Remove" story trigger check. (Yuko in Obelisk cutscene)
+f015_obj.changeProcByIndex(f015_br_insts, f015_br_labels, f015_br_proc)
+
+f015_14_proc = f015_obj.getProcIndexByLabel('014_01eve_01')
+f015_14_insts = [
+    inst("PROC",f015_14_proc),
+    inst("PUSHIS",0x106), #Red Rider dead
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x3c3), #Key item to enable Riders
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x757), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x109), #Didn't already beat him
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"), 
+    inst("AND"),
+    inst("IF",0), #End label
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",0x6f), #"Stay here?"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x70), #">Yes/no"
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #Not quite end label
+    inst("PUSHIS",0x109), #Fought flag
+    inst("COMM",8),
+    inst("PUSHIS",0x3e2), #Candelabra
+    inst("COMM",8),
+    inst("PUSHIS",0x920), #Fusion flag
+    inst("COMM",8),
+    inst("PUSHIS",0x2e9),
+    inst("PUSHIS",0xf),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x403),
+    inst("COMM",0x67), #Fight Black Rider
+    inst("END"),
+    inst("PUSHIS",0x757),
+    inst("COMM",8),
+    inst("COMM",0x61),
+    inst("END")
+]
+f015_14_labels = [
+    assembler.label("BRIDER_FOUGHT",47),
+    assembler.label("BRIDER_RAN",44)
+]
+f015_obj.changeProcByIndex(f015_14_insts, f015_14_labels, f015_14_proc)
+
+f015_brider_callback_str = "BR_CB"
+f015_brider_rwms_index = f015_obj.appendMessage("Black Rider reward placeholder", "BR_REWARD")
+f015_br_rwms_insts = [
+    inst("PROC",len(f015_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f015_brider_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+
+f015_obj.appendProc(f015_br_rwms_insts, [], f015_brider_callback_str)
+insert_callback('f015',0x3b0,f015_brider_callback_str)
+
+
 f015_lb = push_bf_into_lb(f015_obj, 'f015')
 dds3.add_new_file(custom_vals.LB0_PATH['f015'], f015_lb)
 
 #Cutscene removal in Shibuya f017
 #TODO: Shorten Mara
+f017_obj = get_script_obj_by_name(dds3,'f017')
+#001_01eve_01 -> 009_start
+#normal bit check line of 001_01eve_01 is 0x483 on line 20. We want it to be a key item instead.
+#cut out 24-29 inclusive for FULL check. put in an AND instead
+f017_01_proc = f017_obj.getProcIndexByLabel('001_01eve_01')
+f017_01_insts, f017_01_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_01_proc)
+#f017_01_insts[16] = inst("PUSHIS",0x3c5)
+#Fails if: 0x3c5 is not set. Also fails if 0x482 is set.
+#I need the negation of that though.
+f017_01_insert_insts = [
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x3c5),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("OR")
+]
+precut = 19
+postcut = 30
+diff = postcut - precut
+f017_01_insts = f017_01_insts[:precut] + f017_01_insert_insts + f017_01_insts[postcut:]
+for l in f017_01_labels:
+    if l.label_offset > precut:
+        l.label_offset -= diff
+        l.label_offset += len(f017_01_insert_insts)
+f017_obj.changeProcByIndex(f017_01_insts, f017_01_labels, f017_01_proc)
+
+#009_start also takes care of callback
+#check 0x488 to make sure mara wasn't already fought
+#cut out 10 - 420 inclusive
+#callback text id is 0x19
+#can hint about location of item with text id 0x1. "It seems fishy..."
+f017_09_proc = f017_obj.getProcIndexByLabel('009_start')
+f017_09_insts, f017_09_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_09_proc)
+precut = 10
+postcut = 421
+diff = postcut - precut
+f017_09_insts = f017_09_insts[:precut] + f017_09_insts[postcut:]
+for l in f017_09_labels:
+    if l.label_offset > precut:
+        if l.label_offset < postcut:
+            l.label_offset=0
+        else:
+            l.label_offset-=diff
+f017_obj.changeProcByIndex(f017_09_insts, f017_09_labels, f017_09_proc)
+
+#001_w_rider for warning.
+#bit checks: 5c0, 7b8, 112 unset. Turns off 0x755.
+#7b8 is riders flag. We want that as a key item (3c3). 112 is defeating white rider.
+#5c0 is a flag that gets set when going into Shibuya. It is also the Asakusa entrance cutscene splash that we've set to be always on. Do we replicate this effect or ignore it? Ignoring it for now.
+f017_wr_proc = f017_obj.getProcIndexByLabel("001_w_rider")
+f017_wr_insts, f017_wr_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_wr_proc)
+f017_wr_insts[4] = inst("PUSHIS",0x3c3)
+f017_obj.changeProcByIndex(f017_wr_insts, f017_wr_labels, f017_wr_proc)
+#003_01eve_01
+#bit checks: 5c0, 7b8, 755 off, 112 off.
+#Run away: 755 on.
+#003_01eve_02 and 03 is dupe.
+f017_03_1_proc = f017_obj.getProcIndexByLabel("003_01eve_01")
+f017_03_2_proc = f017_obj.getProcIndexByLabel("003_01eve_02")
+f017_03_3_proc = f017_obj.getProcIndexByLabel("003_01eve_03")
+f017_03_insts = [ #See Daisoujou proc for more detailed comments on this proc
+    inst("PROC",f017_03_1_proc),
+    inst("PUSHIS",0x5c0), #"Story trigger" to enable Riders
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x3c3), #Key item to enable Riders
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x755), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x112), #Didn't already beat him
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"), 
+    inst("AND"),
+    inst("IF",0), #End label
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",0x35), #"Stay here?"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x36), #">Yes/no"
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #Not quite end label
+    inst("PUSHIS",0x112), #Fought flag
+    inst("COMM",8),
+    inst("PUSHIS",0x3e4), #Candelabra
+    inst("COMM",8),
+    inst("PUSHIS",0x91e), #Fusion flag
+    inst("COMM",8),
+    inst("PUSHIS",0x2e7),
+    inst("PUSHIS",0x11),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x401),
+    inst("COMM",0x67), #Fight White Rider
+    inst("END"),
+    inst("PUSHIS",0x755),
+    inst("COMM",8),
+    inst("COMM",0x61),
+    inst("END")
+]
+f017_03_labels = [
+    assembler.label("WRIDER_FOUGHT",47),
+    assembler.label("WRIDER_RAN",44)
+]
+
+f017_03_2_insts = [
+    inst("PROC",f017_03_2_proc),
+    inst("CALL",f017_03_1_proc),
+    inst("END"),
+]
+f017_03_3_insts = [
+    inst("PROC",f017_03_3_proc),
+    inst("CALL",f017_03_1_proc),
+    inst("END"),
+]
+f017_obj.changeProcByIndex(f017_03_insts, f017_03_labels, f017_03_1_proc)
+f017_obj.changeProcByIndex(f017_03_2_insts, [], f017_03_2_proc)
+f017_obj.changeProcByIndex(f017_03_3_insts, [], f017_03_3_proc)
+f017_wr_rwms_index = f017_obj.appendMessage("White Rider reward placeholder","WR_RWMS")
+f017_wr_callback_str = "WR_CB"
+f017_wr_callback_insts = [
+    inst("PROC",len(f017_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f017_wr_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+f017_obj.appendProc(f017_wr_callback_insts, [], f017_wr_callback_str)
+insert_callback('f017', 0x34c, f017_wr_callback_str)
+
+f017_lb = push_bf_into_lb(f017_obj, 'f017')
+dds3.add_new_file(custom_vals.LB0_PATH['f017'], f017_lb)
 
 #Shorten e623. e623_trm
 #COMMs: 95 6p, 
@@ -386,6 +627,14 @@ dds3.add_new_file(custom_vals.LB0_PATH['f015'], f015_lb)
 #       E;1E, 1, 0;10 "Tell me when you're ready", 2, 4B;(A,1), 73
 #       GOTO TERMINAL
 #I give up
+e623_obj = get_script_obj_by_name(dds3, 'e623')
+e623_trm_proc = e623_obj.getProcIndexByLabel('e623_trm')
+e623_insts, e623_labels = e623_obj.getProcInstructionsLabelsByIndex(e623_trm_proc)
+#Turning the cutscene into a noop
+e623_insts[84] = inst("PUSHIS",0)
+e623_insts[85] = inst("COMM",0xe)
+e623_obj.changeProcByIndex(e623_insts, e623_labels, e623_trm_proc)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e623'],BytesIO(bytes(e623_obj.toBytes())))
 
 #Cutscene removal in Amala Network 1 f018
 #4A0, 4A1, 4A2 (looks weird but eh).
@@ -477,10 +726,10 @@ f019_troll_callback_str = "TROLL_CB"
 f019_troll_callback_insts = [
     inst("PROC",len(f019_obj.p_lbls().labels)),
     inst("COMM",0x60),
-    inst("COMM",2),
+    inst("COMM",1),
     inst("PUSHIS",f019_troll_rwms_index),
     inst("COMM",0),
-    inst("COMM",1),
+    inst("COMM",2),
     inst("COMM",0x61),
     inst("END")
 ]
@@ -547,6 +796,85 @@ f022_obj.changeMessageByIndex(assembler.message("Matador reward placeholder","MA
 f022_obj.changeProcByIndex(f022_mata_callback_insts,[],f022_mata_callback)
 
 f022_obj.changeProcByIndex(f022_013_e1_insts, f022_013_e1_labels, f022_mata_room)
+
+f022_rr_proc = f022_obj.getProcIndexByLabel('010_r_rider')
+f022_rr_insts, f022_rr_labels = f022_obj.getProcInstructionsLabelsByIndex(f022_rr_proc)
+f022_rr_insts[4] = inst("PUSHIS",0x3c3) #Change rider trigger check from 7b8 to key item
+f022_obj.changeProcByIndex(f022_rr_insts, f022_rr_labels, f022_rr_proc)
+
+f022_10_proc = f022_obj.getProcIndexByLabel('010_01eve_01')
+f022_10_insts = [
+    inst("PROC",f022_10_proc),
+    inst("PUSHIS",0x112), #White Rider dead
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x3c3), #Key item to enable Riders
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x756), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x106), #Didn't already beat him
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"), 
+    inst("AND"),
+    inst("IF",0), #End label
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",0x5a), #"Stay here?"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x5b), #">Yes/no"
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #Not quite end label
+    inst("PUSHIS",0x106), #Fought flag
+    inst("COMM",8),
+    inst("PUSHIS",0x3e3), #Candelabra
+    inst("COMM",8),
+    inst("PUSHIS",0x91f), #Fusion flag
+    inst("COMM",8),
+    inst("PUSHIS",0x2e8),
+    inst("PUSHIS",0x16),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x402),
+    inst("COMM",0x67), #Fight Red Rider
+    inst("END"),
+    inst("PUSHIS",0x756),
+    inst("COMM",8),
+    inst("COMM",0x61),
+    inst("END")
+]
+f022_10_labels = [
+    assembler.label("RRIDER_FOUGHT",47),
+    assembler.label("RRIDER_RAN",44)
+]
+f022_obj.changeProcByIndex(f022_10_insts, f022_10_labels, f022_10_proc)
+
+f022_rrider_callback_str = "RR_CB"
+f022_rrider_rwms_index = f022_obj.appendMessage("Red Rider reward placeholder", "RR_REWARD")
+f022_rr_rwms_insts = [
+    inst("PROC",len(f022_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f022_rrider_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+
+f022_obj.appendProc(f022_rr_rwms_insts, [], f022_rrider_callback_str)
+insert_callback('f022',0x1bc,f022_rrider_callback_str)
+
 f022_lb = push_bf_into_lb(f022_obj, 'f022')
 dds3.add_new_file(custom_vals.LB0_PATH['f022'], f022_lb)
 
@@ -615,8 +943,8 @@ f023_03_2_insts = [
     inst("CALL",f023_03_room),
     inst("END"),
 ]
-
 f023_obj.changeProcByIndex(f023_03_2_insts, [], f023_03_room_2)
+
 f023_daisoujou_callback_str = "DAI_CB"
 f023_daisoujou_rwms_index = f023_obj.appendMessage("Daisoujou reward placeholder", "DAI_REWARD")
 
@@ -1227,7 +1555,136 @@ dds3.add_new_file(custom_vals.LB0_PATH['f025b'], f025_lb)
 #Cutscene removal in Asakusa (Hijiri?) f027
 #Shorten Pale Rider
 #Move Black Frost to Sakahagi room.
+f027_obj = get_script_obj_by_name(dds3,'f027')
 
+#Pale Rider
+f027_pr_proc = f027_obj.getProcIndexByLabel('016_p_rider')
+f027_pr_insts, f027_pr_labels = f027_obj.getProcInstructionsLabelsByIndex(f027_pr_proc)
+f027_pr_insts[12] = inst("PUSHIS",0x3c3) #Change rider trigger check from 7b8 to key item
+f027_obj.changeProcByIndex(f027_pr_insts, f027_pr_labels, f027_pr_proc)
+
+f027_16_proc = f027_obj.getProcIndexByLabel('016_01eve_01')
+f027_16_insts = [
+    inst("PROC",f027_16_proc),
+    inst("PUSHIS",0x109), #Black Rider dead
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0x3c3), #Key item to enable Riders
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x758), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x113), #Didn't already beat him
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"), 
+    inst("AND"),
+    inst("IF",0), #End label
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",0x14), #"Stay here?"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x15), #">Yes/no"
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #Not quite end label
+    inst("PUSHIS",0x113), #Fought flag
+    inst("COMM",8),
+    inst("PUSHIS",0x3e1), #Candelabra
+    inst("COMM",8),
+    inst("PUSHIS",0x91d), #Fusion flag
+    inst("COMM",8),
+    inst("PUSHIS",0x2ea),
+    inst("PUSHIS",0x1b),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x400),
+    inst("COMM",0x67), #Fight Pale Rider
+    inst("END"),
+    inst("PUSHIS",0x758),
+    inst("COMM",8),
+    inst("COMM",0x61),
+    inst("END")
+]
+f027_16_labels = [
+    assembler.label("PRIDER_FOUGHT",47),
+    assembler.label("PRIDER_RAN",44)
+]
+f027_obj.changeProcByIndex(f027_16_insts, f027_16_labels, f027_16_proc)
+
+f027_prider_callback_str = "PR_CB"
+f027_prider_rwms_index = f027_obj.appendMessage("Pale Rider reward placeholder", "PR_REWARD")
+f027_pr_rwms_insts = [
+    inst("PROC",len(f027_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f027_prider_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+
+f027_obj.appendProc(f027_pr_rwms_insts, [], f027_prider_callback_str)
+insert_callback('f027',0xf4,f027_prider_callback_str)
+
+f027_bfrost_callback_str = "BFROST_CB"
+f027_bfrost_rwms_index = f027_obj.appendMessage("Black Frost reward placeholder", "BFROST_REWARD")
+f027_bfrost_rwms_insts = [
+    inst("PROC",len(f027_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f027_bfrost_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+f027_obj.appendProc(f027_bfrost_rwms_insts, [], f027_bfrost_callback_str)
+insert_callback('f027',0x1ddc,f027_bfrost_callback_str)
+
+f027_lb = push_bf_into_lb(f027_obj,'f027')
+dds3.add_new_file(custom_vals.LB0_PATH['f027'],f027_lb)
+
+#Change e644 to fight Black Frost. Normally it's the Sakahagi cutscene in Asakusa, but we're repurposing it so no two bosses are in the same location.
+#Flag is 2e
+#Callback is 0x1ddc in f027
+e644_obj = get_script_obj_by_name(dds3,'e644')
+e644_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x2e),
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",0),
+    inst("PUSHIS",0x2e),
+    inst("COMM",8),
+    inst("PUSHIS",644),#Should work???
+    inst("PUSHIS",0x2ca),#Black Frost battle ID
+    inst("COMM",0x28),
+    inst("END"),
+    inst("PUSHIS",644),
+    inst("PUSHIS",27),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("COMM",0x23),
+    inst("COMM",0x2e),
+    inst("END")
+]
+e644_labels = [
+    assembler.label("BFROST_FOUGHT",13)
+]
+e644_obj.changeProcByIndex(e644_insts, e644_labels, 0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e644'],BytesIO(bytes(e644_obj.toBytes())))
 
 #Cutscene removal in Mifunashiro f035
 #Shorten and add decision on boss
@@ -1527,9 +1984,88 @@ f016_gary_reward_insts = [
 ]
 f016_gary_reward_proc_str = "GARY_CB"
 f016_obj.appendProc(f016_gary_reward_insts, [], f016_gary_reward_proc_str)
+
+f016_mh_proc = f016_obj.getProcIndexByLabel('019_mother')
+f016_mh_insts, f016_mh_labels = f016_obj.getProcInstructionsLabelsByIndex(f016_mh_proc)
+f016_mh_insts[1] = inst("PUSHIS",0x3c4) #Change Harlot trigger from a story trigger to a key item
+f016_obj.changeProcByIndex(f016_mh_insts, f016_mh_labels, f016_mh_proc)
+
+f016_19_proc = f016_obj.getProcIndexByLabel('019_01eve_01')
+
+f016_19_insts = [
+    inst("PROC",f016_19_proc),
+    inst("PUSHIS",0x3c4), #Key item to enable Harlot
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x759), #Didn't already run away
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x116), #Didn't already beat her
+    inst("COMM",7),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("AND"),
+    inst("AND"),
+    inst("IF",0), #End label
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",0x4b), #"Stay here?"
+    inst("COMM",0),
+    inst("PUSHIS",0),
+    inst("PUSHIS",0x4c), #">Yes/no"
+    inst("COMM",3),
+    inst("PUSHREG"),
+    inst("EQ"),
+    inst("IF",1), #Not quite end label
+    inst("PUSHIS",0x116), #Fought flag
+    inst("COMM",8),
+    inst("PUSHIS",0x3e6), #Candelabra
+    inst("COMM",8),
+    inst("PUSHIS",0x924), #Fusion flag
+    inst("COMM",8),
+    inst("PUSHIS",0x2eb),
+    inst("PUSHIS",0x10),
+    inst("PUSHIS",1),
+    inst("COMM",0x97), #Call next
+    inst("PUSHIS",0x407),
+    inst("COMM",0x67), #Fight Harlot
+    inst("END"),
+    inst("PUSHIS",0x759),
+    inst("COMM",8),
+    inst("COMM",0x61),
+    inst("END")
+]
+f016_19_labels = [
+    assembler.label("HARLOT_FOUGHT",43),
+    assembler.label("HARLOT_RAN",40)
+]
+f016_obj.changeProcByIndex(f016_19_insts, f016_19_labels, f016_19_proc)
+
+f016_harlot_callback_str = "HARLOT_CB"
+f016_harlot_rwms_index = f016_obj.appendMessage("Harlot reward placeholder", "HARLOT_REWARD")
+f016_harlot_rwms_insts = [
+    inst("PROC",len(f016_obj.p_lbls().labels)),
+    inst("COMM",0x60),
+    inst("COMM",1),
+    inst("PUSHIS",f016_harlot_rwms_index),
+    inst("COMM",0),
+    inst("COMM",2),
+    inst("COMM",0x61),
+    inst("END")
+]
+
+f016_obj.appendProc(f016_harlot_rwms_insts, [], f016_harlot_callback_str)
+insert_callback('f016',0xf4,f016_harlot_callback_str)
+
 f016_lb = push_bf_into_lb(f016_obj,'f016')
 dds3.add_new_file(custom_vals.LB0_PATH['f016'],f016_lb)
 insert_callback('f016', 0x1b84, f016_gary_reward_proc_str)
+#file = open('piped_scripts/f016.bfasm','w')
+#file.write(f016_obj.exportASM())
+#file.close()
 
 #Cutscene removal in Amala Network 3 f030
 #Shorten the one thing - if even because it's tiny. Add reward message
@@ -1873,6 +2409,8 @@ insert_callback('f021', 0xf4, f021_toot_reward_proc_str)
 
 f021_lb = push_bf_into_lb(f021_obj, 'f021')
 dds3.add_new_file(custom_vals.LB0_PATH['f021'], f021_lb)
+#Insert archangels in the same room that has "009_01eve_08"
+#Plan: Move 009_01eve_08 over to the door, and have the normal door opening moved OoB. At that point we have BF control.
 
 #Cutscene removal in Diet Building f033
 #Shorten Mada and Mithra. Add reward messages for all bosses.
@@ -2003,6 +2541,7 @@ e674_obj.changeProcByIndex(e674_insts,e674_labels,0)
 dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e674'], BytesIO(bytes(e674_obj.toBytes())))
 
 #Going into ToK is 015_01eve_02 of Obelisk
+#With 0x660 set it's super quick.
 
 #Cutscene removal in ToK1 f032
 #Shorten Ahriman
@@ -2010,11 +2549,77 @@ dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e674'], BytesIO(bytes(e674_obj.to
 #Block puzzle to ahriman is in 017. Probably initialized with 017_start.
 #9&10 is middle block. 5&7 is front block. 6&8 is far block.
 #e681 is Ahriman. e678 is Ahriman dead.
+e681_obj = get_script_obj_by_name(dds3,'e681')
+e681_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0x75),
+    inst("COMM",8),
+    inst("PUSHIS",0x74),
+    inst("COMM",8),
+    inst("PUSHIS",0x2a6),
+    inst("PUSHIS",0x14e),
+    inst("COMM",0x28),
+    inst("PUSHIS",0x3df),
+    inst("COMM",8),
+    inst("PUSHIS",0x2a9),
+    inst("PUSHIS",32),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("COMM",0x23),#FLD_EVENT_END2
+    inst("COMM",0x2e),
+    inst("END")
+]
+e681_obj.changeProcByIndex(e681_insts,[],0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e681'], BytesIO(bytes(e681_obj.toBytes())))
+#Could probably blank out e678
 
 #Cutscene removal in ToK2 f036
 #Shorten Noah
 #013_01eve_09 is block. (inverse is 10)
 #e680 is noah. e677 is noah dead.
+e680_obj = get_script_obj_by_name(dds3,'e680')
+e680_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0x62),
+    inst("COMM",8),
+    inst("PUSHIS",0x61),
+    inst("COMM",8),
+    inst("PUSHIS",0x2a5),
+    inst("PUSHIS",0x1d8),
+    inst("COMM",0x28),
+    inst("PUSHIS",0x3e0),
+    inst("COMM",8),
+    inst("PUSHIS",680),
+    inst("PUSHIS",36),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("COMM",0x23),#FLD_EVENT_END2
+    inst("COMM",0x2e),
+    inst("END")
+]
+e680_obj.changeProcByIndex(e680_insts,[],0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e680'], BytesIO(bytes(e680_obj.toBytes())))
+#By setting 0x660, some stuff doesn't properly work. We'd like to keep 0x660 on, so we'll change the flag (using new flags, a30 and a31). This also allows direct ToK2 and ToK3 to work properly.
+#Change 012_start to use the 0xa30 flag and 013_start to be a duplicate (013 doesn't exist as a proc, but it's still referenced, and it's exactly where we want it).
+#There's a super duper corner-case scenario where you unlock ToK2 terminal externally, warp directly to ToK2, which doesn't trigger 012_start, then you go into 014 or 015 and it'll look weird. You still can't progress or lock yourself, and going back into 012 will call 012_start and fix it, so as far as I'm concerned there is no issue whatsoever. If someone submits a bug report for this situation, point them to this comment and say it is known and does not need to be fixed.
+f036_obj = get_script_obj_by_name(dds3,'f036')
+f036_12_proc = f036_obj.getProcIndexByLabel('012_start')
+f036_12_insts, f036_12_labels = f036_obj.getProcInstructionsLabelsByIndex(f036_12_proc)
+f036_12_insts[2] = inst("PUSHIS",0xa30)
+f036_12_insts[227] = inst("PUSHIS",0xa30)
+
+f036_13_insts = copy.deepcopy(f036_12_insts)
+f036_13_labels = copy.deepcopy(f036_12_labels) #Need to deepcopy the labels because changeProcByIndex changes the label offsets from relative to absolute, and I didn't think of this situation when I wrote the assembler.
+
+f036_obj.changeProcByIndex(f036_12_insts, f036_12_labels, f036_12_proc)
+
+#Repurpose for 013, then append it.
+f036_13_labels[0].label_str = "_13_START_LABEL"
+f036_13_insts[0] = inst("PROC",len(f036_obj.p_lbls().labels))
+f036_obj.appendProc(f036_13_insts, f036_13_labels, "013_start")
+
+f036_lb = push_bf_into_lb(f036_obj, 'f036')
+dds3.add_new_file(custom_vals.LB0_PATH['f036'], f036_lb)
 
 #Cutscene removal in ToK3 f037
 #Shorten Thor 2
@@ -2027,6 +2632,59 @@ dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e674'], BytesIO(bytes(e674_obj.to
 #0x665 is ToK3 top splash.
 #027_01eve_04 is left pillar, 05 is middle, 06 is right. 07 is central pillar to Kagutsuchi.
 #e705?
+e682_obj = get_script_obj_by_name(dds3,'e682')
+e682_insts = [
+    inst("PROC",0),
+    inst("PUSHIS",0x83),
+    inst("COMM",8),
+    inst("PUSHIS",0x84),
+    inst("COMM",8),
+    inst("PUSHIS",0x2a7),
+    inst("PUSHIS",0x14d),
+    inst("COMM",0x28),
+    inst("PUSHIS",0x3d3),
+    inst("COMM",8),
+    inst("PUSHIS",682),
+    inst("PUSHIS",37),
+    inst("PUSHIS",1),
+    inst("COMM",0x97),
+    inst("COMM",0x23),#FLD_EVENT_END2
+    inst("COMM",0x2e),
+    inst("END")
+]
+e682_obj.changeProcByIndex(e682_insts,[],0)
+dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e682'], BytesIO(bytes(e682_obj.toBytes())))
+
+f037_obj = get_script_obj_by_name(dds3,'f037')
+#Same 0x660 problem as ToK2. Use 0xa31, a32, a33, a34 instead.
+f037_19_proc = f037_obj.getProcIndexByLabel('019_start')
+f037_19_insts, f037_19_labels = f037_obj.getProcInstructionsLabelsByIndex(f037_19_proc)
+f037_19_insts[2] = inst("PUSHIS",0xa31)
+f037_19_insts[67] = inst("PUSHIS",0xa31)
+f037_obj.changeProcByIndex(f037_19_insts, f037_19_labels, f037_19_proc)
+
+f037_20_proc = f037_obj.getProcIndexByLabel('020_start')
+f037_20_insts, f037_20_labels = f037_obj.getProcInstructionsLabelsByIndex(f037_20_proc)
+f037_20_insts[2] = inst("PUSHIS",0xa32)
+f037_20_insts[27] = inst("PUSHIS",0xa32)
+f037_obj.changeProcByIndex(f037_20_insts, f037_20_labels, f037_20_proc)
+
+#37 for 21
+f037_21_proc = f037_obj.getProcIndexByLabel('021_start')
+f037_21_insts, f037_21_labels = f037_obj.getProcInstructionsLabelsByIndex(f037_21_proc)
+f037_21_insts[2] = inst("PUSHIS",0xa33)
+f037_21_insts[37] = inst("PUSHIS",0xa33)
+f037_obj.changeProcByIndex(f037_21_insts, f037_21_labels, f037_21_proc)
+
+#47 for 23
+f037_23_proc = f037_obj.getProcIndexByLabel('023_start')
+f037_23_insts, f037_23_labels = f037_obj.getProcInstructionsLabelsByIndex(f037_23_proc)
+f037_23_insts[2] = inst("PUSHIS",0xa34)
+f037_23_insts[47] = inst("PUSHIS",0xa34)
+f037_obj.changeProcByIndex(f037_23_insts, f037_23_labels, f037_23_proc)
+
+f037_lb = push_bf_into_lb(f037_obj, 'f037')
+dds3.add_new_file(custom_vals.LB0_PATH['f037'], f037_lb)
 
 #Cutscene removal in LoA Lobby f040
 #If possible, have each hole with 3 options. Jump, Skip, Cancel
