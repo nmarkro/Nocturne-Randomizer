@@ -1,6 +1,19 @@
 #Nocturne script file (*.bf) assembler and disassembler
 #In a disassembled state, there is an API in the bf_script class that lets you modify the script programatically.
 #Currently the API is not implemented and this entire piece is a messy WIP, but is useful to see to be able to understand how to interface with bf files.
+'''
+Escape codes: 
+	^p - Plain text F2 02 01 FF
+	^r - Red text F2 02 02 FF
+	^b - Blue text F2 02 03 FF
+	^y - Yellow text F2 02 04 FF
+	^g - Green text F2 02 05 FF
+	^n - New line 0A
+	^x - End text box 0a F1 04 F2 08 FF FF
+	^m - End message 0a f1 04 00
+    ^t - After each selection
+    ^. - After ^t between each selection
+'''
 import math
 import copy
 
