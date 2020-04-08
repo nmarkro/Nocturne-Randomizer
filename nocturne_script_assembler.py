@@ -320,11 +320,14 @@ class bf_script:
         
         m.label_str = message_label_str
         m.name_id = name_id
+        m.is_decision = is_decision
         
         #Deal with the textbox and line spacing 
-        if auto_space:
+        if auto_space and not is_decision:
             m.space_text(message_str) 
-        
+        else:
+            m.str = message_str
+            m.text_formed = True
         #Turn the message to a byte form
         m.message_str_to_bytes()
         
@@ -693,6 +696,8 @@ class message_pointer:
 
 
 #escape codes
+et = [0x2e, 0x00] #Used to distinguish selections.
+edot = [0xF2, 0x08, 0xFF, 0xFF]
 ep = [0xF2, 0x02, 0x01, 0xFF]
 er = [0xF2, 0x02, 0x02, 0xFF]
 eb = [0xF2, 0x02, 0x03, 0xFF]
@@ -735,6 +740,9 @@ class message:
         in_escape = False
         byte_count = 8
         bytes_by_int = copy.deepcopy(es)
+        if self.is_decision:
+            bytes_by_int = bytes_by_int[:4]
+            byte_count-=4
         self.relative_pointers = [0]
         if givenstr != "":
             self.str = givenstr
@@ -767,6 +775,13 @@ class message:
                 elif c == "m":
                     bytes_by_int.extend(em)
                     byte_count +=len(em)
+                elif c == "t":
+                    bytes_by_int.extend(et)
+                    byte_count +=len(et)
+                elif c == ".":
+                    bytes_by_int.extend(edot)
+                    byte_count +=len(edot)
+                    self.relative_pointers.append(byte_count)
                 in_escape=False
             elif c == "^":
                 in_escape = True
