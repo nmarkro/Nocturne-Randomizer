@@ -2968,7 +2968,7 @@ class Script_Modifier:
 
         #Flag insertion after line 44. Need to move labels.
         f033_18_proc = f033_obj.getProcIndexByLabel('018_start')
-        f033_18_insts, f033_18_labels = f033_obj.getProcInstructionsLabelsByIndex(f033_18)proc)
+        f033_18_insts, f033_18_labels = f033_obj.getProcInstructionsLabelsByIndex(f033_18_proc)
         f033_18_insert_insts = self.get_flag_reward_insts("Mot",world)
         f033_18_insts = f033_18_insts[:45] + f033_18_insert_insts + f033_18_insts[45:]
         for l in f033_18_labels:
