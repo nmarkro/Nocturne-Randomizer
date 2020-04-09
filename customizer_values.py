@@ -1,144 +1,7 @@
 '''
-To be mostly removed by Markro's FileSystem stuff.
-
-The set of values that are usable with a customizer. Contains no actual code.
-A customizer decompresses field scripts and adds space at the end of each script. That space is used as a stack.
-version: Version string.
-extended_sizes: Amount of bytes extended to each script.
-customizer_offsets: Absolute offsets of each script to the ISO.
-hint_msgs: Tuples of script names and message labels to be used (or at least looked at) for hint usage.
+A big fat stack of const values, mostly strings.
 '''
 
-version = "0p2a"
-extended_sizes = 1000
-script_sizes = {
-    'e601': 0x166d,
-    'e634': 12887,
-    'e658': 5875,
-    'e673': 5885,
-    'e674': 25048,
-    'e723': 5317,
-    'e731': 3854,
-    'e740': 4665,
-    'e741': 3032,
-    'e742': 3260,
-    'e743': 3291,
-    'e744': 2709,
-    'e745': 2561,
-    'e746': 2887,
-    'e747': 4757,
-    'e748': 4343,
-    'e749': 6346,
-    'e750': 3994,
-    'f001': 20950,
-    'f002': 18635,
-    'f003': 17621,
-    'f004': 19914,
-    'f005': 13178,
-    'f006': 13326,
-    'f007': 13779,
-    'f008': 13234,
-    'f011': 19121,
-    'f012': 15981,
-    'f013': 13990,
-    'f014': 43202,
-    'f015': 70423,
-    'f016': 91809,
-    'f017': 41669,
-    'f018': 32427,
-    'f019': 44682,
-    'f020': 67530,
-    'f021': 38853,
-    'f022': 47062,
-    'f023': 39986,
-    'f024': 76511,
-    'f025': 73863,
-    'f026': 33819,
-    'f027': 44046,
-    'f028': 40055,
-    'f029': 19187,
-    'f030': 14336,
-    'f031': 128151,
-    'f032': 63730,
-    'f033': 87249,
-    'f034': 82000,
-    'f035': 34928,
-    'f036': 43634,
-    'f037': 57289,
-    'f038': 29942,
-    'f039': 18702,
-    'f040': 21120,
-    'f041': 60446,
-    'f042': 51521,
-    'f043': 93887,
-    'f044': 69839,
-    'f045': 88575
-}
-customizer_offsets = {
-    'e506': 0xd7310800,
-    'e601': 0xd85dd000,
-    'e618': 0xdc39b800,
-    'e634': 0xdf3cd000,
-    'e658': 0xe2af9800,
-    'e673': 0xe6166800,
-    'e674': 0xe6756800,
-    'e723': 0xf0e67000,
-    'e731': 0xf1ec1800,
-    'e740': 0xf2090000,
-    'e741': 0xf22c8800,
-    'e742': 0xf2418000,
-    'e743': 0xf262f800,
-    'e744': 0xf2794000,
-    'e745': 0xf28e7000,
-    'e746': 0xf2a5a000,
-    'e747': 0xf2cad800,
-    'e748': 0xf2ed5000,
-    'e749': 0xf3235800,
-    'e750': 0xf349e800,
-    'f001': 0x855CA210,
-    'f002': 0x85B59210,
-    'f003': 0x861D4210,
-    'f004': 0x86743210,
-    'f005': 0x86C24A10,
-    'f006': 0x87179210,
-    'f007': 0x8759C210,
-    'f008': 0x87A6DA10,
-    'f011': 0x87DE3A10,
-    'f012': 0x882AFA10,
-    'f013': 0x887A4A10,
-    'f014': 0x88a51210,
-    'f015': 0x89707210,
-    'f016': 0x8B4CF210,
-    'f017': 0x8F00AA10,
-    'f018': 0x903EF210,
-    'f019': 0x911DAA10,
-    'f020': 0x91F55210,
-    'f021': 0x95ED3210,
-    'f022': 0x97D3EA10,
-    'f023': 0x9A4B7A10,
-    'f024': 0x9B37AA10,
-    'f025': 0x9D33DA10,
-    'f026': 0x9ed79210,
-    'f027': 0xA0698A10,
-    'f028': 0xa2621210,
-    'f029': 0xa329c210,
-    'f030': 0xa4256210,
-    'f031': 0xa4429a10,
-    'f032': 0xA64BAA10,
-    'f033': 0xa862c210,
-    'f034': 0xab9b3210,
-    'f035': 0xADE67210,
-    'f036': 0xAF165A10,
-    'f037': 0xB0F78210,
-    'f038': 0xB3674210,
-    'f039': 0xB3A59A10,
-    'f040': 0xB3CF8210,
-    'f041': 0xB4031A10,
-    'f042': 0xB6387210,
-    'f043': 0xB97DFA10,
-    'f044': 0xBCD29A10,
-    'f045': 0xC053BA10
-}
 hint_msgs = [
     ('f015',"F015_SINEN02"),
     ('f015',"F015_SINEN03"),
@@ -476,3 +339,89 @@ WAP_PATH = {
     'f044':'/fld/f/f044/F044.WAP',
     'f045':'/fld/f/f045/F045.WAP'
 }
+
+MAGATAMA_REWARD_MSG = {
+    'Marogareh':"You have obtained the Magatama ^bMarogareh^p.",
+    'Wadatsumi':"You have obtained the Magatama ^bWadatsumi^p.",
+    'Ankh':"You have obtained the Magatama ^bAnkh^p.",
+    'Iyomante':"You have obtained the Magatama ^bIyomante^p.",
+    'Shiranui':"You have obtained the Magatama ^bShiranui^p.",
+    'Hifumi':"You have obtained the Magatama ^bHifumi^p.",
+    'Kamudo':"You have obtained the Magatama ^bKamudo^p.",
+    'Narukami':"You have obtained the Magatama ^bNarukami^p.",
+    'Anathema':"You have obtained the Magatama ^bAnathema^p.",
+    'Miasma':"You have obtained the Magatama ^bMiasma^p.",
+    'Nirvana':"You have obtained the Magatama ^bNirvana^p.",
+    'Murakumo':"You have obtained the Magatama ^bMurakumo^p.",
+    'Geis':"You have obtained the Magatama ^bGeis^p.",
+    'Djed':"You have obtained the Magatama ^bDjed^p.",
+    'Muspell':"You have obtained the Magatama ^bMuspell^p.",
+    'Gehenna':"You have obtained the Magatama ^bGehenna^p.",
+    'Kamurogi':"You have obtained the Magatama ^bKamurogi^p.",
+    'Satan':"You have obtained the Magatama ^bSatan^p.",
+    'Adama':"You have obtained the Magatama ^bAdama^p.",
+    'Vimana':"You have obtained the Magatama ^bVimana^p.",
+    'Gundari':"You have obtained the Magatama ^bGundari^p.",
+    'Sophia':"You have obtained the Magatama ^bSophia^p.",
+    'Gaea':"You have obtained the Magatama ^bGaea^p.",
+    'Kailash':"You have obtained the Magatama ^bKailash^p.",
+    'Masakados':"You have obtained the Magatama ^bMasakados^p.",
+}
+FLAG_REWARD_MSG = {
+    0x441: "You now have direct access to the ^rShinjuku Medical Center^p Terminal.",
+    0x461: "You now have direct access to the ^rYoyogi Park^p Terminal.",
+    0x481: "You now have direct access to the ^rShibuya^p Terminal.",
+    0x4C1: "You now have direct access to the ^rGinza^p Terminal.",
+    0x4E1: "You now have direct access to the ^rAssembly of Nihilo^p (East) Terminal.",
+    0x4E2: "You now have direct access to the ^rAssembly of Nihilo: Marunouchi^p (West) Terminal.",
+    0x501: "You now have direct access to the ^rYurakucho Tunnel^p Terminal.",
+    0x521: "You now have direct access to the ^rGreat Underpass of Ginza^p Terminal.",
+    0x541: "You now have direct access to the ^rIkebukuro^p Terminal.",
+    0x581: "You now have direct access to the ^rKabukicho Prison^p Terminal.",
+    0x5A1: "You now have direct access to the ^rIkebukuro Tunnel^p Terminal.",
+    0x5C1: "You now have direct access to the ^rAsakusa^p Terminal.",
+    0x661: "You now have direct access to the ^rTower of Kagutsuchi 1^p Terminal.",
+    0x662: "You now have direct access to the ^rTower of Kagutsuchi 2^p Terminal.",
+    0x663: "You now have direct access to the ^rTower of Kagutsuchi 3^p Terminal.",
+    0x681: "You now have direct access to the ^rDiet Building^p Terminal.",
+    0x6A1: "You now have direct access to the ^rAmala Temple^p Terminal.",
+    0x6E1: "You now have direct access to the ^rMifunashiro^p Terminal.",
+    0x751: "You now have direct access to the ^rLabyrinth of Amala^p Terminal.",
+    0x3c0: "You have obtained the ^gBlack Key^p that opens the Black Temple in Amala Temple.",
+    0x3c1: "You have obtained the ^gWhite Key^p that opens the White Temple in Amala Temple.",
+    0x3c2: "You have obtained the ^gRed Key^p that opens the Red Temple in Amala Temple.",
+    0x3c3: "You have obtained the ^gApocalypse Stone^p.",
+    0x3c4: "You have obtained the ^gGolden Goblet^p.",
+    0x3c5: "You have obtained an ^gEggplant^p.",
+    0x3dd: "You have obtained the ^gKey to Yoyogi Park^p.",
+    0x3da: "You have obtained the ^gYahirono Himorogi^p.",
+    #0x3db: "You have obtained the ^gKimon Stone^p."
+    #TODO: Candelabra
+    #A key item, or at least message, for Specter 3 unlock.
+    #Yellow Kila, Green Kila, White Kila, Red Kila
+    #Deathstone
+    #1000 Yen Bill
+    #Manikin's Letter
+}
+BOSS_NAMES = [
+    "Forneus", "Ose", "Girimehkala", "Noah", "Ahriman", "Baal Avatar", "Specter 1", "Troll", "Red Rider", "Daisoujou", "Matador", "Black Rider", "Hell Biker", "White Rider", "Pale Rider", "Beelzebub", "Metatron", "The Harlot", "Trumpeter", "Mara", "Orthrus", "Yaksini", "Thor 1", "Mizuchi", "Black Frost", "Sui-Ki", "Kin-Ki", "Fuu-Ki", "Ongyo-Ki", "Specter 2", "Specter 3", "Sisters", "Clotho", "Lachesis", "Atropos", "Thor 2", "Surt", "Mada", "Mithra", "Mot", "Aciel", "Skadi", "Albion", "Bishamon 1", "Koumoku", "Zouchou", "Jikoku", "Bishamon 2", "Dante 1", "Dante 2", "Futomimi", "Archangels"
+]
+VANILLA_MAGATAMAS = {
+    "Forneus": "Wadatsumi",
+    "Thor 1": "Narukami",
+    "Ose": "Anathema",
+    "Mizuchi": "Miasma",
+    "Sisters": "Djed",
+    "Albion": "Adama"
+}
+#reward is world.checks['Forneus'].boss.reward
+#world.checks['Forneus'].boss.name is name of boss at Forneus check.
+#what will be added is world.checks['Forneus'].boss.flag_rewards. A list of flags to be set on defeat.
+#Missing Reward Messages:
+#Orthrus
+#Yaksini
+#Berith
+#Kaiwan
+
+#Missing Inst Insertion:
+#Above

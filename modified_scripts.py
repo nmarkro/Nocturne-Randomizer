@@ -63,7 +63,27 @@ class Script_Modifier:
         lb.read_lb()
         # add the uncompressed, modified BF file to the LB and add it to the dds3 fs
         return lb.export_lb({'BF': BytesIO(bytearray(bf_obj.toBytes()))})
-
+    def get_reward_str(self, check_name, world):
+        #reward_str = ""
+        reward_str = "Debug: "+check_name+" check.^n"
+        reward_str += "You defeated "+world.checks[check_name].boss.name+".^n"
+        if world.checks[check_name].boss.reward:
+            reward_str += custom_vals.MAGATAMA_REWARD_MSG[world.checks[check_name].boss.reward]
+        if world.checks[check_name].boss.flag_rewards:
+            for flag_reward in world.checks[check_name].boss.flag_rewards:
+                if flag_reward in custom_vals.FLAG_REWARD_MSG:
+                    if reward_str:
+                        reward_str+="^n"
+                    reward_str+=custom_vals.FLAG_REWARD_MSG[flag_reward]
+                else:
+                    print ("Warning: In get_reward_str(). No reward string found for flag",flag_reward)
+        return reward_str
+    def get_flag_reward_insts(self, check_name, world):
+        ret_insts = []
+        for flag in world.checks[check_name].boss.flag_rewards:
+            ret_insts.append(inst("PUSHIS",flag))
+            ret_insts.append(inst("COMM",8))
+        return ret_insts
     def insert_callback(self, field_string, location_insert, fun_name_insert, overwrite_warning=True):
         if len(fun_name_insert) > 15:
             print("ERROR: In insert_callback().",fun_name_insert,"is over 15 characters long")
@@ -84,7 +104,13 @@ class Script_Modifier:
         #reward is world.checks['Forneus'].boss.reward
         #what will be added is world.checks['Forneus'].boss.flag_rewards. A list of flags to be set on defeat.
         #Candelabra is part of reward message even though currently they technically don't do anything.
-    
+        #if world==None:
+        #    world = object()
+        #    world.checks = {}
+        #    for bn in custom_vals.BOSS_NAMES:
+        #        world.checks[bn] = object()
+        #        world.checks[bn].boss = object()
+                
         # get the 601 event script and add our hook
         #add in extra flag sets for cutscene removal
         e601_obj = self.get_script_obj_by_name('e601')
@@ -254,18 +280,18 @@ class Script_Modifier:
             inst("COMM",8),
             inst("PUSHIS",0x7e0), #5th Kalpa splash
             inst("COMM",8),
-            inst("PUSHIS",0x3c0), #Black Key (testing purposes)
-            inst("COMM",8),
-            inst("PUSHIS",0x3c1), #White Key (testing purposes)
-            inst("COMM",8),
-            inst("PUSHIS",0x3c2), #Red Key (testing purposes)
-            inst("COMM",8),
-            inst("PUSHIS",0x3c3), #Apocalypse Stone (unlocks white rider check - testing purposes)
-            inst("COMM",8),
-            inst("PUSHIS",0x3c4), #Golden Goblet (unlocks mother harlot check - testing purposes)
-            inst("COMM",8),
-            inst("PUSHIS",0x3c5), #Eggplant (unlocks mara check - testing purposes)
-            inst("COMM",8),
+            #inst("PUSHIS",0x3c0), #Black Key (testing purposes)
+            #inst("COMM",8),
+            #inst("PUSHIS",0x3c1), #White Key (testing purposes)
+            #inst("COMM",8),
+            #inst("PUSHIS",0x3c2), #Red Key (testing purposes)
+            #inst("COMM",8),
+            #inst("PUSHIS",0x3c3), #Apocalypse Stone (unlocks white rider check - testing purposes)
+            #inst("COMM",8),
+            #inst("PUSHIS",0x3c4), #Golden Goblet (unlocks mother harlot check - testing purposes)
+            #inst("COMM",8),
+            #inst("PUSHIS",0x3c5), #Eggplant (unlocks mara check - testing purposes)
+            #inst("COMM",8),
             #inst("PUSHIS",506), 
             #inst("COMM",0x66), 
             #Imported from 506
@@ -579,8 +605,13 @@ class Script_Modifier:
         ]
         f015_obj.changeProcByIndex(f015_002_start_insts, f015_002_start_labels, forneus_room_index)
 
-        f015_obj.changeMessageByIndex(assembler.message("Forneus reward placeholder","FORNEUS_REWARD"),0x5b)
-
+        f015_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Forneus",world),"FORNEUS_REWARD"),0x5b)
+        
+        #000_dh_plus - flag insertion
+        f015_forneus_reward_proc = f015_obj.getProcIndexByLabel('000_dh_plus')
+        f015_forneus_reward_insts, f015_forneus_reward_labels = f015_obj.getProcInstructionsLabelsByIndex(f015_forneus_reward_proc) #Has no labels.
+        f015_forneus_reward_insts = f015_forneus_reward_insts[:-1] + self.get_flag_reward_insts("Forneus",world) + [inst("END")]
+        f015_obj.changeProcByIndex(f015_forneus_reward_insts,[],f015_forneus_reward_proc)
         
         #Black Rider
         f015_br_proc = f015_obj.getProcIndexByLabel('014_b_rider')
@@ -647,7 +678,7 @@ class Script_Modifier:
         f015_obj.changeProcByIndex(f015_14_insts, f015_14_labels, f015_14_proc)
 
         f015_brider_callback_str = "BR_CB"
-        f015_brider_rwms_index = f015_obj.appendMessage("Black Rider reward placeholder", "BR_REWARD")
+        f015_brider_rwms_index = f015_obj.appendMessage(self.get_reward_str("Black Rider",world), "BR_REWARD")
         f015_br_rwms_insts = [
             inst("PROC",len(f015_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -655,9 +686,13 @@ class Script_Modifier:
             inst("PUSHIS",f015_brider_rwms_index),
             inst("COMM",0),
             inst("COMM",2),
-            inst("COMM",0x61),
+            inst("COMM",0x61)
+        ] + self.get_flag_reward_insts("Black Rider",world) + [
             inst("END")
         ]
+        f015_brider_reward_str = ""
+
+        #flag adding
 
         f015_obj.appendProc(f015_br_rwms_insts, [], f015_brider_callback_str)
         self.insert_callback('f015',0x3b0,f015_brider_callback_str)
@@ -694,6 +729,7 @@ class Script_Modifier:
         f017_obj.changeProcByIndex(f017_01_insts, f017_01_labels, f017_01_proc)
 
         #009_start also takes care of callback
+        #"Baphomet and the manikins ran away"
         #check 0x488 to make sure mara wasn't already fought
         #cut out 10 - 420 inclusive
         #callback text id is 0x19
@@ -703,14 +739,17 @@ class Script_Modifier:
         precut = 10
         postcut = 421
         diff = postcut - precut
-        f017_09_insts = f017_09_insts[:precut] + f017_09_insts[postcut:]
+        f017_09_insert_insts = self.get_flag_reward_insts("Mara",world)
+        f017_09_insts = f017_09_insts[:precut] + f017_09_insert_insts + f017_09_insts[postcut:]
         for l in f017_09_labels:
             if l.label_offset > precut:
                 if l.label_offset < postcut:
                     l.label_offset=0
                 else:
                     l.label_offset-=diff
+                    l.label_offset+=len(f017_09_insert_insts)
         f017_obj.changeProcByIndex(f017_09_insts, f017_09_labels, f017_09_proc)
+        f017_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mara",world),"MARA_RWMS"),0x19)
 
         #001_w_rider for warning.
         #bit checks: 5c0, 7b8, 112 unset. Turns off 0x755.
@@ -795,7 +834,7 @@ class Script_Modifier:
         f017_obj.changeProcByIndex(f017_03_insts, f017_03_labels, f017_03_1_proc)
         f017_obj.changeProcByIndex(f017_03_2_insts, [], f017_03_2_proc)
         f017_obj.changeProcByIndex(f017_03_3_insts, [], f017_03_3_proc)
-        f017_wr_rwms_index = f017_obj.appendMessage("White Rider reward placeholder","WR_RWMS")
+        f017_wr_rwms_index = f017_obj.appendMessage(self.get_reward_str("White Rider",world),"WR_RWMS")
         f017_wr_callback_str = "WR_CB"
         f017_wr_callback_insts = [
             inst("PROC",len(f017_obj.p_lbls().labels)),
@@ -805,6 +844,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("White Rider",world) + [
             inst("END")
         ]
         f017_obj.appendProc(f017_wr_callback_insts, [], f017_wr_callback_str)
@@ -883,9 +923,9 @@ class Script_Modifier:
             inst("COMM",0x104), #Remove the visual barrier
             inst("PUSHIS", 0xe),
             inst("COMM", 8) #set flag 0xE
-        ]
+        ] + self.get_flag_reward_insts("Specter 1",world)
         #change 0x16 for specter 1 reward.
-        f018_obj.changeMessageByIndex(assembler.message("Specter 1 reward placeholder","SPEC1_REWARD"),0x16)
+        f018_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Specter 1",world),"SPEC1_REWARD"),0x27)
         precut1 = 35
         postcut1 = 161
         precut2 = 171
@@ -914,6 +954,8 @@ class Script_Modifier:
         f018_lb.read_lb()
         f018_lb = f018_lb.export_lb({'BF': BytesIO(bytearray(f018_obj.toBytes())), 'WAP': BytesIO(f018_wap)})
         self.dds3.add_new_file(custom_vals.LB0_PATH['f018'], f018_lb)
+        #reward message
+        #flag insertion in pre-portion
 
         #75E gets set going into LoA Lobby.
         #4C2 gets set leaving LoA Lobby.
@@ -922,7 +964,7 @@ class Script_Modifier:
         #Optional: Shorten Troll (already short)
         #Should be done as an entry point
         f019_obj = self.get_script_obj_by_name("f019")
-        f019_troll_rwms_index = f019_obj.appendMessage("Troll reward placeholder","TROLL_REWARD")
+        f019_troll_rwms_index = f019_obj.appendMessage(self.get_reward_str("Troll",world),"TROLL_REWARD")
         f019_troll_callback_str = "TROLL_CB"
         f019_troll_callback_insts = [
             inst("PROC",len(f019_obj.p_lbls().labels)),
@@ -932,6 +974,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",1),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Troll",world) + [
             inst("END")
         ]
         f019_obj.appendProc(f019_troll_callback_insts,[],f019_troll_callback_str)
@@ -991,9 +1034,10 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Matador",world) + [
             inst("END")
         ]
-        f022_obj.changeMessageByIndex(assembler.message("Matador reward placeholder","MATA_REWARD"),0x1d)
+        f022_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Matador",world),"MATA_REWARD"),0x1d)
         f022_obj.changeProcByIndex(f022_mata_callback_insts,[],f022_mata_callback)
 
         f022_obj.changeProcByIndex(f022_013_e1_insts, f022_013_e1_labels, f022_mata_room)
@@ -1061,7 +1105,7 @@ class Script_Modifier:
         f022_obj.changeProcByIndex(f022_10_insts, f022_10_labels, f022_10_proc)
 
         f022_rrider_callback_str = "RR_CB"
-        f022_rrider_rwms_index = f022_obj.appendMessage("Red Rider reward placeholder", "RR_REWARD")
+        f022_rrider_rwms_index = f022_obj.appendMessage(self.get_reward_str("Red Rider",world), "RR_REWARD")
         f022_rr_rwms_insts = [
             inst("PROC",len(f022_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1070,6 +1114,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Red Rider",world) + [
             inst("END")
         ]
 
@@ -1147,7 +1192,7 @@ class Script_Modifier:
 
         f023_obj.changeProcByIndex(f023_03_2_insts, [], f023_03_room_2)
         f023_daisoujou_callback_str = "DAI_CB"
-        f023_daisoujou_rwms_index = f023_obj.appendMessage("Daisoujou reward placeholder", "DAI_REWARD")
+        f023_daisoujou_rwms_index = f023_obj.appendMessage(self.get_reward_str("Daisoujou",world), "DAI_REWARD")
 
         f023_proclen = len(f023_obj.p_lbls().labels)
         f023_daisoujou_rwmspr_insts = [ #reward message proc
@@ -1158,6 +1203,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Daisoujou",world) + [
             inst("END")
         ]
         f023_obj.appendProc(f023_daisoujou_rwmspr_insts, [], f023_daisoujou_callback_str)
@@ -1196,7 +1242,7 @@ class Script_Modifier:
         f023_obj.changeProcByIndex(f023_01_dante_insts, f023_01_dante_labels, f023_01_dante_proc)
 
         f023_dante_callback_str = "DANTE_CB"
-        f023_dante_reward_index = f023_obj.appendMessage("Dante reward placeholder", "DANTE_REWARD")
+        f023_dante_reward_index = f023_obj.appendMessage(self.get_reward_str("Dante 1",world), "DANTE_REWARD")
         f023_dante_reward_insts = [
             inst("PROC",f023_proclen + 1), #+1 from Daisoujou one.
             inst("COMM",0x60),
@@ -1205,6 +1251,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Dante 1",world) + [
             inst("END")
         ]
         f023_obj.appendProc(f023_dante_reward_insts, [], f023_dante_callback_str)
@@ -1299,7 +1346,7 @@ class Script_Modifier:
             inst("COMM",0x21e)
         ]
         #from  726-881
-        f024_obj.changeMessageByIndex(assembler.message("Thor reward placeholder","THOR_REWARD"),97)
+        f024_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Thor 1",world),"THOR_REWARD"),97)
         f024_10_insert_insts_thor_post = [ #double-check the flags here. Dante might not spawn.
             inst("COMM",0x60), #remove player control
             inst("PUSHIS",0x567), #Don't fight Thor in here again.
@@ -1314,7 +1361,10 @@ class Script_Modifier:
             inst("COMM",2), #close message window
             inst("PUSHIS",0x21),
             inst("COMM",0x20f)#warp
-        ]
+        ]+ self.get_flag_reward_insts("Thor 1",world)
+        
+        #flag insertion
+        #this will be a headache
         precut1 = 125
         postcut1 = 335
         precut2 = 549 
@@ -1543,6 +1593,8 @@ class Script_Modifier:
             inst("END")
         ]
 
+        #TODO: Berith, Kaiwan reward message and flag insertion
+
         f020_08_insts = [f020_08_insts[0]] + f020_08_insert_insts_autokilacheck + f020_08_insts[1:precut] + f020_08_insts[postcut:-1] + f020_08_insert_insts_autokila_do
         #TODO: make sure 4e0 is NOT set in e506, or replace it altogether.
         f020_obj.changeProcByIndex(f020_08_insts, f020_08_labels, f020_08_room)
@@ -1610,7 +1662,7 @@ class Script_Modifier:
 
         f003_obj = self.get_script_obj_by_name('f003')
         f003_proclen = len(f003_obj.p_lbls().labels)
-        f003_ose_callback_message = f003_obj.appendMessage("Ose reward placeholder","OSE_REWARD")
+        f003_ose_callback_message = f003_obj.appendMessage(self.get_reward_str("Ose",world),"OSE_REWARD")
         f003_ose_callback_proc_str = "OSE_CB"
         f003_ose_callback_insts = [
             inst("PROC",f003_proclen),
@@ -1620,6 +1672,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Ose",world) + [
             inst("END"),
         ]
         f003_obj.appendProc(f003_ose_callback_insts,[],f003_ose_callback_proc_str)
@@ -1692,7 +1745,7 @@ class Script_Modifier:
         ]
         f004_obj.changeProcByIndex(f004_biker_insts,f004_biker_labels,f004_biker_event)
         f004_biker_callback_proc_str = "HBIKER_CB"
-        f004_biker_callback_msg = f004_obj.appendMessage("Hell Biker reward placeholder","HBIKER_REWARD")
+        f004_biker_callback_msg = f004_obj.appendMessage(self.get_reward_str("Hell Biker",world),"HBIKER_REWARD")
         f004_biker_callback_insts = [
             inst("PROC",len(f004_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1701,6 +1754,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Hell Biker",world) + [
             inst("END")
         ]
         f004_obj.appendProc(f004_biker_callback_insts,[],f004_biker_callback_proc_str)
@@ -1729,11 +1783,11 @@ class Script_Modifier:
             inst("COMM",8),
             inst("PUSHIS",0x863),
             inst("COMM",8)
-        ]
+        ] + self.get_flag_reward_insts("Mizuchi",world)
         f025_mizuchi_room_labels[-1].label_offset = 0 #fixes _443 OoB warning.
         f025_mizuchi_room_insts = f025_mizuchi_room_insts[:precut] + f025_mizuchi_room_insert_insts + f025_mizuchi_room_insts[postcut:]
         f025_obj.changeProcByIndex(f025_mizuchi_room_insts, f025_mizuchi_room_labels, f025_mizuchi_room)
-        f025_obj.changeMessageByIndex(assembler.message("Mizuchi reward placeholder","MIZUCHI_REWARD"),0x62)
+        f025_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mizuchi",world),"MIZUCHI_REWARD"),0x62)
 
         f025_021_05 = f025_obj.getProcIndexByLabel("021_01eve_05") #I don't think this gets executed, but I was frustrated when I chose the wrong LB file and this also has the Mizuchi text.
         f025_021_insts = [
@@ -1758,7 +1812,74 @@ class Script_Modifier:
         #Callback: 0x1bc
         #Ongyo-ki: 017_start
         #Callback: 0x220
+        f026_obj = self.get_script_obj_by_name('f026')
+        f026_kinki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Kin-Ki",world),"KINKI_REWARD")
+        f026_kinki_rwms_insts = [
+            inst("PROC",len(f026_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f026_kinki_rwms_index),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Kin-Ki",world) + [    
+            inst("END")
+        ]
+        f026_kinki_callback_str = "KINKI_CB"
+        f026_obj.appendProc(f026_kinki_rwms_insts, [], f026_kinki_callback_str)
+        self.insert_callback('f026',0x158,f026_kinki_callback_str)
+        
+        f026_suiki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Sui-Ki",world),"SUIKI_REWARD")
+        f026_kinki_rwms_insts = [
+            inst("PROC",len(f026_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f026_suiki_rwms_index),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Sui-Ki",world) + [    
+            inst("END")
+        ]
+        f026_suiki_callback_str = "SUIKI_CB"
+        f026_obj.appendProc(f026_suiki_rwms_insts, [], f026_suiki_callback_str)
+        self.insert_callback('f026',0xf4,f026_suiki_callback_str)
+        
+        f026_fuuki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Fuu-Ki",world),"FUUKI_REWARD")
+        f026_fuuki_rwms_insts = [
+            inst("PROC",len(f026_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f026_fuuki_rwms_index),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Fuu-Ki",world) + [    
+            inst("END")
+        ]
+        f026_fuuki_callback_str = "FUUKI_CB"
+        f026_obj.appendProc(f026_fuuki_rwms_insts, [], f026_fuuki_callback_str)
+        self.insert_callback('f026',0x1bc,f026_fuuki_callback_str)
 
+        f026_ongyoki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Ongyo-Ki",world),"ONGYOKI_REWARD")
+        f026_ongyoki_rwms_insts = [
+            inst("PROC",len(f026_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f026_ongyoki_rwms_index),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Ongyo-Ki",world) + [    
+            inst("END")
+        ]
+        f026_ongyoki_callback_str = "ONGYOKI_CB"
+        f026_obj.appendProc(f026_ongyoki_rwms_insts, [], f026_ongyoki_callback_str)
+        self.insert_callback('f026',0x220,f026_ongyoki_callback_str)
+        
+        f026_lb = self.push_bf_into_lb(f026_obj,'f026')
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f026'],f027_lb)
+        
         #Cutscene removal in Asakusa (Hijiri?) f027
         #Shorten Pale Rider
         #Move Black Frost to Sakahagi room.
@@ -1828,7 +1949,7 @@ class Script_Modifier:
         f027_obj.changeProcByIndex(f027_16_insts, f027_16_labels, f027_16_proc)
 
         f027_prider_callback_str = "PR_CB"
-        f027_prider_rwms_index = f027_obj.appendMessage("Pale Rider reward placeholder", "PR_REWARD")
+        f027_prider_rwms_index = f027_obj.appendMessage(self.get_reward_str("Pale Rider",world), "PR_REWARD")
         f027_pr_rwms_insts = [
             inst("PROC",len(f027_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1837,14 +1958,14 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Pale Rider",world) + [    
             inst("END")
         ]
-
         f027_obj.appendProc(f027_pr_rwms_insts, [], f027_prider_callback_str)
         self.insert_callback('f027',0xf4,f027_prider_callback_str)
 
         f027_bfrost_callback_str = "BFROST_CB"
-        f027_bfrost_rwms_index = f027_obj.appendMessage("Black Frost reward placeholder", "BFROST_REWARD")
+        f027_bfrost_rwms_index = f027_obj.appendMessage(self.get_reward_str("Black Frost",world), "BFROST_REWARD")
         f027_bfrost_rwms_insts = [
             inst("PROC",len(f027_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1853,6 +1974,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Black Frost",world) + [
             inst("END")
         ]
         f027_obj.appendProc(f027_bfrost_rwms_insts, [], f027_bfrost_callback_str)
@@ -1896,7 +2018,11 @@ class Script_Modifier:
         #Bishamonten scene f039
         f039_obj = self.get_script_obj_by_name('f039')
         f039_obj.changeMessageByIndex(assembler.message("Well done.","SHORTER_B_TEXT"),0x11)
-        f039_obj.changeMessageByIndex(assembler.message("Bishamon reward placeholder","BISHA_REWARD"),0x13)
+        f039_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Bishamon 1",world),"BISHA_REWARD"),0x13)
+        f039_rwms_proc = f039_obj.getProcIndexByLabel('039_B_AFTER')
+        f039_rwms_insts, f039_rwms_labels = f039_obj.getProcInstructionsLabelsByIndex(f039_rwms_proc)
+        f039_rwms_insts = f039_rwms_insts[:-1] + self.get_flag_reward_insts("Bishamon 1",world) + [inst("END")]
+        f039_obj.changeProcByIndex(f039_rwms_insts,[],f039_rwms_proc) #No labels in the proc
         f039_lb = self.push_bf_into_lb(f039_obj, 'f039')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f039'], f039_lb)
 
@@ -1927,7 +2053,7 @@ class Script_Modifier:
                 l.label_offset += len(f035_futomimi_insert_insts)
         f035_09_insts = f035_09_insts[:precut] + f035_futomimi_insert_insts + f035_09_insts[postcut:]
         f035_obj.changeProcByIndex(f035_09_insts, f035_09_labels, f035_09_index)
-        f035_futomimi_rwms_index = f035_obj.appendMessage("Futomimi reward placeholder","FUTO_RWMS")
+        f035_futomimi_rwms_index = f035_obj.appendMessage(self.get_reward_str("Futomimi",world),"FUTO_RWMS")
         f035_futomimi_callback_insts = [
             inst("PROC",len(f035_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1936,6 +2062,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Futomimi",world) + [
             inst("END")
         ]
         f035_futomimi_callback_str = "FUTO_CB"
@@ -1948,12 +2075,19 @@ class Script_Modifier:
         #Anything? Could probably do everything with flags.
         #000_dh_plus is sisters callback. Any added flags can be put there.
         f031_obj = self.get_script_obj_by_name("f031")
-        f031_obj.changeMessageByIndex(assembler.message("Sisters reward placeholder","SIS_REWARD"),0x2d)
+        f031_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Sisters",world),"SIS_REWARD"),0x2d)
+        
+        f031_rwms_proc = f031_obj.getProcIndexByLabel('000_dh_plus')
+        f031_rwms_insts, f031_rwms_labels = f031_obj.getProcInstructionsLabelsByIndex(f031_rwms_proc)
+        f031_rwms_insts = f031_rwms_insts[:-1] + self.get_flag_reward_insts("Sisters",world) + [inst("END")]
+        f031_obj.changeProcByIndex(f031_rwms_insts,[],f031_rwms_proc)
+        
         f031_lb = self.push_bf_into_lb(f031_obj,'f031')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f031'],f031_lb)
         #relevant story flags:
         #Obelisk Yuko turns on: 0x46, 0x4e, 0x4c3. Turns off 0x48f.
         #0x50 is the cutscene with Hijiri after Obelisk.
+
 
         #Cutscene removal in Amala Network 2 f028
         #Shorten Specter 2 and add reward message
@@ -1973,7 +2107,7 @@ class Script_Modifier:
         #only one label.
         f028_011_labels[0].label_offset -= diff
         f028_obj.changeProcByIndex(f028_011_insts, f028_011_labels, f028_011_index)
-        f028_specter2_rwms_index = f028_obj.appendMessage("Specter 2 placeholder","SPEC2_RWMS")
+        f028_specter2_rwms_index = f028_obj.appendMessage(self.get_reward_str("Specter 2",world),"SPEC2_RWMS")
         f028_specter2_callback_insts = [
             inst("PROC",len(f028_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1984,6 +2118,7 @@ class Script_Modifier:
             inst("COMM",0x61),
             #inst("PUSHIS",0x44), #Needs to be set at some time so why not now? Flag for Hijiri to not take you back into Network 2.
             #inst("COMM",8),
+        ] + self.get_flag_reward_insts("Specter 2",world) + [
             inst("END")
         ]
         f028_specter2_callback_str = "SPEC2_CB"
@@ -1993,6 +2128,8 @@ class Script_Modifier:
         self.insert_callback('f028',0xf4,f028_specter2_callback_str)
         #set 0x43, 0x5ed
         #0x5f9 gets set on finish of network 2.
+
+        
 
         #e652 - e652_trm
         #0-30 init
@@ -2311,7 +2448,7 @@ class Script_Modifier:
 
         f016_obj = self.get_script_obj_by_name("f016")
         #018_start has pixie cutscene.
-        f016_gary_reward_msg = f016_obj.appendMessage("Gary reward placeholder","GARY_MSG")
+        f016_gary_reward_msg = f016_obj.appendMessage(self.get_reward_str("Girimehkala",world),"GARY_MSG")
         f016_gary_reward_insts = [
             inst("PROC",len(f016_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -2320,6 +2457,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Girimehkala",world) + [
             inst("END")
         ]
         f016_gary_reward_proc_str = "GARY_CB"
@@ -2385,7 +2523,7 @@ class Script_Modifier:
         f016_obj.changeProcByIndex(f016_19_insts, f016_19_labels, f016_19_proc)
 
         f016_harlot_callback_str = "HARLOT_CB"
-        f016_harlot_rwms_index = f016_obj.appendMessage("Harlot reward placeholder", "HARLOT_REWARD")
+        f016_harlot_rwms_index = f016_obj.appendMessage(self.get_reward_str("The Harlot",world), "HARLOT_REWARD")
         f016_harlot_rwms_insts = [
             inst("PROC",len(f016_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -2394,9 +2532,9 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("The Harlot",world) + [
             inst("END")
         ]
-
         f016_obj.appendProc(f016_harlot_rwms_insts, [], f016_harlot_callback_str)
         self.insert_callback('f016',0xf4,f016_harlot_callback_str)
 
@@ -2409,7 +2547,27 @@ class Script_Modifier:
 
         #Cutscene removal in Amala Network 3 f030
         #Shorten the one thing - if even because it's tiny. Add reward message
-
+        f030_obj = self.get_script_obj_by_name("f030")
+        #callback: 0xf4
+        f030_specter3_callback_str = "SPEC3_CB"
+        f030_specter3_rwms_index = f030_obj.appendMessage(self.get_reward_str("Specter 3",world), "SPECTER3_REWARD")
+        f030_specter3_rwms_insts = [
+            inst("PROC",len(f030_obj.p_lbls().labels)),
+            inst("COMM",0x60),
+            inst("COMM",1),
+            inst("PUSHIS",f030_specter3_rwms_index),
+            inst("COMM",0),
+            inst("COMM",2),
+            inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Specter 3",world) + [
+            inst("END")
+        ]
+        f030_obj.appendProc(f030_specter3_rwms_insts, [], f030_specter3_callback_str)
+        self.insert_callback('f030',0xf4,f030_specter3_callback_str)
+        
+        f030_lb = self.push_bf_into_lb(f030_obj,'f030')
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f030'],f030_lb)
+        
         #Cutscene removal in Amala Temple f034
         #Remove Intro and Fix Red Temple.
         #Shorten pre and post cutscenes. Make sure there are reward messages and a separate message for defeating all 3 that brings down the central pyramid.
@@ -2511,7 +2669,7 @@ class Script_Modifier:
         #Albion callback
         f034_25_2_proc = f034_obj.getProcIndexByLabel('025_01eve_02')
         #Set 6ae, check 6ac and 6ad. If both are set then set 6af
-        f034_albion_rwms = f034_obj.appendMessage("Albion reward placeholder","ALBION_RWMS") #Could change a message, but this is just easier.
+        f034_albion_rwms = f034_obj.appendMessage(self.get_reward_str("Albion",world),"ALBION_RWMS") #Could change a message, but this is just easier.
         f034_25_2_insts = [
             inst("PROC",f034_25_2_proc),
             inst("PUSHIS",0x6ae),
@@ -2534,6 +2692,7 @@ class Script_Modifier:
             inst("COMM",8),
             inst("COMM",2),#Label here. 19
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Albion",world) + [
             inst("END")
         ]
         f034_25_2_labels = [
@@ -2544,7 +2703,7 @@ class Script_Modifier:
         #Skadi callback
         #Set 6ad, check 6ac and 6ae. If both are set then set 6af
         f034_18_2_proc = f034_obj.getProcIndexByLabel('018_01eve_02')
-        f034_skadi_rwms = f034_obj.appendMessage("Skadi reward placeholder", "SKADI_RWMS")
+        f034_skadi_rwms = f034_obj.appendMessage(self.get_reward_str("Skadi",world), "SKADI_RWMS")
         f034_18_2_insts = [
             inst("PROC",f034_18_2_proc),
             inst("PUSHIS",0x6ad),
@@ -2567,6 +2726,7 @@ class Script_Modifier:
             inst("COMM",8),
             inst("COMM",2),#Label here. 19
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Skadi",world) + [
             inst("END")
         ]
         f034_18_2_labels = [
@@ -2577,7 +2737,7 @@ class Script_Modifier:
         #Aciel callback
         f034_10_2_proc = f034_obj.getProcIndexByLabel('010_01eve_02')
         #Set 6ac, check 6ae and 6ad. If both are set then set 6af
-        f034_aciel_rwms = f034_obj.appendMessage("Aciel reward placeholder","ACIEL_RWMS")
+        f034_aciel_rwms = f034_obj.appendMessage(self.get_reward_str("Aciel",world),"ACIEL_RWMS")
         f034_10_2_insts = [
             inst("PROC",f034_10_2_proc),
             inst("PUSHIS",0x6ac),
@@ -2600,6 +2760,7 @@ class Script_Modifier:
             inst("COMM",8),
             inst("COMM",2),#Label here. 19
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Aciel",world) + [
             inst("END")
         ]
         f034_10_2_labels = [
@@ -2734,7 +2895,7 @@ class Script_Modifier:
         ]
         f021_obj.changeProcByIndex(f021_toot_insts,f021_toot_labels,f021_toot_proc)
 
-        f021_toot_rwms = f021_obj.appendMessage("Trumpeter reward placeholder","TOOT_RWMS")
+        f021_toot_rwms = f021_obj.appendMessage(self.get_reward_str("Trumpeter",world),"TOOT_RWMS")
         f021_toot_rwms_insts = [
             inst("PROC",len(f021_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -2743,6 +2904,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Trumpeter",world) + [
             inst("END")
         ]
         f021_toot_reward_proc_str = "TOOT_CB"
@@ -2768,7 +2930,7 @@ class Script_Modifier:
         #e674_main is event with Samael. Shorten like Gary.
         f033_obj = self.get_script_obj_by_name("f033")
 
-        f033_surt_rwms = f033_obj.appendMessage("Surt reward message","SURT_RWMS")
+        f033_surt_rwms = f033_obj.appendMessage(self.get_reward_str("Surt",world),"SURT_RWMS")
         f033_surt_rwms_insts = [
             inst("PROC",len(f033_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -2777,6 +2939,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Surt",world) + [
             inst("END")
         ]
 
@@ -2784,7 +2947,7 @@ class Script_Modifier:
         f033_obj.appendProc(f033_surt_rwms_insts,[],f033_surt_reward_proc_str)
         self.insert_callback('f033', 0x37a4, f033_surt_reward_proc_str)
 
-        f033_mada_rwms = f033_obj.appendMessage("Mada reward message","MADA_RWMS")
+        f033_mada_rwms = f033_obj.appendMessage(self.get_reward_str("Mada",world),"MADA_RWMS")
         f033_mada_rwms_insts = [
             inst("PROC",len(f033_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -2793,6 +2956,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Mada",world) + [
             inst("END")
         ]
 
@@ -2800,8 +2964,17 @@ class Script_Modifier:
         f033_obj.appendProc(f033_mada_rwms_insts,[],f033_mada_reward_proc_str)
         self.insert_callback('f033', 0x3808, f033_mada_reward_proc_str)
 
+        f033_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mot",world),"MOT_REWARD"),0xd)
 
-        f033_obj.changeMessageByIndex(assembler.message("Mot reward placeholder","MOT_REWARD"),0xd)
+        #Flag insertion after line 44. Need to move labels.
+        f033_18_proc = f033_obj.getProcIndexByLabel('018_start')
+        f033_18_insts, f033_18_labels = f033_obj.getProcInstructionsLabelsByIndex(f033_18)proc)
+        f033_18_insert_insts = self.get_flag_reward_insts("Mot",world)
+        f033_18_insts = f033_18_insts[:45] + f033_18_insert_insts + f033_18_insts[45:]
+        for l in f033_18_labels:
+            if l.label_offset > 45:
+                l.label_offset += len(f033_18_insert_insts)
+        f033_obj.changeProcByIndex(f033_18_insts, f033_18_labels, f033_18_proc)
 
         f033_29_proc = f033_obj.getProcIndexByLabel('029_01eve_01') #Mithra
         f033_29_insts = [
@@ -2828,9 +3001,9 @@ class Script_Modifier:
             assembler.label("MITHRA_FOUGHT",17)
         ]
         f033_obj.changeProcByIndex(f033_29_insts, f033_29_labels, f033_29_proc)
-        f033_obj.changeMessageByIndex(assembler.message("Mithra Reward Placeholder","MITHRA_REWARD"),0x2d)
+        f033_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mithra",world),"MITHRA_REWARD"),0x2d)
 
-        f033_samael_rwms = f033_obj.appendMessage("Samael reward message","MADA_RWMS")
+        f033_samael_rwms = f033_obj.appendMessage("Samael reward message","SAMAEL_RWMS")
         f033_samael_rwms_insts = [
             inst("PROC",len(f033_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -2839,6 +3012,7 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+        ] + self.get_flag_reward_insts("Samael",world) + [
             inst("END")
         ]
 
