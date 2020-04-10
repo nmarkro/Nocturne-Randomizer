@@ -64,15 +64,13 @@ class Script_Modifier:
         # add the uncompressed, modified BF file to the LB and add it to the dds3 fs
         return lb.export_lb({'BF': BytesIO(bytearray(bf_obj.toBytes()))})
     def get_reward_str(self, check_name, world):
-        reward_str = "You defeated "+world.checks[check_name].boss.name+".^n"
+        reward_str = "You defeated "+world.checks[check_name].boss.name+"."
         if world.checks[check_name].boss.reward:
-            reward_str += custom_vals.MAGATAMA_REWARD_MSG[world.checks[check_name].boss.reward.name]
+            reward_str += "^n"+custom_vals.MAGATAMA_REWARD_MSG[world.checks[check_name].boss.reward.name]
         if world.checks[check_name].flag_rewards:
             for flag_reward in world.checks[check_name].flag_rewards:
                 if flag_reward.flag_id in custom_vals.FLAG_REWARD_MSG:
-                    if reward_str:
-                        reward_str+="^n"
-                    reward_str+=custom_vals.FLAG_REWARD_MSG[flag_reward.flag_id]
+                    reward_str+="^n"+custom_vals.FLAG_REWARD_MSG[flag_reward.flag_id]
                 else:
                     print ("Warning: In get_reward_str(). No reward string found for flag",hex(flag_reward.flag_id))
         return reward_str
@@ -1385,10 +1383,10 @@ class Script_Modifier:
             inst("COMM",0x4a),
             inst("PUSHLIX",0x3b),
             inst("COMM",0x21e),
-            inst("COMM",2),
+            inst("COMM",1),
             inst("PUSHIS",f024_orthrus_rwms), #Orthrus reward message
             inst("COMM",0),
-            inst("COMM",1)
+            inst("COMM",2)
         ] + self.get_flag_reward_insts("Orthrus",world)
         f024_yaksini_rwms = f024_obj.appendMessage(self.get_reward_str("Yaksini",world),"YAKSINI_RWMS")
         f024_10_insert_insts_thor_pre = [
@@ -1404,10 +1402,10 @@ class Script_Modifier:
             inst("COMM",0x4a),
             inst("PUSHLIX",0x39),
             inst("COMM",0x21e),
-            inst("COMM",2),
+            inst("COMM",1),
             inst("PUSHIS",f024_yaksini_rwms), #Yaksini reward message
             inst("COMM",0),
-            inst("COMM",1)
+            inst("COMM",2)
         ] + self.get_flag_reward_insts("Yaksini",world)
         #from  726-881
         f024_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Thor 1",world),"THOR_REWARD"),97)
