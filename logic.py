@@ -151,7 +151,7 @@ def create_areas(world):
     world.add_check("Kagutsuchi", tok, 2835990)
     world.add_check("Lucifer", tok, 2835154)
 
-    pyramidion = world.add_flag('Pyramidion', None)
+    pyramidion = world.add_flag('Pyramidion', 0x3da)
     earthstone = world.add_flag('Earthstone', None)
     netherstone = world.add_flag('Netherstone', None)
     heavenstone = world.add_flag('Heavenstone', None)
