@@ -8,80 +8,79 @@ def set_rules(world):
     # Area access rules
     set_rule(
         world.get_area('Shibuya'), 
-        lambda state: state.has_checked('Forneus') or (state.has_terminal('Shibuya'))
+        lambda state: state.has_checked('Forneus')
     )
     set_rule(
         world.get_area('Amala Network 1'), 
-        lambda state: state.has_checked('Forneus') or state.has_terminal('Shibuya')
+        lambda state: state.has_checked('Forneus')
     )
     set_rule(
         world.get_area('Ginza'), 
-        lambda state: state.has_checked('Specter 1') or (state.has_terminal('Ginza'))
-    )
-    set_rule(
-        world.get_area('Ginza Underpass'), 
-        lambda state: state.has_terminal('Ginza Underpass') or state.has_terminal('Ginza')
-    )
-    set_rule(
-        world.get_area('Ikebukuro'),
-        lambda state: state.has_terminal('Ikebukuro') or state.has_checked('Matador')
-    )
-    set_rule(
-        world.get_area('Nihilo East'), 
-        lambda state: state.has_terminal('Nihilo East') or state.has_checked('Dante 1')
-    )
-    set_rule(
-        world.get_area('Ikebukuro Tunnel'), 
-        lambda state: state.has_terminal('Ikebukuro Tunnel') or state.has_checked('Ose')
-    )
-    set_rule(
-        world.get_area('Kabukicho Prison'), 
-        lambda state: state.has_terminal('Kabukicho Prison') or state.has_terminal('Ikebukuro Tunnel')
-    )
-    set_rule(
-        world.get_area('Asakusa'), 
-        lambda state: state.has_terminal('Asakusa') or state.has_checked('Mizuchi')
-    )
-    set_rule(
-        world.get_area('Obelisk'), 
-        lambda state: state.has_terminal('Obelisk') or state.has_terminal('Asakusa')
-    )
-    set_rule(
-        world.get_area('Amala Network 2'), 
-        lambda state: state.has_terminal('Asakusa') and state.has_checked('Sisters')
-    )
-    set_rule(
-        world.get_area('Yoyogi Park'), 
-        lambda state: state.has_terminal('Yoyogi Park') or state.has_checked('Specter 2')
-    )
-    set_rule(
-        world.get_area('Amala Network 3'),
-        lambda state: state.has_terminal('Asakusa') and state.has_checked('Girimehkala') and state.has_checked('Specter 2')
-    )
-    set_rule(
-        world.get_area('Amala Temple'),
-        lambda state: state.has_terminal('Amala Temple') or state.has_checked('Specter 3')
-    )
-    set_rule(
-        world.get_area('Mifunashiro'),
-        lambda state: state.has_terminal('Mifunashiro') or 
-            (state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi'))
-    )
-    set_rule(
-        world.get_area('Yurakucho Tunnel'),
-        lambda state: state.has_terminal('Yurakucho Tunnel') or state.has_checked('Futomimi')
-    )
-    set_rule(
-        world.get_area('Diet Building'),
-        lambda state: state.has_terminal('Diet Building') or state.has_terminal('Yurakucho Tunnel')
-    )
-    set_rule(
-        world.get_area('Labyrinth of Amala'),
         lambda state: state.has_checked('Specter 1')
     )
     set_rule(
+        world.get_area('Ginza Underpass'), 
+        lambda state: state.has_terminal('Ginza')
+    )
+    set_rule(
+        world.get_area('Ikebukuro'),
+        lambda state: state.has_checked('Matador')
+    )
+    set_rule(
+        world.get_area('Nihilo East'), 
+        lambda state: state.has_checked('Dante 1')
+    )
+    set_rule(
+        world.get_area('Ikebukuro Tunnel'), 
+        lambda state: state.has_checked('Ose')
+    )
+    set_rule(
+        world.get_area('Kabukicho Prison'), 
+        lambda state: state.has_terminal('Ikebukuro Tunnel')
+    )
+    set_rule(
+        world.get_area('Asakusa'), 
+        lambda state: state.has_checked('Mizuchi')
+    )
+    set_rule(
+        world.get_area('Obelisk'), 
+        lambda state: state.has_terminal('Asakusa')
+    )
+    set_rule(
+        world.get_area('Amala Network 2'), 
+        lambda state: state.has_terminal('Asakusa')
+    )
+    set_rule(
+        world.get_area('Yoyogi Park'), 
+        lambda state: state.has_checked('Specter 2')
+    )
+    set_rule(
+        world.get_area('Amala Network 3'),
+        lambda state: state.has_checked('Girimehkala') and state.has_checked('Specter 2')
+    )
+    set_rule(
+        world.get_area('Amala Temple'),
+        lambda state: state.has_checked('Specter 3')
+    )
+    set_rule(
+        world.get_area('Mifunashiro'),
+        lambda state: state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
+    )
+    set_rule(
+        world.get_area('Yurakucho Tunnel'),
+        lambda state: state.has_checked('Futomimi')
+    )
+    set_rule(
+        world.get_area('Diet Building'),
+        lambda state: state.has_terminal('Yurakucho Tunnel')
+    )
+    set_rule(
+        world.get_area('Labyrinth of Amala'),
+        lambda state: False # state.has_checked('Specter 1')
+    )
+    set_rule(
         world.get_area('ToK'),
-        lambda state: state.has_terminal('Obelisk') and state.has_checked('Samael') and state.has_terminal('Amala Temple') and state.has_checked('Metatron')
+        lambda state: state.has_terminal('Obelisk') and state.has_flag('Pyramidion') and state.has_terminal('Amala Temple')
     )
 
     # Check access rules
@@ -106,12 +105,24 @@ def set_rules(world):
         lambda state: state.has_checked('Kagutsuchi') and state.has_checked('Metatron')
     )
     set_rule(
+        world.get_check('Aciel'),
+        lambda state: state.has_flag('Black Key')
+    )
+    set_rule(
+        world.get_check('Albion'),
+        lambda state: state.has_flag('White Key')
+    )
+    set_rule(
+        world.get_check('Skadi'),
+        lambda state: state.has_flag('Red Key')
+    )
+    set_rule(
         world.get_check('Futomimi'),
         lambda state: state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
     )
     set_rule(
         world.get_check('The Harlot'),
-        lambda state: state.has_checked('Girimehkala')
+        lambda state: state.has_flag('Golden Goblet')
     )
     set_rule(
         world.get_check('Black Rider'),
@@ -158,16 +169,12 @@ def set_rules(world):
         lambda state: state.has_checked('Kin-Ki') and state.has_checked('Sui-Ki') and state.has_checked('Fuu-Ki')
     )
     set_rule(
-        world.get_check('Black Frost'),
-        lambda state: state.has_checked('Mizuchi') and state.has_checked('Girimehkala')
-    )
-    set_rule(
         world.get_check('Pale Rider'),
         lambda state: state.has_checked('Black Rider')
     )
     set_rule(
         world.get_check('White Rider'),
-        lambda state: state.has_checked('Matador') and state.has_checked('Daisoujou') and state.has_checked('Hell Biker')
+        lambda state: state.has_flag('Apocalypse Stone')
     )
     set_rule(
         world.get_check('Mada'),

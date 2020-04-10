@@ -1,7 +1,12 @@
+import nocturne
+
+# Resist/Null/Absorb/Repel Phys to leave out of SMC
+PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
+
 class World(object):
     def __init__(self):
         self.areas = {}
-        self.terminals = {}
+        self.flags = {}
         self.checks = {}
         self.magatamas = {}
         self.bosses = {}
@@ -13,14 +18,40 @@ class World(object):
         self.demon_generator = None
         self.demon_map = {}
 
+    def add_area(self, name):
+        self.areas[name] = Area(name)
+        return self.areas[name]
+
+    def add_flag(self, name, flag_id):
+        self.flags[name] = Flag(name, flag_id)
+        return self.flags[name]
+
+    def add_terminal(self, area, flag_id):
+        t = Flag(area.name + " Terminal", flag_id)
+        t.is_terminal = True
+        self.flags[t.name] = t
+        self.areas[area.name].terminal_flag = t
+        return t
+
+    def add_check(self, name, area, offset):
+        c = Check(name, area)
+        c.offset = offset
+        self.checks[name] = c
+        
+        b = Boss(name)
+        b.battle = nocturne.all_battles.get(offset)
+        b.phys_invalid = name in PHYS_INVALID_BOSSES
+        self.bosses[name] = b
+        return c
+
     def get_area(self, area):
         return self.areas.get(area)
 
     def get_check(self, check):
         return self.checks.get(check)
 
-    def get_terminal(self, terminal):
-        return self.terminals.get(terminal)
+    def get_flag(self, flag):
+        return self.flags.get(flag)
 
     def get_magatama(self, magatama):
         return self.magatamas.get(magatama)
@@ -34,8 +65,8 @@ class World(object):
     def get_checks(self):
         return list(self.checks.values())
 
-    def get_terminals(self):
-        return list(self.terminals.values())
+    def get_flags(self):
+        return list(self.flags.values())
 
     def get_magatamas(self):
         return list(self.magatamas.values())
@@ -63,12 +94,12 @@ class Area(object):
         self.name = name
         self.rule = lambda state: True
         self.boss_rule = lambda boss: True
-        self.terminal = None
+        self.terminal_flag = None
         self.checks = []
         self.changed = False
 
     def can_reach(self, state):
-        return self.rule(state)
+        return self.rule(state) or state.has_terminal(self.name)
 
     def can_place(self, boss):
         return self.boss_rule(boss)
@@ -82,6 +113,7 @@ class Check(object):
         self.area = parent
         self.offset = None
         self.boss = None
+        self.flag_rewards = []
         self.area.checks.append(self)
 
     def can_reach(self, state):
@@ -105,6 +137,19 @@ class Boss(object):
     def can_beat(self, state):
         return self.rule(state)
 
+    def can_add_reward(self, reward):
+        if isinstance(reward, Magatama) and self.reward != None:
+            return False
+        elif isinstance(reward, Flag) and self.check.flag_rewards != []:
+            return False
+        return True            
+
+    def add_reward(self, reward):
+        reward.boss = self
+        if isinstance(reward, Magatama):
+            self.reward = reward
+        elif isinstance(reward, Flag):
+            self.check.flag_rewards.append(reward)
 
 class Battle(object):
     def __init__(self, offset):
@@ -120,15 +165,11 @@ class Battle(object):
         self.reward_index = None
 
 
-class Terminal(object):
-    def __init__(self, name, parent):
+class Flag(object):
+    def __init__(self, name, flag_id):
         self.name = name
-        self.area = parent
-        self.area.terminal = self
-        self.check = None
-
-    def can_reach(self, state):
-        return self.area.can_reach(state)
+        self.flag_id = flag_id
+        self.is_terminal = False
 
 
 class Magatama(object):
@@ -188,7 +229,7 @@ class Skill(object):
 class Progression(object):
     def __init__(self, parent):
         self.world = parent
-        self.terminals = {}
+        self.flags = {}
         self.checks = {}
         self.magatamas = {}
 
@@ -196,8 +237,8 @@ class Progression(object):
         for c in self.world.get_checks():
             self.checks[c.name] = False
 
-        for t in self.world.get_terminals():
-            self.terminals[t.name] = False
+        for f in self.world.get_flags():
+            self.flags[f.name] = False
 
         for m in self.world.get_magatamas():
             self.magatamas[m.name] = False
@@ -205,23 +246,41 @@ class Progression(object):
     def check(self, check):
         self.checks[check] = True
 
-    def get_terminal(self, terminal):
-        self.terminals[terminal] = True
+    def get_flag(self, flag):
+        self.flags[flag] = True
 
     def get_magatama(self, magatama):
         self.magatamas[magatama] = True
 
-    def remove_terminal(self, terminal):
-        self.terminals[terminal] = False
+    def get_terminal(self, area):
+        self.flags[area + ' Terminal'] = True
+
+    def get_reward(self, reward):
+        if isinstance(reward, Magatama):
+            self.magatamas[reward.name] = True
+        elif isinstance(reward, Flag):
+            self.flags[reward.name] = True
+
+    def remove_flags(self, flag):
+        self.flags[flag] = False
 
     def remove_magatama(self, magatama):
         self.magatamas[magatama] = False
 
+    def remove_reward(self, reward):
+        if isinstance(reward, Magatama):
+            self.magatamas[reward.name] = False
+        elif isinstance(reward, Flag):
+            self.flags[reward.name] = False
+
     def has_checked(self, check):
         return self.checks.get(check) == True
 
-    def has_terminal(self, terminal):
-        return self.terminals.get(terminal) == True
+    def has_flag(self, flag):
+        return self.flags.get(flag) == True
+
+    def has_terminal(self, area):
+        return self.flags.get(area + " Terminal") == True
 
     def has_resistance(self, resistance):
         for m in self.world.magatamas.values():

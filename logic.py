@@ -1,5 +1,6 @@
 import copy
 import random
+import logging
 
 import nocturne
 import rules
@@ -42,126 +43,122 @@ def init_magatamas(world):
 PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
 
 def create_areas(world):
-    def add_area(name, world):
-        a = Area(name)
-        world.areas[name] = a
-        return a
+    smc = world.add_area('SMC')
+    world.add_terminal(smc, 0x441)
+    world.add_check('Forneus', smc, 2818548)
+    world.add_check('Black Rider', smc, 2857042)
 
-    def add_terminal(name, area, world):
-        t = Terminal(name, area)
-        world.terminals[name] = t
+    shibuya = world.add_area('Shibuya')
+    world.add_terminal(shibuya, 0x481)
+    world.add_check('Mara', shibuya, 2845110)
+    world.add_flag('Eggplant', 0x3C5)
 
-    def add_check(name, area, world, offset):
-        c = Check(name, area)
-        c.offset = offset
-        world.checks[name] = c
+    amala_network_1 = world.add_area('Amala Network 1')
+    world.add_check('Specter 1', amala_network_1, 2818776)
 
-        b = Boss(name)
-        b.battle = nocturne.all_battles.get(offset)
-        b.phys_invalid = name in PHYS_INVALID_BOSSES
-        world.bosses[name] = b
+    ginza = world.add_area('Ginza')
+    world.add_terminal(ginza, 0x4C1)
+    world.add_check('Troll', ginza, 2820106)
 
-    smc = add_area('SMC', world)
-    add_terminal('SMC', smc, world)
-    add_check('Forneus', smc, world, 2818548)
-    add_check('The Harlot', smc, world, 2857194)
-    add_check('Black Rider', smc, world, 2857042)
+    underpass = world.add_area('Ginza Underpass')
+    world.add_terminal(underpass, 0x521)
+    world.add_check('Matador', underpass, 2857080)
+    world.add_check('Red Rider', underpass, 2857004)
 
-    shibuya = add_area('Shibuya', world)
-    add_terminal('Shibuya', shibuya, world)
-    add_check('Mara', shibuya, world, 2845110)
+    ikebukuro = world.add_area('Ikebukuro')
+    world.add_terminal(ikebukuro, 0x5A1)
+    world.add_check('Orthrus', ikebukuro, 2821170)
+    world.add_check('Yaksini', ikebukuro, 2821208)
+    world.add_check('Thor 1', ikebukuro, 2821246)
+    world.add_check('Dante 1', ikebukuro, 2857270)
+    world.add_check('Daisoujou', ikebukuro, 2857156)
+    world.add_check('Hell Biker', ikebukuro, 2857118)
 
-    amala_network_1 = add_area('Amala Network 1', world)
-    add_check('Specter 1', amala_network_1, world, 2818776)
+    nihilo_e = world.add_area('Nihilo East')
+    world.add_terminal(nihilo_e, 0x4E1)
+    world.add_check("Ose", nihilo_e, 2822462)
 
-    ginza = add_area('Ginza', world)
-    add_terminal('Ginza', ginza, world)
+    ikebukuro_tunnel = world.add_area('Ikebukuro Tunnel')
+    world.add_terminal(ikebukuro_tunnel, 0x541)
+    world.add_check("Kin-Ki", ikebukuro_tunnel, 2825464)
+    world.add_check("Sui-Ki", ikebukuro_tunnel, 2825502)
+    world.add_check("Fuu-Ki", ikebukuro_tunnel, 2825540)
+    world.add_check("Ongyo-Ki", ikebukuro_tunnel, 2825578)
 
-    underpass = add_area('Ginza Underpass', world)
-    add_terminal('Ginza Underpass', underpass, world)
-    add_check('Troll', underpass, world, 2820106)
-    add_check('Matador', underpass, world, 2857080)
-    add_check('Red Rider', underpass, world, 2857004)
+    kabukicho_prison = world.add_area('Kabukicho Prison')
+    world.add_terminal(kabukicho_prison, 0x581)
+    world.add_check("Mizuchi", kabukicho_prison, 2825388)
 
-    ikebukuro = add_area('Ikebukuro', world)
-    add_terminal('Ikebukuro', ikebukuro, world)
-    add_check('Orthrus', ikebukuro, world, 2821170)
-    add_check('Yaksini', ikebukuro, world, 2821208)
-    add_check('Thor 1', ikebukuro, world, 2821246)
-    add_check('Dante 1', ikebukuro, world, 2857270)
-    add_check('Daisoujou', ikebukuro, world, 2857156)
-    add_check('Hell Biker', ikebukuro, world, 2857118)
+    asakusa = world.add_area('Asakusa')
+    world.add_terminal(asakusa, 0x5C1)
+    world.add_check('Pale Rider', asakusa, 2856928)
+    world.add_check("Black Frost", asakusa, 2845148)
+    world.add_check('White Rider', asakusa, 2856966)
+    world.add_flag("Apocalypse Stone", 0x3C3)
 
-    nihilo_e = add_area('Nihilo East', world)
-    add_terminal('Nihilo East', nihilo_e, world)
-    add_check("Ose", nihilo_e, world, 2822462)
+    obelisk = world.add_area('Obelisk')
+    world.add_terminal(obelisk, 0x4E2)
+    world.add_check("Sisters", obelisk, 2828314)
 
-    ikebukuro_tunnel = add_area('Ikebukuro Tunnel', world)
-    add_terminal('Ikebukuro Tunnel', ikebukuro_tunnel, world)
-    add_check("Kin-Ki", ikebukuro_tunnel, world, 2825464)
-    add_check("Sui-Ki", ikebukuro_tunnel, world, 2825502)
-    add_check("Fuu-Ki", ikebukuro_tunnel, world, 2825540)
-    add_check("Ongyo-Ki", ikebukuro_tunnel, world, 2825578)
+    amala_network_2 = world.add_area('Amala Network 2')
+    world.add_check('Specter 2', amala_network_2, 2828124)
 
-    kabukicho_prison = add_area('Kabukicho Prison', world)
-    add_terminal('Kabukicho Prison', kabukicho_prison, world)
-    add_check("Mizuchi", kabukicho_prison, world, 2825388)
-    add_check("Black Frost", kabukicho_prison, world, 2845148)
+    yoyogi = world.add_area('Yoyogi Park')
+    world.add_terminal(yoyogi, 0x461)
+    world.add_check("Girimehkala", yoyogi, 2829682)
+    world.add_check('The Harlot', yoyogi, 2857194)
+    world.add_flag('Golden Goblet', 0x3C4)
 
-    asakusa = add_area('Asakusa', world)
-    add_terminal('Asakusa', asakusa, world)
-    add_check('Pale Rider', asakusa, world, 2856928)
-    add_check('White Rider', asakusa, world, 2856966)
+    amala_network_3 = world.add_area('Amala Network 3') 
+    world.add_check('Specter 3', amala_network_3, 2828162)
 
-    obelisk = add_area('Obelisk', world)
-    add_terminal('Obelisk', obelisk, world)
-    add_check("Sisters", obelisk, world, 2828314)
+    amala_temple = world.add_area('Amala Temple')
+    world.add_terminal(amala_temple, 0x6A1)
+    world.add_check("Albion", amala_temple, 2828808)
+    world.add_check("Aciel", amala_temple, 2830442)
+    world.add_check("Skadi", amala_temple, 2830480)
+    world.add_flag("Black Key", 0x3C0)
+    world.add_flag("White Key", 0x3C1)
+    world.add_flag("Red Key", 0x3C2)
 
-    amala_network_2 = add_area('Amala Network 2', world)
-    add_check('Specter 2', amala_network_2, world, 2828124)
+    mifunashiro = world.add_area('Mifunashiro')
+    world.add_terminal(mifunashiro, 0x6E1)
+    world.add_check("Futomimi", mifunashiro, 2843628)
 
-    yoyogi = add_area('Yoyogi Park', world)
-    add_terminal('Yoyogi Park', yoyogi, world)
-    add_check("Girimehkala", yoyogi, world, 2829682)
+    yurakucho_tunnel = world.add_area('Yurakucho Tunnel')
+    world.add_terminal(yurakucho_tunnel, 0x501)
+    world.add_check("Trumpeter", yurakucho_tunnel, 2857232)
 
-    amala_network_3 = add_area('Amala Network 3', world)
-    add_check('Specter 3', amala_network_3, world, 2828162)
+    diet_building = world.add_area('Diet Building')
+    world.add_terminal( diet_building, 0x681)
+    world.add_check("Surt", diet_building, 2855522)
+    world.add_check("Mada", diet_building, 2855446)
+    world.add_check("Mot", diet_building, 2855484)
+    world.add_check("Mithra", diet_building, 2854876)
+    world.add_check("Samael", diet_building, 2843552)
 
-    amala_temple = add_area('Amala Temple', world)
-    add_terminal('Amala Temple', amala_temple, world)
-    add_check("Albion", amala_temple, world, 2828808)
-    add_check("Aciel", amala_temple, world, 2830442)
-    add_check("Skadi", amala_temple, world, 2830480)
+    lab_of_amala = world.add_area("Labyrinth of Amala")
+    world.add_terminal(lab_of_amala, 0x751)
+    world.add_check("Dante 2", lab_of_amala, 2857346)
+    world.add_check("Beelzebub", lab_of_amala, 2835116)
+    world.add_check("Metatron", lab_of_amala, 2835078)
 
-    mifunashiro = add_area('Mifunashiro', world)
-    add_terminal('Mifunashiro', mifunashiro, world)
-    add_check("Futomimi", mifunashiro, world, 2843628)
+    tok = world.add_area("ToK")
+    world.add_check("Ahriman", tok, 2855712)
+    world.add_check("Noah", tok, 2855750)
+    world.add_check("Thor 2", tok, 2856320)
+    world.add_check("Baal Avatar", tok, 2830670)
+    world.add_check("Kagutsuchi", tok, 2835990)
+    world.add_check("Lucifer", tok, 2835154)
 
-    yurakucho_tunnel = add_area('Yurakucho Tunnel', world)
-    add_terminal('Yurakucho Tunnel', yurakucho_tunnel, world)
-    add_check("Trumpeter", yurakucho_tunnel, world, 2857232)
-
-    diet_building = add_area('Diet Building', world)
-    add_terminal('Diet Building', diet_building, world)
-    add_check("Surt", diet_building, world, 2855522)
-    add_check("Mada", diet_building, world, 2855446)
-    add_check("Mot", diet_building, world, 2855484)
-    add_check("Mithra", diet_building, world, 2854876)
-    add_check("Samael", diet_building, world, 2843552)
-
-    lab_of_amala = add_area("Labyrinth of Amala", world)
-    add_terminal("Labyrinth of Amala", lab_of_amala, world)
-    add_check("Dante 2", lab_of_amala, world, 2857346)
-    add_check("Beelzebub", lab_of_amala, world, 2835116)
-    add_check("Metatron", lab_of_amala, world, 2835078)
-
-    tok = add_area("ToK", world)
-    add_check("Ahriman", tok, world, 2855712)
-    add_check("Noah", tok, world, 2855750)
-    add_check("Thor 2", tok, world, 2856320)
-    add_check("Baal Avatar", tok, world, 2830670)
-    add_check("Kagutsuchi", tok, world, 2835990)
-    add_check("Lucifer", tok, world, 2835154)
+    pyramidion = world.add_flag('Pyramidion', None)
+    earthstone = world.add_flag('Earthstone', None)
+    netherstone = world.add_flag('Netherstone', None)
+    heavenstone = world.add_flag('Heavenstone', None)
+    world.get_check('Samael').flag_rewards = [pyramidion]
+    world.get_check('Ahriman').flag_rewards = [earthstone]
+    world.get_check('Noah').flag_rewards = [netherstone]
+    world.get_check('Baal Avatar').flag_rewards = [heavenstone]
 
 
 # Bosses not to randomize
@@ -192,13 +189,25 @@ def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
         chosen_check = random.choice(candidates)
         boss.check = chosen_check
         chosen_check.boss = boss
-        logger.info("Placing " + boss.name + " at check: " + chosen_check.name)
+        # logger.info("Placing " + boss.name + " at check: " + chosen_check.name)
 
+# returns a reward that unlocks new checks
+# assumes with the current state there are no completeable checks
+def find_progressive_reward(state, check_pool, reward_pool):
+    for r in reward_pool:
+        state.get_reward(r)
+        completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state)]
+        can_progress = bool(completeable_checks)
+        if can_progress:
+            return r
+        else:
+            state.remove_reward(r)
+    return None
 
 def randomize_world(world, logger, attempts=100):
     state = world.state
     area_pool = world.get_areas()
-    terminal_pool = world.get_terminals()
+    flag_pool = world.get_flags()
     check_pool = world.get_checks()
     magatama_pool = world.get_magatamas()
     boss_pool = world.get_bosses()
@@ -218,19 +227,23 @@ def randomize_world(world, logger, attempts=100):
         return None
 
     # Remove the starting Magatama and Gaea (24 st magatama)
-    marogareh = world.get_magatama('Marogareh')
-    state.get_magatama(marogareh.name)
-    magatama_pool.remove(marogareh)
-    gaea = world.get_magatama('Gaea')
-    magatama_pool.remove(gaea)
-    masakados = world.get_magatama('Masakados')
-    magatama_pool.remove(masakados)
-    # shuffle magatamas for more random rewards
-    random.shuffle(magatama_pool)
+    state.get_magatama('Marogareh')
+    magatama_pool.remove(world.get_magatama('Marogareh'))
+    magatama_pool.remove(world.get_magatama('Gaea'))
+    magatama_pool.remove(world.get_magatama('Masakados'))
+    # remove the fixed flags and terminal flags
+    flag_pool = [f for f in flag_pool if not f.is_terminal]
+    flag_pool.remove(world.get_flag('Pyramidion'))
+    flag_pool.remove(world.get_flag('Earthstone'))
+    flag_pool.remove(world.get_flag('Netherstone'))
+    flag_pool.remove(world.get_flag('Heavenstone'))
+
+    reward_pool = magatama_pool + flag_pool
+    random.shuffle(reward_pool)
 
     # keep track of bosses beaten for placing magatamas
     bosses_progressed = []
-    while world.get_check('Lucifer') in check_pool:
+    while world.get_check('Kagutsuchi') in check_pool:
         if attempts < 0:
             print('Error generating world, trying again')
             return None
@@ -241,29 +254,34 @@ def randomize_world(world, logger, attempts=100):
             has_progressed = False
             for area in area_pool:
                 # unlock terminals the player can reach
-                if area.terminal in terminal_pool:
-                    if area.terminal.can_reach(state):
-                        state.get_terminal(area.terminal.name)
-                        terminal_pool.remove(area.terminal)
-                        logger.info("Getting Terminal: " + area.terminal.name)
+                if area.terminal_flag:
+                    if area.can_reach(state) and not state.has_terminal(area.name):
+                        state.get_terminal(area.name)
+                        logger.info("Getting Terminal: " + area.terminal_flag.name)
                         has_progressed = True
-                # beat bosses the player can reach and beat
-                for check in area.checks:
-                    if check.can_reach(state) and check in check_pool:
-                        if check.boss.can_beat(state):
-                            state.check(check.name)
-                            check_pool.remove(check)
-                            logger.info("Beating " + check.boss.name + " at check: " + check.name)
-                            has_progressed = True
-                            bosses_progressed.append(check.boss)
+            # beat bosses the player can reach and beat
+            for check in check_pool:
+                if check.can_reach(state) and check in check_pool:
+                    if check.boss.can_beat(state):
+                        state.check(check.name)
+                        check_pool.remove(check)
+                        logger.info("Beating " + check.boss.name + " at check: " + check.name)
+                        if check.boss.reward:
+                            state.get_reward(check.boss.reward)
+                            logger.info("Getting reward: " + check.boss.reward.name)
+                        for f in check.flag_rewards:
+                            state.get_reward(f)
+                            logger.info("Getting Flag: " + f.name)
+                        has_progressed = True
+                        bosses_progressed.append(check.boss)
         # check for game completion 
-        if world.get_check('Lucifer') not in check_pool:
+        if world.get_check('Kagutsuchi') not in check_pool:
             break
         logger.info("Can no longer progress\n")
 
         # didn't beat any bosses this passthrough, rerandomize unchecked bosses and try again
         if not bosses_progressed:
-            #logger.info("Re-randomizing unchecked bosses\n")
+            logger.info("Re-randomizing unchecked bosses\n")
             new_boss_pool = []
             for check in check_pool:
                 if check.boss.name not in BANNED_BOSSES:
@@ -280,33 +298,77 @@ def randomize_world(world, logger, attempts=100):
         can_progress = False
         shuffled_bosses = copy.copy([b for b in bosses_progressed if b.check.area.name != 'ToK'])
         random.shuffle(shuffled_bosses)
-        # try to assign magatamas that unlock progression 
+        # try to assign rewards that unlock progression 
         while not can_progress:
-            for magatama in magatama_pool:
-                state.get_magatama(magatama.name)
-                completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state)]
-                can_progress = bool(completeable_checks)
-                if not can_progress:
-                    state.remove_magatama(magatama.name)
-                else:
-                    boss = shuffled_bosses.pop()
-                    logger.info("Adding " + magatama.name + " to boss " + boss.name + " at check " + boss.check.name + "\n")
-                    boss.reward = magatama
-                    magatama.boss = boss
-                    magatama_pool.remove(magatama)
-                    bosses_progressed.remove(boss)
+            if attempts < 0:
+                return None
+
+            magatama_rewards = [r for r in reward_pool if isinstance(r, Magatama)]
+            flag_rewards = [r for r in reward_pool if isinstance(r, Flag)]
+
+            # try to give all the magatamas before any flag reward
+            chosen_reward = find_progressive_reward(state, check_pool, magatama_rewards)
+            if chosen_reward == None:
+                chosen_reward = find_progressive_reward(state, check_pool, flag_rewards)
+            can_progress = bool(chosen_reward != None)
+
+            attempts -= 1
+
+        chosen_boss = None
+        # try to give the chosen reward to a boss with no magatama or flag reward 
+        no_reward_boss_pool = [b for b in shuffled_bosses if b.reward == None and b.check.flag_rewards == []]
+        if no_reward_boss_pool != []:
+            chosen_boss = random.choice(no_reward_boss_pool)
+        if chosen_boss == None:
+            for b in shuffled_bosses:
+                if b.can_add_reward(chosen_reward):
+                    chosen_boss = b
                     break
 
-    logger.info("Placing unused Magatamas")
-    # reverse to add magatamas to bosses from the beginning of the game
+        if chosen_boss:
+            logger.info("Adding " + chosen_reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name + "\n")
+            chosen_boss.add_reward(chosen_reward)
+            reward_pool.remove(chosen_reward)
+        else:
+            return None
+
+    logger.info("Placing unused rewards")
+    # reverse to add rewards to bosses from the beginning of the game
     bosses_progressed.reverse()
-    while magatama_pool and bosses_progressed:
-        boss = bosses_progressed.pop()
-        if boss.check.area.name != 'ToK':
-            reward = magatama_pool.pop()
-            logger.info("Adding " + reward.name + " to boss " + boss.name + " at check " + boss.check.name)
-            boss.reward = reward
-            reward.boss = boss
+    magatama_rewards = [r for r in reward_pool if isinstance(r, Magatama)]
+    flag_rewards = [r for r in reward_pool if isinstance(r, Flag)]
+
+    # assign all unused magatamas first
+    for reward in magatama_rewards:
+        chosen_boss = None
+        # try to give the chosen reward to a boss with no magatama or flag reward 
+        no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
+        if no_reward_boss_pool != []:
+            chosen_boss = random.choice(no_reward_boss_pool)
+        else:
+            for b in bosses_progressed:
+                if b.check.area.name != 'ToK' and b.can_add_reward(reward):
+                    chosen_boss = b
+                    break
+        logger.info("Adding " + reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name)
+        chosen_boss.add_reward(reward)
+        reward_pool.remove(reward)
+
+    # assign the unused flags to whatever's left
+    for reward in flag_rewards:
+        chosen_boss = None
+        # try to give the chosen reward to a boss with no magatama or flag reward 
+        no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
+        if no_reward_boss_pool != []:
+            chosen_boss = random.choice(no_reward_boss_pool)
+        else:
+            for b in bosses_progressed:
+                if b.check.area.name != 'ToK' and b.can_add_reward(reward):
+                    chosen_boss = b
+                    break
+        logger.info("Adding " + reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name)
+        chosen_boss.add_reward(reward)
+        reward_pool.remove(reward)
 
     logger.info("Complete spoiler:")
     for check in world.get_checks():
@@ -315,4 +377,15 @@ def randomize_world(world, logger, attempts=100):
             logger.info("Boss " + boss.name + " is at check " + check.name + " with reward " + boss.reward.name)
         else:
             logger.info("Boss " + boss.name + " is at check " + check.name)
+        for f in check.flag_rewards:
+            logger.info("Check " + check.name + " gives " + f.name)
     return world
+
+if __name__ == '__main__':
+    logger = logging.getLogger('')
+    logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
+
+    world = None
+    while world == None:
+        world = create_world()
+        world = randomize_world(world, logger)
