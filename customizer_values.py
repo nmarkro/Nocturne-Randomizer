@@ -402,10 +402,64 @@ FLAG_REWARD_MSG = {
     #Deathstone
     #1000 Yen Bill
     #Manikin's Letter
-}
+} 
 BOSS_NAMES = [
     "Forneus", "Ose", "Girimehkala", "Noah", "Ahriman", "Baal Avatar", "Specter 1", "Troll", "Red Rider", "Daisoujou", "Matador", "Black Rider", "Hell Biker", "White Rider", "Pale Rider", "Beelzebub", "Metatron", "The Harlot", "Trumpeter", "Mara", "Orthrus", "Yaksini", "Thor 1", "Mizuchi", "Black Frost", "Sui-Ki", "Kin-Ki", "Fuu-Ki", "Ongyo-Ki", "Specter 2", "Specter 3", "Sisters", "Clotho", "Lachesis", "Atropos", "Thor 2", "Surt", "Mada", "Mithra", "Mot", "Aciel", "Skadi", "Albion", "Bishamon 1", "Koumoku", "Zouchou", "Jikoku", "Bishamon 2", "Dante 1", "Dante 2", "Futomimi", "Archangels"
 ]
+LOCATION_NAMES_BY_CHECK = {
+    "Forneus":"Shinjuku Medical Center",
+    "Ose":"Assembly of Nihilo", 
+    "Girimehkala":"Yoyogi Park", 
+    "Noah":"Tower of Kagutsuchi 2", 
+    "Ahriman":"Tower of Kagutsuchi 1", 
+    "Baal Avatar":"Tower of Kagutsuchi 3", 
+    "Specter 1":"Amala Network", 
+    "Troll":"Ginza", 
+    "Red Rider":"Ginza Underpass", 
+    "Daisoujou":"Ikebukuro", 
+    "Matador":"Ginza Underpass", 
+    "Black Rider":"Shinjuku Medical Center", 
+    "Hell Biker":"Ikebukuro", 
+    "White Rider":"Shibuya", 
+    "Pale Rider":"Asakusa", 
+    "Beelzebub":"Labyrinth of Amala", 
+    "Metatron":"Labyrinth of Amala", 
+    "The Harlot":"Yoyogi Park", 
+    "Trumpeter":"Yurakucho Tunnel", 
+    "Mara":"Shibuya", 
+    "Orthrus":"Mantra HQ", 
+    "Yaksini":"Mantra HQ", 
+    "Thor 1":"Mantra HQ", 
+    "Mizuchi":"Kabukicho Prison", 
+    "Black Frost":"Asakusa", 
+    "Sui-Ki":"Ikebukuro Tunnel", 
+    "Kin-Ki":"Ikebukuro Tunnel", 
+    "Fuu-Ki":"Ikebukuro Tunnel", 
+    "Ongyo-Ki":"Ikebukuro Tunnel", 
+    "Specter 2":"Amala Network", 
+    "Specter 3":"Amala Network", 
+    "Sisters":"Obelisk", 
+    "Clotho":"Obelisk", 
+    "Lachesis":"Obelisk", 
+    "Atropos":"Obelisk", 
+    "Thor 2":"Tower of Kagutsuchi 3", 
+    "Surt":"Diet Building", 
+    "Mada":"Diet Building", 
+    "Mithra":"Diet Building", 
+    "Mot":"Diet Building", 
+    "Aciel":"Amala Temple", 
+    "Skadi":"Amala Temple", 
+    "Albion":"Amala Temple", 
+    "Bishamon 1":"Asakusa", 
+    "Koumoku":"Bandou Shrine", 
+    "Zouchou":"Bandou Shrine", 
+    "Jikoku":"Bandou Shrine", 
+    "Bishamon 2":"Bandou Shrine", 
+    "Dante 1":"Ikebukuro", 
+    "Dante 2":"Labyrinth of Amala", 
+    "Futomimi":"Mifunashiro", 
+    "Archangels":"Yurakucho Tunnel"
+}
 VANILLA_MAGATAMAS = {
     "Forneus": "Wadatsumi",
     "Thor 1": "Narukami",

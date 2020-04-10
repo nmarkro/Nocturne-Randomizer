@@ -64,9 +64,7 @@ class Script_Modifier:
         # add the uncompressed, modified BF file to the LB and add it to the dds3 fs
         return lb.export_lb({'BF': BytesIO(bytearray(bf_obj.toBytes()))})
     def get_reward_str(self, check_name, world):
-        #reward_str = ""
-        reward_str = "Debug: "+check_name+" check.^n"
-        reward_str += "You defeated "+world.checks[check_name].boss.name+".^n"
+        reward_str = "You defeated "+world.checks[check_name].boss.name+".^n"
         if world.checks[check_name].boss.reward:
             reward_str += custom_vals.MAGATAMA_REWARD_MSG[world.checks[check_name].boss.reward.name]
         if world.checks[check_name].flag_rewards:
@@ -79,11 +77,19 @@ class Script_Modifier:
                     print ("Warning: In get_reward_str(). No reward string found for flag",hex(flag_reward.flag_id))
         return reward_str
     def get_flag_reward_insts(self, check_name, world):
-        ret_insts = []
+        #ret_insts = []
+        ret_insts = [inst("PUSHIS",1),inst("COMM",0xe)] #for testing purposes
         for flag in world.checks[check_name].flag_rewards:
             ret_insts.append(inst("PUSHIS",flag.flag_id))
             ret_insts.append(inst("COMM",8))
         return ret_insts
+    def get_flag_reward_location_string(self, flag_id, world):
+        for check_name, check_obj in world.checks.items():
+            for flag in check_obj.flag_rewards:
+                if flag_id == flag.flag_id:
+                    return custom_vals.LOCATION_NAMES_BY_CHECK[check_name]
+        print ("Warning: In get_flag_reward_location_string(), flag",hex(flag_id),"not found.")
+        return ""
     def insert_callback(self, field_string, location_insert, fun_name_insert, overwrite_warning=True):
         if len(fun_name_insert) > 15:
             print("ERROR: In insert_callback().",fun_name_insert,"is over 15 characters long")
@@ -116,7 +122,7 @@ class Script_Modifier:
         e601_obj = self.get_script_obj_by_name('e601')
         e601_insts = [
             inst("PROC",0),
-            inst("PUSHIS",0x7f2), #Tutorial cutscene skip
+            inst("PUSHIS",0x7f3), #Tutorial cutscene skip
             inst("COMM",8),
             inst("PUSHIS",0x440), #SMC Splash removal
             inst("COMM",8),
@@ -322,14 +328,48 @@ class Script_Modifier:
             inst("COMM",8),
             inst("PUSHIS",1086),
             inst("COMM",8),
+            inst("PUSHIS",1059),
+            inst("COMM",8),
+            
             inst("PUSHIS",1), 
             inst("PUSHIS",15), #Sacred water
             inst("COMM",0x70), #Add item
-            inst("PUSHIS",1059),
-            inst("COMM",8),
             inst("PUSHIS",1), 
             inst("PUSHIS",10), #Soma
             inst("COMM",0x70), #Add item
+            inst("PUSHIS",10),
+            inst("PUSHIS",2), #Medicine
+            inst("COMM",0x70), #Add item
+            inst("PUSHIS",10),
+            inst("PUSHIS",3), #Life Stone
+            inst("COMM",0x70), #Add item
+            
+            #Open mode
+            inst("PUSHIS",44), #Asakusa Front Door
+            inst("COMM",8),
+            inst("PUSHIS",43), #Mantra HQ East Door
+            inst("COMM",8),
+            inst("PUSHIS",1386), #^
+            inst("COMM",8),
+            inst("PUSHIS",36), #Ikebukuro Tunnel
+            inst("COMM",8),
+            inst("PUSHIS",35), #^
+            inst("COMM",8),
+            inst("PUSHIS",53), #West Nihilo
+            inst("COMM",8),
+            #inst("PUSHIS",86), #Yurakucho Tunnel
+            #inst("COMM",8),
+            inst("PUSHIS",26), #East Nihilo
+            inst("COMM",8),
+            inst("PUSHIS",15), #East Nihilo (Hijiri)
+            inst("COMM",8),
+            inst("PUSHIS",84), #Mifunashiro
+            inst("COMM",8),
+            inst("PUSHIS",47), #
+            inst("COMM",8),
+            inst("PUSHIS",63), #Asakusa West
+            inst("COMM",8),
+            
             #Fusion flags
             inst("PUSHIS",2304), #aciel
             inst("COMM",8),
@@ -969,10 +1009,10 @@ class Script_Modifier:
         f019_troll_callback_insts = [
             inst("PROC",len(f019_obj.p_lbls().labels)),
             inst("COMM",0x60),
-            inst("COMM",2),
+            inst("COMM",1),
             inst("PUSHIS",f019_troll_rwms_index),
             inst("COMM",0),
-            inst("COMM",1),
+            inst("COMM",2),
             inst("COMM",0x61),
         ] + self.get_flag_reward_insts("Troll",world) + [
             inst("END")
@@ -1331,6 +1371,26 @@ class Script_Modifier:
             inst("PUSHLIX",0x3a),
             inst("COMM",0x21e)
         ]
+        f024_orthrus_rwms = f024_obj.appendMessage(self.get_reward_str("Orthrus",world),"ORTHRUS_RWMS")
+        f024_10_insert_insts_yaksini = [
+            inst("PUSHIS", 100), #Yaksini's ID
+            inst("PUSHIS",6),
+            inst("COMM",0x15),
+            inst("PUSHREG"),
+            inst("POPLIX",0x3b), #store the result in a global variable
+            inst("PUSHSTR",1576), #01pos_12
+            inst("COMM",0x94),
+            inst("PUSHREG"),
+            inst("PUSHLIX",0x3b),
+            inst("COMM",0x4a),
+            inst("PUSHLIX",0x3b),
+            inst("COMM",0x21e),
+            inst("COMM",2),
+            inst("PUSHIS",f024_orthrus_rwms), #Orthrus reward message
+            inst("COMM",0),
+            inst("COMM",1)
+        ] + self.get_flag_reward_insts("Orthrus",world)
+        f024_yaksini_rwms = f024_obj.appendMessage(self.get_reward_str("Yaksini",world),"YAKSINI_RWMS")
         f024_10_insert_insts_thor_pre = [
             inst("PUSHIS", 22), #Thor's ID
             inst("PUSHIS",6),
@@ -1343,8 +1403,12 @@ class Script_Modifier:
             inst("PUSHLIX",0x39),
             inst("COMM",0x4a),
             inst("PUSHLIX",0x39),
-            inst("COMM",0x21e)
-        ]
+            inst("COMM",0x21e),
+            inst("COMM",2),
+            inst("PUSHIS",f024_yaksini_rwms), #Yaksini reward message
+            inst("COMM",0),
+            inst("COMM",1)
+        ] + self.get_flag_reward_insts("Yaksini",world)
         #from  726-881
         f024_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Thor 1",world),"THOR_REWARD"),97)
         f024_10_insert_insts_thor_post = [ #double-check the flags here. Dante might not spawn.
@@ -1365,35 +1429,44 @@ class Script_Modifier:
         
         #flag insertion
         #this will be a headache
+        #0x565 is Orthrus fought.
+        #0x566 is Yaksini fought. Cutscnee is 406-485 inclusive
+        #0x567 is Thor fought.
         precut1 = 125
         postcut1 = 335
+        precut1p5 = 404
+        postcut1p5 = 486
         precut2 = 549 
         postcut2 = 649
         precut3 = 726
         postcut3 = 881
         diff1 = (postcut1 - precut1) - len(f024_10_insert_insts)
+        diff1p5 = (postcut1p5 - precut1p5) - len(f024_10_insert_insts_yaksini)
         diff2 = (postcut2 - precut2) - len(f024_10_insert_insts_thor_pre)
         diff3 = (postcut3 - precut3) - len(f024_10_insert_insts_thor_post)
 
-        f024_10_insts = f024_10_insts[:precut1] + f024_10_insert_insts + f024_10_insts[postcut1:precut2] + f024_10_insert_insts_thor_pre + f024_10_insts[postcut2:precut3] + f024_10_insert_insts_thor_post + f024_10_insts[postcut3:]
-        #TODO: Put the Orthrus model and collision
-        #TODO: Shorten pre and post-Thor.
+        f024_10_insts = f024_10_insts[:precut1] + f024_10_insert_insts + f024_10_insts[postcut1:precut1p5] + f024_10_insert_insts_yaksini + f024_10_insts[postcut1p5:precut2] + f024_10_insert_insts_thor_pre + f024_10_insts[postcut2:precut3] + f024_10_insert_insts_thor_post + f024_10_insts[postcut3:]
 
         for l in f024_10_labels:
             if l.label_offset > precut1:
                 if l.label_offset < postcut1:
                     l.label_offset=1
                 else:
-                    if l.label_offset > precut2:
-                        if l.label_offset < postcut2:
-                            l.label_offset = 1
+                    if l.label_offset > precut1p5:
+                        if l.label_offset < postcut1p5:
+                            l.label_offset=1
                         else:
-                            if l.label_offset > precut3:
-                                if l.label_offset < postcut3:
+                            if l.label_offset > precut2:
+                                if l.label_offset < postcut2:
                                     l.label_offset = 1
                                 else:
-                                    l.label_offset-=diff3
-                            l.label_offset-=diff2
+                                    if l.label_offset > precut3:
+                                        if l.label_offset < postcut3:
+                                            l.label_offset = 1
+                                        else:
+                                            l.label_offset-=diff3
+                                    l.label_offset-=diff2
+                            l.label_offset-=diff1p5
                     l.label_offset-=diff1
                 if l.label_offset < 0:
                     l.label_offset = 1
@@ -2788,9 +2861,10 @@ class Script_Modifier:
         #    MSG 2 - 0x13
         f034_inf_patched = BytesIO(bytes(open('patches/Doors_F034.INF','rb').read()))
         self.dds3.add_new_file('/fld/f/f034/F034.INF', f034_inf_patched)
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is held by ^gsome dude^p.","BLACK_LOCK"),0x10)
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is held by ^gsome dude^p.","WHITE_LOCK"),0x11)
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is held by ^gsome dude^p.","RED_LOCK"),0x12)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3c0,world)+"^p.","BLACK_LOCK"),0x10)
+        #get_flag_reward_location_string
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3c1,world)+"^p.","WHITE_LOCK"),0x11)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3c2,world)+"^p.","RED_LOCK"),0x12)
         f034_obj.changeMessageByIndex(assembler.message("You have opened the locked door.","DOOR_OPEN"),0x13)
         #f034_lb = push_bf_into_lb(f034_obj, 'f034')
         #f034b_lb = push_bf_into_lb(f034_obj, 'f034b')
@@ -3004,7 +3078,7 @@ class Script_Modifier:
         f033_obj.changeProcByIndex(f033_29_insts, f033_29_labels, f033_29_proc)
         f033_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mithra",world),"MITHRA_REWARD"),0x2d)
 
-        f033_samael_rwms = f033_obj.appendMessage("Samael reward message","SAMAEL_RWMS")
+        f033_samael_rwms = f033_obj.appendMessage(self.get_reward_str("Samael",world),"SAMAEL_RWMS")
         f033_samael_rwms_insts = [
             inst("PROC",len(f033_obj.p_lbls().labels)),
             inst("COMM",0x60),
