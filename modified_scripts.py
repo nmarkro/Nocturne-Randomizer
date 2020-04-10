@@ -68,20 +68,20 @@ class Script_Modifier:
         reward_str = "Debug: "+check_name+" check.^n"
         reward_str += "You defeated "+world.checks[check_name].boss.name+".^n"
         if world.checks[check_name].boss.reward:
-            reward_str += custom_vals.MAGATAMA_REWARD_MSG[world.checks[check_name].boss.reward]
-        if world.checks[check_name].boss.flag_rewards:
-            for flag_reward in world.checks[check_name].boss.flag_rewards:
-                if flag_reward in custom_vals.FLAG_REWARD_MSG:
+            reward_str += custom_vals.MAGATAMA_REWARD_MSG[world.checks[check_name].boss.reward.name]
+        if world.checks[check_name].flag_rewards:
+            for flag_reward in world.checks[check_name].flag_rewards:
+                if flag_reward.flag_id in custom_vals.FLAG_REWARD_MSG:
                     if reward_str:
                         reward_str+="^n"
-                    reward_str+=custom_vals.FLAG_REWARD_MSG[flag_reward]
+                    reward_str+=custom_vals.FLAG_REWARD_MSG[flag_reward.flag_id]
                 else:
-                    print ("Warning: In get_reward_str(). No reward string found for flag",flag_reward)
+                    print ("Warning: In get_reward_str(). No reward string found for flag",hex(flag_reward.flag_id))
         return reward_str
     def get_flag_reward_insts(self, check_name, world):
         ret_insts = []
-        for flag in world.checks[check_name].boss.flag_rewards:
-            ret_insts.append(inst("PUSHIS",flag))
+        for flag in world.checks[check_name].flag_rewards:
+            ret_insts.append(inst("PUSHIS",flag.flag_id))
             ret_insts.append(inst("COMM",8))
         return ret_insts
     def insert_callback(self, field_string, location_insert, fun_name_insert, overwrite_warning=True):
@@ -1830,7 +1830,7 @@ class Script_Modifier:
         self.insert_callback('f026',0x158,f026_kinki_callback_str)
         
         f026_suiki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Sui-Ki",world),"SUIKI_REWARD")
-        f026_kinki_rwms_insts = [
+        f026_suiki_rwms_insts = [
             inst("PROC",len(f026_obj.p_lbls().labels)),
             inst("COMM",0x60),
             inst("COMM",1),
@@ -1878,7 +1878,7 @@ class Script_Modifier:
         self.insert_callback('f026',0x220,f026_ongyoki_callback_str)
         
         f026_lb = self.push_bf_into_lb(f026_obj,'f026')
-        self.dds3.add_new_file(custom_vals.LB0_PATH['f026'],f027_lb)
+        self.dds3.add_new_file(custom_vals.LB0_PATH['f026'],f026_lb)
         
         #Cutscene removal in Asakusa (Hijiri?) f027
         #Shorten Pale Rider
@@ -2016,6 +2016,7 @@ class Script_Modifier:
         self.dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e644'],BytesIO(bytes(e644_obj.toBytes())))
 
         #Bishamonten scene f039
+        '''#Currently not in the pool
         f039_obj = self.get_script_obj_by_name('f039')
         f039_obj.changeMessageByIndex(assembler.message("Well done.","SHORTER_B_TEXT"),0x11)
         f039_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Bishamon 1",world),"BISHA_REWARD"),0x13)
@@ -2025,7 +2026,7 @@ class Script_Modifier:
         f039_obj.changeProcByIndex(f039_rwms_insts,[],f039_rwms_proc) #No labels in the proc
         f039_lb = self.push_bf_into_lb(f039_obj, 'f039')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f039'], f039_lb)
-
+        '''
 
         #Cutscene removal in Mifunashiro f035
         #Shorten and add decision on boss
@@ -2966,7 +2967,7 @@ class Script_Modifier:
 
         f033_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mot",world),"MOT_REWARD"),0xd)
 
-        #Flag insertion after line 44. Need to move labels.
+        #Flag insertion for Mot after line 44. Need to move labels.
         f033_18_proc = f033_obj.getProcIndexByLabel('018_start')
         f033_18_insts, f033_18_labels = f033_obj.getProcInstructionsLabelsByIndex(f033_18_proc)
         f033_18_insert_insts = self.get_flag_reward_insts("Mot",world)
@@ -3015,11 +3016,9 @@ class Script_Modifier:
         ] + self.get_flag_reward_insts("Samael",world) + [
             inst("END")
         ]
-
         f033_samael_reward_proc_str = "SAMAEL_CB"
         f033_obj.appendProc(f033_samael_rwms_insts,[],f033_samael_reward_proc_str)
         self.insert_callback('f033', 0x3998, f033_samael_reward_proc_str)
-
         f033_lb = self.push_bf_into_lb(f033_obj, 'f033')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f033'], f033_lb)
 
