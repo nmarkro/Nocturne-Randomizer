@@ -51,7 +51,7 @@ def create_areas(world):
     shibuya = world.add_area('Shibuya')
     world.add_terminal(shibuya, 0x481)
     world.add_check('Mara', shibuya, 2845110)
-    world.add_flag('Eggplant', 0x3C5)
+    world.add_flag('Eggplant', 0x3F6)
 
     amala_network_1 = world.add_area('Amala Network 1')
     world.add_check('Specter 1', amala_network_1, 2818776)
@@ -94,7 +94,7 @@ def create_areas(world):
     world.add_check('Pale Rider', asakusa, 2856928)
     world.add_check("Black Frost", asakusa, 2845148)
     world.add_check('White Rider', asakusa, 2856966)
-    world.add_flag("Apocalypse Stone", 0x3C3)
+    world.add_flag("Apocalypse Stone", 0x3F4)
 
     obelisk = world.add_area('Obelisk')
     world.add_terminal(obelisk, 0x4E2)
@@ -107,7 +107,7 @@ def create_areas(world):
     world.add_terminal(yoyogi, 0x461)
     world.add_check("Girimehkala", yoyogi, 2829682)
     world.add_check('The Harlot', yoyogi, 2857194)
-    world.add_flag('Golden Goblet', 0x3C4)
+    world.add_flag('Golden Goblet', 0x3F5)
 
     amala_network_3 = world.add_area('Amala Network 3') 
     world.add_check('Specter 3', amala_network_3, 2828162)
@@ -117,9 +117,9 @@ def create_areas(world):
     world.add_check("Albion", amala_temple, 2828808)
     world.add_check("Aciel", amala_temple, 2830442)
     world.add_check("Skadi", amala_temple, 2830480)
-    world.add_flag("Black Key", 0x3C0)
-    world.add_flag("White Key", 0x3C1)
-    world.add_flag("Red Key", 0x3C2)
+    world.add_flag("Black Key", 0x3F1)
+    world.add_flag("White Key", 0x3F2)
+    world.add_flag("Red Key", 0x3F3)
 
     mifunashiro = world.add_area('Mifunashiro')
     world.add_terminal(mifunashiro, 0x6E1)
@@ -295,10 +295,10 @@ def randomize_world(world, logger, attempts=100):
             attempts -= 1
             continue
         
+        # try to assign rewards that unlock progression 
         can_progress = False
         shuffled_bosses = copy.copy([b for b in bosses_progressed if b.check.area.name != 'ToK'])
         random.shuffle(shuffled_bosses)
-        # try to assign rewards that unlock progression 
         chosen_reward = find_progressive_reward(state, check_pool, reward_pool)
         if chosen_reward == None:
             print('Error generating world, trying again')
