@@ -345,6 +345,9 @@ class Script_Modifier:
             inst("PUSHIS",10),
             inst("PUSHIS",3), #Life Stone
             inst("COMM",0x70), #Add item
+            inst("PUSHIS",10),
+            inst("PUSHIS",55), #Light Ball
+            inst("COMM",0x70), #Add item
 
             inst("PUSHIS",bonus_magatama), # bonus magatama
             inst("COMM",0x122), # give magatama
