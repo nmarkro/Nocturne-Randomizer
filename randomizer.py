@@ -200,6 +200,8 @@ class Randomizer:
 
         return new_stats
 
+    # ban victory cry and son's oath from showing up
+    BANNED_SKILLS = [0x15C, 0x169]
 
     def randomize_skills(self, new_demon, force_skills=None):
         new_skills = []
@@ -210,7 +212,7 @@ class Randomizer:
         total_skills = starting_skills + random.randint(4, 6)
         level = 0
 
-        skill_pool = list(nocturne.all_skills.values())
+        skill_pool = [s for s in list(nocturne.all_skills.values()) if s.ind not in self.BANNED_SKILLS]
         unique_pool = [s for s in skill_pool if s.rank >= 100]
         # remove unique skills from skill pool
         skill_pool = [s for s in skill_pool if s not in unique_pool]
@@ -376,8 +378,8 @@ class Randomizer:
 
     def randomize_magatamas(self):
         new_magatamas = []
-        # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort 
-        ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152]
+        # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort, Victory Cry, Son's Oath
+        ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152, 348, 361]
         if config_keep_marogareh_pierce:
             ignored_skills.append(357)
         # make one skill_map for all magatamas to prevent duplicate skills

@@ -234,7 +234,6 @@ def randomize_world(world, logger, attempts=100):
     random.shuffle(magatama_pool)
     world.bonus_magatama = magatama_pool.pop()
     state.get_magatama(world.bonus_magatama.name)
-    print("bonus magatama is " + world.bonus_magatama.name)
 
     reward_pool = magatama_pool + flag_pool
     random.shuffle(reward_pool)
