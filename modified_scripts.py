@@ -341,6 +341,9 @@ class Script_Modifier:
             inst("PUSHIS",10),
             inst("PUSHIS",3), #Life Stone
             inst("COMM",0x70), #Add item
+            inst("PUSHIS",10),
+            inst("PUSHIS",55), #Light Ball
+            inst("COMM",0x70), #Add item
             
             #Open mode
             inst("PUSHIS",44), #Asakusa Front Door
