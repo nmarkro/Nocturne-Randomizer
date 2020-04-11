@@ -583,8 +583,8 @@ class Randomizer:
         nocturne.write_all(self.rom, world)
 
         print ("patching scripts")
-        script_modifier = Script_Modifier(self.input_iso_file, self.dds3)
-        script_modifier.run()
+        script_modifier = Script_Modifier(self.dds3)
+        script_modifier.run(world)
 
         print("exporting modified dds3 fs")
         self.dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')

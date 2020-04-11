@@ -284,17 +284,17 @@ class Script_Modifier:
             inst("COMM",8),
             inst("PUSHIS",0x7e0), #5th Kalpa splash
             inst("COMM",8),
-            #inst("PUSHIS",0x3c0), #Black Key (testing purposes)
+            #inst("PUSHIS",0x3f1), #Black Key (testing purposes)
             #inst("COMM",8),
-            #inst("PUSHIS",0x3c1), #White Key (testing purposes)
+            #inst("PUSHIS",0x3f2), #White Key (testing purposes)
             #inst("COMM",8),
-            #inst("PUSHIS",0x3c2), #Red Key (testing purposes)
+            #inst("PUSHIS",0x3f3), #Red Key (testing purposes)
             #inst("COMM",8),
-            #inst("PUSHIS",0x3c3), #Apocalypse Stone (unlocks white rider check - testing purposes)
+            #inst("PUSHIS",0x3f4), #Apocalypse Stone (unlocks white rider check - testing purposes)
             #inst("COMM",8),
-            #inst("PUSHIS",0x3c4), #Golden Goblet (unlocks mother harlot check - testing purposes)
+            #inst("PUSHIS",0x3f5), #Golden Goblet (unlocks mother harlot check - testing purposes)
             #inst("COMM",8),
-            #inst("PUSHIS",0x3c5), #Eggplant (unlocks mara check - testing purposes)
+            #inst("PUSHIS",0x3f6), #Eggplant (unlocks mara check - testing purposes)
             #inst("COMM",8),
             #inst("PUSHIS",506), 
             #inst("COMM",0x66), 
@@ -654,8 +654,8 @@ class Script_Modifier:
         #Black Rider
         f015_br_proc = f015_obj.getProcIndexByLabel('014_b_rider')
         f015_br_insts, f015_br_labels = f015_obj.getProcInstructionsLabelsByIndex(f015_br_proc)
-        f015_br_insts[4] = inst("PUSHIS",0x3c3) #Change rider trigger check from 7b8 to key item
-        f015_br_insts[7] = inst("PUSHIS",0x3c3) #"Remove" story trigger check. (Yuko in Obelisk cutscene)
+        f015_br_insts[4] = inst("PUSHIS",0x3f4) #Change rider trigger check from 7b8 to key item
+        f015_br_insts[7] = inst("PUSHIS",0x3f4) #"Remove" story trigger check. (Yuko in Obelisk cutscene)
         f015_obj.changeProcByIndex(f015_br_insts, f015_br_labels, f015_br_proc)
 
         f015_14_proc = f015_obj.getProcIndexByLabel('014_01eve_01')
@@ -664,7 +664,7 @@ class Script_Modifier:
             inst("PUSHIS",0x106), #Red Rider dead
             inst("COMM",7),
             inst("PUSHREG"),
-            inst("PUSHIS",0x3c3), #Key item to enable Riders
+            inst("PUSHIS",0x3f4), #Key item to enable Riders
             inst("COMM",7),
             inst("PUSHREG"),
             inst("PUSHIS",0),
@@ -745,12 +745,12 @@ class Script_Modifier:
         #cut out 24-29 inclusive for FULL check. put in an AND instead
         f017_01_proc = f017_obj.getProcIndexByLabel('001_01eve_01')
         f017_01_insts, f017_01_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_01_proc)
-        #f017_01_insts[16] = inst("PUSHIS",0x3c5)
-        #Fails if: 0x3c5 is not set. Also fails if 0x482 is set.
+        #f017_01_insts[16] = inst("PUSHIS",0x3f6)
+        #Fails if: 0x3f6 is not set. Also fails if 0x482 is set.
         #I need the negation of that though.
         f017_01_insert_insts = [
             inst("PUSHIS",0),
-            inst("PUSHIS",0x3c5),
+            inst("PUSHIS",0x3f6),
             inst("COMM",7),
             inst("PUSHREG"),
             inst("EQ"),
@@ -791,11 +791,11 @@ class Script_Modifier:
 
         #001_w_rider for warning.
         #bit checks: 5c0, 7b8, 112 unset. Turns off 0x755.
-        #7b8 is riders flag. We want that as a key item (3c3). 112 is defeating white rider.
+        #7b8 is riders flag. We want that as a key item (3f4). 112 is defeating white rider.
         #5c0 is a flag that gets set when going into Shibuya. It is also the Asakusa entrance cutscene splash that we've set to be always on. Do we replicate this effect or ignore it? Ignoring it for now.
         f017_wr_proc = f017_obj.getProcIndexByLabel("001_w_rider")
         f017_wr_insts, f017_wr_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_wr_proc)
-        f017_wr_insts[4] = inst("PUSHIS",0x3c3)
+        f017_wr_insts[4] = inst("PUSHIS",0x3f4)
         f017_obj.changeProcByIndex(f017_wr_insts, f017_wr_labels, f017_wr_proc)
         #003_01eve_01
         #bit checks: 5c0, 7b8, 755 off, 112 off.
@@ -809,7 +809,7 @@ class Script_Modifier:
             inst("PUSHIS",0x5c0), #"Story trigger" to enable Riders, which is already set from the start.
             inst("COMM",7),
             inst("PUSHREG"),
-            inst("PUSHIS",0x3c3), #Key item to enable Riders
+            inst("PUSHIS",0x3f4), #Key item to enable Riders
             inst("COMM",7),
             inst("PUSHREG"),
             inst("PUSHIS",0),
@@ -1082,7 +1082,7 @@ class Script_Modifier:
         
         f022_rr_proc = f022_obj.getProcIndexByLabel('010_r_rider')
         f022_rr_insts, f022_rr_labels = f022_obj.getProcInstructionsLabelsByIndex(f022_rr_proc)
-        f022_rr_insts[4] = inst("PUSHIS",0x3c3) #Change rider trigger check from 7b8 to key item
+        f022_rr_insts[4] = inst("PUSHIS",0x3f4) #Change rider trigger check from 7b8 to key item
         f022_obj.changeProcByIndex(f022_rr_insts, f022_rr_labels, f022_rr_proc)
 
         f022_10_proc = f022_obj.getProcIndexByLabel('010_01eve_01')
@@ -1091,7 +1091,7 @@ class Script_Modifier:
             inst("PUSHIS",0x112), #White Rider dead
             inst("COMM",7),
             inst("PUSHREG"),
-            inst("PUSHIS",0x3c3), #Key item to enable Riders
+            inst("PUSHIS",0x3f4), #Key item to enable Riders
             inst("COMM",7),
             inst("PUSHREG"),
             inst("PUSHIS",0),
@@ -1959,7 +1959,7 @@ class Script_Modifier:
         #Pale Rider
         f027_pr_proc = f027_obj.getProcIndexByLabel('016_p_rider')
         f027_pr_insts, f027_pr_labels = f027_obj.getProcInstructionsLabelsByIndex(f027_pr_proc)
-        f027_pr_insts[12] = inst("PUSHIS",0x3c3) #Change rider trigger check from 7b8 to key item
+        f027_pr_insts[12] = inst("PUSHIS",0x3f4) #Change rider trigger check from 7b8 to key item
         f027_obj.changeProcByIndex(f027_pr_insts, f027_pr_labels, f027_pr_proc)
 
         f027_16_proc = f027_obj.getProcIndexByLabel('016_01eve_01')
@@ -1968,7 +1968,7 @@ class Script_Modifier:
             inst("PUSHIS",0x109), #Black Rider dead
             inst("COMM",7),
             inst("PUSHREG"),
-            inst("PUSHIS",0x3c3), #Key item to enable Riders
+            inst("PUSHIS",0x3f4), #Key item to enable Riders
             inst("COMM",7),
             inst("PUSHREG"),
             inst("PUSHIS",0),
@@ -2537,14 +2537,14 @@ class Script_Modifier:
 
         f016_mh_proc = f016_obj.getProcIndexByLabel('019_mother')
         f016_mh_insts, f016_mh_labels = f016_obj.getProcInstructionsLabelsByIndex(f016_mh_proc)
-        f016_mh_insts[1] = inst("PUSHIS",0x3c4) #Change Harlot trigger from a story trigger to a key item
+        f016_mh_insts[1] = inst("PUSHIS",0x3f5) #Change Harlot trigger from a story trigger to a key item
         f016_obj.changeProcByIndex(f016_mh_insts, f016_mh_labels, f016_mh_proc)
 
         f016_19_proc = f016_obj.getProcIndexByLabel('019_01eve_01')
 
         f016_19_insts = [
             inst("PROC",f016_19_proc),
-            inst("PUSHIS",0x3c4), #Key item to enable Harlot
+            inst("PUSHIS",0x3f5), #Key item to enable Harlot
             inst("COMM",7),
             inst("PUSHREG"),
             inst("PUSHIS",0),
@@ -2859,10 +2859,10 @@ class Script_Modifier:
         #    MSG 2 - 0x13
         f034_inf_patched = BytesIO(bytes(open('patches/Doors_F034.INF','rb').read()))
         self.dds3.add_new_file('/fld/f/f034/F034.INF', f034_inf_patched)
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3c0,world)+"^p.","BLACK_LOCK"),0x10)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3f1,world)+"^p.","BLACK_LOCK"),0x10)
         #get_flag_reward_location_string
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3c1,world)+"^p.","WHITE_LOCK"),0x11)
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3c2,world)+"^p.","RED_LOCK"),0x12)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3f2,world)+"^p.","WHITE_LOCK"),0x11)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3f3,world)+"^p.","RED_LOCK"),0x12)
         f034_obj.changeMessageByIndex(assembler.message("You have opened the locked door.","DOOR_OPEN"),0x13)
         #f034_lb = push_bf_into_lb(f034_obj, 'f034')
         #f034b_lb = push_bf_into_lb(f034_obj, 'f034b')

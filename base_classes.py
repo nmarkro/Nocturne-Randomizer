@@ -162,7 +162,6 @@ class Battle(object):
         self.goes_first = None
         self.reinforcement_value = None
         self.music = None
-        self.reward_index = None
 
 
 class Flag(object):
