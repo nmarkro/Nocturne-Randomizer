@@ -436,6 +436,9 @@ class Randomizer:
         'Atropos 2 (Boss)': [326, 327]              # Clotho, Lachesis
     }
 
+    # bosses that should always go first regardless of settings
+    always_goes_first = ['Specter 1 (Boss)', 'White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)', 'Albion (Boss)', 'Trumpeter (Boss)']
+
     def randomize_boss_battles(self, world):
         boss_demons = []
         boss_battles = []
@@ -473,7 +476,7 @@ class Randomizer:
                 if new_boss_demon.name == "Mara (Boss)":
                     new_hp = round(new_hp / 2)
                     new_hp = min(new_hp, 4000)
-                if config_always_go_first:
+                if config_always_go_first and new_boss_demon.name not in self.always_goes_first:
                     boss_battle.goes_first = 0x0D
                 balanced_demon = self.rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=config_exp_modifier, stat_mod=1)
             else:
@@ -547,6 +550,9 @@ class Randomizer:
         while world is None:
             world = logic.create_world()
             world = logic.randomize_world(world, logger)
+
+        # adjust the level of the bonus magatama
+        nocturne.all_magatamas[world.bonus_magatama.name].level = 2
 
         print('randomizing demons')
         # generate demon levels and races making sure all demons are fuseable

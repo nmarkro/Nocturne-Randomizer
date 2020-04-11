@@ -115,6 +115,10 @@ class Script_Modifier:
         #        world.checks[bn] = object()
         #        world.checks[bn].boss = object()
                 
+        bonus_magatama = 1
+        if world != None:
+            bonus_magatama = world.bonus_magatama.id
+
         # get the 601 event script and add our hook
         #add in extra flag sets for cutscene removal
         e601_obj = self.get_script_obj_by_name('e601')
@@ -341,6 +345,9 @@ class Script_Modifier:
             inst("PUSHIS",10),
             inst("PUSHIS",3), #Life Stone
             inst("COMM",0x70), #Add item
+
+            inst("PUSHIS",bonus_magatama), # bonus magatama
+            inst("COMM",0x122), # give magatama
             
             #Open mode
             inst("PUSHIS",44), #Asakusa Front Door
@@ -791,7 +798,7 @@ class Script_Modifier:
 
         #001_w_rider for warning.
         #bit checks: 5c0, 7b8, 112 unset. Turns off 0x755.
-        #7b8 is riders flag. We want that as a key item (3f4). 112 is defeating white rider.
+        #7b8 is riders flag. We want that as a key item (3c3). 112 is defeating white rider.
         #5c0 is a flag that gets set when going into Shibuya. It is also the Asakusa entrance cutscene splash that we've set to be always on. Do we replicate this effect or ignore it? Ignoring it for now.
         f017_wr_proc = f017_obj.getProcIndexByLabel("001_w_rider")
         f017_wr_insts, f017_wr_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_wr_proc)

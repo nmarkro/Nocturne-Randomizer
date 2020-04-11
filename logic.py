@@ -7,40 +7,32 @@ import rules
 from base_classes import *
 
 def init_magatamas(world):
-    def add_magatama(name, resistances, world):
-        m = Magatama(name)
-        m.resistances = resistances
-        world.magatamas[name] = m
+    world.add_magatama('Marogareh', [], 1)
+    world.add_magatama('Wadatsumi', ['Ice'], 2)
+    world.add_magatama('Ankh', ['Expel'], 3)
+    world.add_magatama('Iyomante', ['Mind'], 4)
+    world.add_magatama('Shiranui', ['Fire'], 5)
+    world.add_magatama('Hifumi', ['Force'], 6)
+    world.add_magatama('Kamudo', ['Phys'], 7)
+    world.add_magatama('Narukami', ['Elec'], 8)
+    world.add_magatama('Anathema', ['Death'], 9)
+    world.add_magatama('Miasma', ['Ice'], 10)
+    world.add_magatama('Nirvana', ['Expel'], 11)
+    world.add_magatama('Murakumo', ['Phys'], 12)
+    world.add_magatama('Geis', ['Expel'], 13)
+    world.add_magatama('Djed', ['Curse'], 14)
+    world.add_magatama('Muspell', ['Nerve', 'Mind'], 15)
+    world.add_magatama('Gehenna', ['Fire'], 16)
+    world.add_magatama('Kamurogi', ['Phys'], 17)
+    world.add_magatama('Satan', ['Death'], 18)
+    world.add_magatama('Adama', ['Elec'], 19)
+    world.add_magatama('Vimana', ['Nerve'], 20)
+    world.add_magatama('Gundari', ['Force'], 21)
+    world.add_magatama('Sophia', ['Expel'], 22)
+    world.add_magatama('Gaea', ['Phys'], 23)
+    world.add_magatama('Kailash', [], 24)
+    world.add_magatama('Masakados', [], 25)
 
-    add_magatama('Marogareh', [], world)
-    add_magatama('Wadatsumi', ['Ice'], world)
-    add_magatama('Ankh', ['Expel'], world)
-    add_magatama('Iyomante', ['Mind'], world)
-    add_magatama('Shiranui', ['Fire'], world)
-    add_magatama('Hifumi', ['Force'], world)
-    add_magatama('Kamudo', ['Phys'], world)
-    add_magatama('Narukami', ['Elec'], world)
-    add_magatama('Anathema', ['Death'], world)
-    add_magatama('Miasma', ['Ice'], world)
-    add_magatama('Nirvana', ['Expel'], world)
-    add_magatama('Murakumo', ['Phys'], world)
-    add_magatama('Geis', ['Expel'], world)
-    add_magatama('Muspell', ['Nerve', 'Mind'], world)
-    add_magatama('Djed', ['Curse'], world)
-    add_magatama('Kamurogi', ['Phys'], world)
-    add_magatama('Gehenna', ['Fire'], world)
-    add_magatama('Satan', ['Death'], world)
-    add_magatama('Adama', ['Elec'], world)
-    add_magatama('Vimana', ['Nerve'], world)
-    add_magatama('Gundari', ['Force'], world)
-    add_magatama('Sophia', ['Expel'], world)
-    add_magatama('Kailash', [], world)
-    add_magatama('Gaea', ['Phys'], world)
-    add_magatama('Masakados', [], world)
-
-
-# Resist/Null/Absorb/Repel Phys to leave out of SMC
-PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
 
 def create_areas(world):
     smc = world.add_area('SMC')
@@ -238,6 +230,12 @@ def randomize_world(world, logger, attempts=100):
     flag_pool.remove(world.get_flag('Netherstone'))
     flag_pool.remove(world.get_flag('Heavenstone'))
 
+    # give a random bonus starting magatama
+    random.shuffle(magatama_pool)
+    world.bonus_magatama = magatama_pool.pop()
+    state.get_magatama(world.bonus_magatama.name)
+    print("bonus magatama is " + world.bonus_magatama.name)
+
     reward_pool = magatama_pool + flag_pool
     random.shuffle(reward_pool)
 
@@ -279,6 +277,7 @@ def randomize_world(world, logger, attempts=100):
             break
         logger.info("Can no longer progress\n")
 
+        '''
         # didn't beat any bosses this passthrough, rerandomize unchecked bosses and try again
         if not bosses_progressed:
             logger.info("Re-randomizing unchecked bosses\n")
@@ -293,16 +292,27 @@ def randomize_world(world, logger, attempts=100):
                 print('Error generating world, trying again')
                 return None
             attempts -= 1
-            continue
+            continue'''
         
         # try to assign rewards that unlock progression 
         can_progress = False
         shuffled_bosses = copy.copy([b for b in bosses_progressed if b.check.area.name != 'ToK'])
         random.shuffle(shuffled_bosses)
         chosen_reward = find_progressive_reward(state, check_pool, reward_pool)
-        if chosen_reward == None:
-            print('Error generating world, trying again')
-            return None
+        if chosen_reward == None or not bosses_progressed:
+            logger.info("Re-randomizing unchecked bosses\n")
+            new_boss_pool = []
+            for check in check_pool:
+                if check.boss.name not in BANNED_BOSSES:
+                    new_boss_pool.append(check.boss)
+                    check.boss = None
+            try:
+                randomize_bosses(new_boss_pool, check_pool, logger)
+            except:
+                print('Error generating world, trying again')
+                return None
+            attempts -= 1
+            continue
 
         chosen_boss = None
         # try to give the chosen reward to a boss with no magatama or flag reward 

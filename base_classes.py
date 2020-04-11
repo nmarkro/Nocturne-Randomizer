@@ -2,6 +2,8 @@ import nocturne
 
 # Resist/Null/Absorb/Repel Phys to leave out of SMC
 PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
+# other banned smc bosses 
+BANNED_SMC_BOSSES = ['Kin-Ki', 'Matador', 'Mithra', 'Samael', 'Beelzebub', 'Metatron']
 
 class World(object):
     def __init__(self):
@@ -17,6 +19,8 @@ class World(object):
         self.battles = {}
         self.demon_generator = None
         self.demon_map = {}
+
+        self.bonus_magatama = None
 
     def add_area(self, name):
         self.areas[name] = Area(name)
@@ -41,8 +45,15 @@ class World(object):
         b = Boss(name)
         b.battle = nocturne.all_battles.get(offset)
         b.phys_invalid = name in PHYS_INVALID_BOSSES
+        b.smc_banned = name in PHYS_INVALID_BOSSES or name in BANNED_SMC_BOSSES
         self.bosses[name] = b
         return c
+
+    def add_magatama(self, name, resistances, id):
+        self.magatamas[name] = Magatama(name)
+        self.magatamas[name].resistances = resistances
+        self.magatamas[name].id = id
+        return self.magatamas[name]
 
     def get_area(self, area):
         return self.areas.get(area)
@@ -131,6 +142,7 @@ class Boss(object):
         self.rule = lambda state: True
         self.reward = None
         self.phys_invalid = False
+        self.smc_banned = False
 
         self.battle = None
 
@@ -180,6 +192,7 @@ class Magatama(object):
         self.offset = None
         self.stats = None
         self.skills = None
+        self.id = None
 
 
 class Demon(object):
