@@ -456,6 +456,7 @@ def fix_angel_reward(rom, reward_index):
     offset = 0x002B63C8
     rom.write_halfword(reward_index + 1, offset)
 
+'''
 def patch_intro_skip(iso_file):
     # overwrite an unused event script with ours
     e506_offset = 0x3F1C7800
@@ -474,6 +475,7 @@ def patch_intro_skip(iso_file):
     iso_file.write(bytes(0))
     iso_file.seek(0x49CB58B6)
     iso_file.write(bytes(0))
+'''
 
 def patch_special_fusions(rom):
     rom.write(struct.pack('<18x'), 0x0022EB78)

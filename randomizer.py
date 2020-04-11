@@ -597,17 +597,6 @@ class Randomizer:
         with open('rom/DDS3.DDT', 'rb') as ddt, open('rom/DDS3.IMG', 'rb') as img:
             self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
 
-        '''
-        print("copying iso")
-        shutil.copyfile(self.input_iso_path, self.output_iso_path)
-        with open(self.output_iso_path, 'r+b') as file:
-            print("writing changes")
-            # write the binary buffer on top of the old binary
-            file.seek(0xFD009000)
-            file.write(bytearray(rom.buffer))
-            # do any modifications that require editing more than the binary here
-            nocturne.patch_intro_skip(file)'''
-
 if __name__ == '__main__':
     seed = None
     if len(sys.argv) > 1:

@@ -299,20 +299,10 @@ def randomize_world(world, logger, attempts=100):
         shuffled_bosses = copy.copy([b for b in bosses_progressed if b.check.area.name != 'ToK'])
         random.shuffle(shuffled_bosses)
         # try to assign rewards that unlock progression 
-        while not can_progress:
-            if attempts < 0:
-                return None
-
-            magatama_rewards = [r for r in reward_pool if isinstance(r, Magatama)]
-            flag_rewards = [r for r in reward_pool if isinstance(r, Flag)]
-
-            # try to give all the magatamas before any flag reward
-            chosen_reward = find_progressive_reward(state, check_pool, magatama_rewards)
-            if chosen_reward == None:
-                chosen_reward = find_progressive_reward(state, check_pool, flag_rewards)
-            can_progress = bool(chosen_reward != None)
-
-            attempts -= 1
+        chosen_reward = find_progressive_reward(state, check_pool, reward_pool)
+        if chosen_reward == None:
+            print('Error generating world, trying again')
+            return None
 
         chosen_boss = None
         # try to give the chosen reward to a boss with no magatama or flag reward 
@@ -324,43 +314,22 @@ def randomize_world(world, logger, attempts=100):
                 if b.can_add_reward(chosen_reward):
                     chosen_boss = b
                     break
-
-        if chosen_boss:
-            logger.info("Adding " + chosen_reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name + "\n")
-            chosen_boss.add_reward(chosen_reward)
-            reward_pool.remove(chosen_reward)
-        else:
+        if chosen_boss == None:
+            print('Error generating world, trying again')
             return None
+        logger.info("Adding " + chosen_reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name + "\n")
+        chosen_boss.add_reward(chosen_reward)
+        reward_pool.remove(chosen_reward)
 
     logger.info("Placing unused rewards")
     # reverse to add rewards to bosses from the beginning of the game
     bosses_progressed.reverse()
-    magatama_rewards = [r for r in reward_pool if isinstance(r, Magatama)]
-    flag_rewards = [r for r in reward_pool if isinstance(r, Flag)]
-
-    # assign all unused magatamas first
-    for reward in magatama_rewards:
+    for reward in reward_pool:
         chosen_boss = None
         # try to give the chosen reward to a boss with no magatama or flag reward 
         no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
         if no_reward_boss_pool != []:
-            chosen_boss = random.choice(no_reward_boss_pool)
-        else:
-            for b in bosses_progressed:
-                if b.check.area.name != 'ToK' and b.can_add_reward(reward):
-                    chosen_boss = b
-                    break
-        logger.info("Adding " + reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name)
-        chosen_boss.add_reward(reward)
-        reward_pool.remove(reward)
-
-    # assign the unused flags to whatever's left
-    for reward in flag_rewards:
-        chosen_boss = None
-        # try to give the chosen reward to a boss with no magatama or flag reward 
-        no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
-        if no_reward_boss_pool != []:
-            chosen_boss = random.choice(no_reward_boss_pool)
+            chosen_boss = no_reward_boss_pool.pop()
         else:
             for b in bosses_progressed:
                 if b.check.area.name != 'ToK' and b.can_add_reward(reward):
