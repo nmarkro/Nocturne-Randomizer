@@ -791,7 +791,7 @@ class Script_Modifier:
 
         #001_w_rider for warning.
         #bit checks: 5c0, 7b8, 112 unset. Turns off 0x755.
-        #7b8 is riders flag. We want that as a key item (3f4). 112 is defeating white rider.
+        #7b8 is riders flag. We want that as a key item (3c3). 112 is defeating white rider.
         #5c0 is a flag that gets set when going into Shibuya. It is also the Asakusa entrance cutscene splash that we've set to be always on. Do we replicate this effect or ignore it? Ignoring it for now.
         f017_wr_proc = f017_obj.getProcIndexByLabel("001_w_rider")
         f017_wr_insts, f017_wr_labels = f017_obj.getProcInstructionsLabelsByIndex(f017_wr_proc)
