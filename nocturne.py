@@ -529,7 +529,8 @@ def load_all(rom):
     load_magatamas(rom)
     load_battles(rom)
 
-def write_all(rom, world, rando):
+def write_all(rando, world):
+    rom = rando.rom
     write_demons(rom, world.demons.values())
     write_magatamas(rom, world.magatamas.values())
     write_battles(rom, world.battles.values())

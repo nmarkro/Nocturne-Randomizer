@@ -555,7 +555,7 @@ d   Double EXP gains.'''
             self.flags = input("Please input your desired flags (blank for all, '.' for none):\n> ").strip()
             print()
             if self.flags == '':
-                self.flags = 'abcdefghijklmnopqrstuvwxyz'
+                self.flags = string.ascii_lowercase
 
         if 'p' in self.flags:
             self.config_magic_pierce = True
@@ -577,9 +577,15 @@ d   Double EXP gains.'''
 
         if not TEST:
             print("Testing MD5 hash of input file. (This can take a while)")
+            # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
             with open(self.input_iso_path, 'rb') as f:
-                input_md5 = hashlib.md5(f.read()).hexdigest()
-                if input_md5 != MD5_NTSC:
+                input_md5 = hashlib.md5()
+                while True:
+                    chunk = f.read(2**20)
+                    if not chunk:
+                        break
+                    input_md5.update(chunk)
+                if input_md5.hexdigest() != MD5_NTSC:
                     print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
                     response = input("Continue? y/n\n> ")
                     print()
@@ -641,7 +647,7 @@ d   Double EXP gains.'''
 
         # write all changes to the binary buffer
         print("writing changes to binary")
-        nocturne.write_all(self.rom, world, self)
+        nocturne.write_all(self, world)
 
         print ("patching scripts")
         script_modifier = Script_Modifier(self.dds3)
@@ -665,6 +671,10 @@ if __name__ == '__main__':
     input_path = None
     seed = None
     flags = None
+    if TEST:
+        input_path = 'rom/input.iso'
+        seed = ''
+        flags = string.ascii_lowercase
     if len(sys.argv) > 1:
         input_path = sys.argv[1].strip()
     if len(sys.argv) > 2:
