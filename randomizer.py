@@ -527,6 +527,25 @@ class Randomizer:
         if BETA:
             print("WARNING: This is a beta build and things may not work as intended. Contact PinkPajamas or NMarkro if you encounter any bugs")
 
+        if path.exists('config.ini'):
+            with open('config.ini', 'r') as f:
+                config_iso_path = f.readline().strip()
+                config_flags = f.readline().strip()
+                if path.exists(config_iso_path):
+                    print('Config file found, previous ISO file path: {}'.format(config_iso_path))
+                    response = input('Use previous ISO file? y/n\n> ').strip()
+                    print()
+                    if response[0].lower() == 'y':
+                        self.input_iso_path = config_iso_path
+
+                if config_flags:
+                    print('Previous flags: {}'.format(config_flags))
+                    response = input('Use previous flags? y/n\n> ').strip()
+                    print()
+                    if response[0].lower() == 'y':
+                        self.flags = config_flags
+
+
         if self.input_iso_path == None:
             self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip()
             print()
@@ -557,6 +576,10 @@ d   Double EXP gains.'''
             if self.flags == '':
                 self.flags = string.ascii_lowercase
 
+        with open('config.ini', 'w') as f:
+            f.write(self.input_iso_path + "\n")
+            f.write(self.flags)
+
         if 'p' in self.flags:
             self.config_magic_pierce = True
 
@@ -576,16 +599,30 @@ d   Double EXP gains.'''
             self.config_exp_modifier = 2
 
         if not TEST:
-            print("Testing MD5 hash of input file. (This can take a while)")
-            # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
-            with open(self.input_iso_path, 'rb') as f:
-                input_md5 = hashlib.md5()
-                while True:
-                    chunk = f.read(2**20)
-                    if not chunk:
-                        break
-                    input_md5.update(chunk)
-                if input_md5.hexdigest() != MD5_NTSC:
+            if path.exists(self.input_iso_path + '.md5'):
+                with open(self.input_iso_path + '.md5', 'r') as f:
+                    if f.read().strip() != MD5_NTSC:
+                        print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
+                        response = input("Continue? y/n\n> ")
+                        print()
+                        if not response[0].lower() == 'y':
+                            return
+            else:
+                print("Testing MD5 hash of input file. (This can take a while)")
+                # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
+                with open(self.input_iso_path, 'rb') as f:
+                    input_md5 = hashlib.md5()
+                    while True:
+                        chunk = f.read(2**20)
+                        if not chunk:
+                            break
+                        input_md5.update(chunk)
+
+                input_md5 = input_md5.hexdigest() 
+                with open(self.input_iso_path + '.md5', 'w') as f:
+                    f.write(input_md5)
+            
+                if input_md5 != MD5_NTSC:
                     print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
                     response = input("Continue? y/n\n> ")
                     print()
