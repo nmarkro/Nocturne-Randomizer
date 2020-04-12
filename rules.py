@@ -295,5 +295,5 @@ def set_rules(world):
     # Make sure Resist/Null/Absorb/Repel Phys bosses aren't in SMC
     set_boss_rule(
         world.get_area('SMC'),
-        lambda boss: not (boss.phys_invalid or boss.smc_banned)
+        lambda boss: not boss.smc_banned
     )

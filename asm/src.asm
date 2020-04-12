@@ -6,6 +6,5 @@
 .include "src/healing.asm"
 .include "src/recruit.asm"
 .include "src/shops.asm"
-.include "src/reward.asm"
 
 .close

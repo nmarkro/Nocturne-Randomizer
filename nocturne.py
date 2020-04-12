@@ -511,11 +511,16 @@ def write_sp_item_strings(rom):
     names = ['Black Key', 'White Key', 'Red Key', 'Apocalypse Stone', 'Golden Goblet', 'Eggplant']
     start_sp_name_table_offset = 0x002E93B4
     free_space_offset = 0x01FEE00
+    description_msg_offset = 0x2F49E0
     
     for i, name in enumerate(names):
         off = free_space_offset + (i * 0x20)
         rom.write(name.encode(), off)
         rom.write_word(off + 0xFF000, start_sp_name_table_offset + (i * 4))    
+
+    with open('patches/items.msg', 'rb') as file:
+        rom.seek(description_msg_offset)
+        rom.write(file.read())
 
 def load_all(rom):
     load_demons(rom)

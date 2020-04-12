@@ -44,7 +44,6 @@ class World(object):
         
         b = Boss(name)
         b.battle = nocturne.all_battles.get(offset)
-        b.phys_invalid = name in PHYS_INVALID_BOSSES
         b.smc_banned = name in PHYS_INVALID_BOSSES or name in BANNED_SMC_BOSSES
         self.bosses[name] = b
         return c
@@ -141,7 +140,6 @@ class Boss(object):
         self.check = None
         self.rule = lambda state: True
         self.reward = None
-        self.phys_invalid = False
         self.smc_banned = False
 
         self.battle = None
