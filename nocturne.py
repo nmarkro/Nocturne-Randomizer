@@ -529,7 +529,7 @@ def load_all(rom):
     load_magatamas(rom)
     load_battles(rom)
 
-def write_all(rom, world):
+def write_all(rom, world, rando):
     write_demons(rom, world.demons.values())
     write_magatamas(rom, world.magatamas.values())
     write_battles(rom, world.battles.values())
@@ -538,22 +538,20 @@ def write_all(rom, world):
     apply_asm_patch(rom, 'patches/rags.txt')
     # fix most non-recruitable demons and demon races
     apply_asm_patch(rom, 'patches/recruit.txt')
-    # change the reward function to load from a table
-    # apply_asm_patch(rom, 'patches/reward.txt')
     # make the pierce skill work on magic
-    if randomizer.config_magic_pierce:
+    if rando.config_magic_pierce:
         apply_asm_patch(rom, 'patches/pierce.txt')
     # make aoe healing work on the stock demons
-    if randomizer.config_stock_healing:
+    if rando.config_stock_healing:
         apply_asm_patch(rom, 'patches/healing.txt')
     # make learnable skills always visible
-    if randomizer.config_visible_skills:
+    if rando.config_visible_skills:
         apply_asm_patch(rom, 'patches/skills.txt')
     # remove hard mode price multiplier
-    if randomizer.config_remove_hardmode_prices:
+    if rando.config_remove_hardmode_prices:
         apply_asm_patch(rom, 'patches/prices.txt')
     # remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
-    if randomizer.config_fix_inheritance:
+    if rando.config_fix_inheritance:
         apply_asm_patch(rom, 'patches/inherit.txt')
 
     # remove magatamas from shops since they are all tied to boss drops now
@@ -564,13 +562,11 @@ def write_all(rom, world):
     patch_special_fusions(rom)
     # swap tyrant to vile for pale rider, the harlot, & trumpeter fusion
     rom.write_byte(0x12, 0x22EDE3)
-    if randomizer.config_fix_tutorial:
-        print("fixing tutorials")
-        patch_fix_tutorials(rom)
+        
+    # make the tutorial fights all will o' wisps
+    patch_fix_tutorials(rom)
     # add the spyglass to 3x preta fight and reduce it's selling price
-    if randomizer.config_early_spyglass:
-        print("applying early spyglass patch")
-        patch_early_spyglass(rom)
+    patch_early_spyglass(rom)
 
     # replace the pazuzu mada summons
     fix_mada_summon(rom, world.demons.values())
@@ -585,17 +581,7 @@ def write_all(rom, world):
             if b.reward:
                 fix_angel_reward(rom, b.reward)
 
-    # specter_1_reward = world.get_boss("Specter 1").reward
-    # if specter_1_reward:
-    #     specter_1_reward = all_magatamas[specter_1_reward.name].ind
-    #     specter_1_reward += 320
-    #     fix_specter_1_reward(rom, specter_1_reward)
-    # fix the magatama drop for the optional angel fight
-    # futomimi_reward = world.get_check("Futomimi").boss.reward
-    # if futomimi_reward:
-    #     futomimi_reward = all_magatamas[futomimi_reward.name].ind
-    #     futomimi_reward += 320
-    #     fix_angel_reward(rom, futomimi_reward)
     # replace the DUMMY personality on certain demons
     patch_fix_dummy_convo(rom)
+
     write_sp_item_strings(rom)

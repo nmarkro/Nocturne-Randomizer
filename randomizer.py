@@ -8,6 +8,7 @@ import string
 import sys
 from collections import defaultdict
 from io import BytesIO
+from os import path
 
 import nocturne
 import logic
@@ -18,29 +19,27 @@ from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
 
-# Config
-config_balance_by_skill_rank = False        # Permutate skills based on rank
-config_exp_modifier = 2                     # Mulitlpy EXP values of demons
-config_make_logs = True                     # Write various data to the logs/ folder
-config_fix_tutorial = True                  # replace a few tutorial fights
-config_easy_hospital = True                 # Force hospital demons/boss to not have null/repel/abs phys
-config_keep_marogareh_pierce = True         # Don't randomize Pierce on Maraogareh
-config_always_go_first = True               # Always go first in randomized boss fights
-config_give_pixie_estoma_riberama = True    # Give pixie estoma and riberama
-config_early_spyglass = True                # Adds the Spyglass as a drop on the 3x Preta fight
-config_preserve_boss_arenas = False         # Make randomized bosses apear in their normal battle arena
-config_visible_skills = True                # Make all learnable skills visable (like hardtype)
-config_magic_pierce = True                  # Make pierce affect most magic spells (like hardtype)
-config_stock_healing = True                 # Make AoE healing affect stock demons (like hardtype)
-config_remove_hardmode_prices = True        # Remove the 3x multiplier on hard mode shop prices 
-config_fix_inheritance = True               # Remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
+VERSION = 1
+BETA = True
+TEST = False
+
+MD5_NTSC = "92e00a8a00c72d25e23d01694ac89193"
 
 class Randomizer:
-    def __init__(self, seed, input_iso_path, flags):
-        self.text_seed = seed
+    def __init__(self, input_iso_path, seed, flags):
         self.input_iso_path = input_iso_path
-        self.output_iso_path = ''
+        self.text_seed = seed
         self.flags = flags
+        self.output_iso_path = ''
+
+        # Config
+        self.config_make_logs = True                    # Write various data to the logs/ folder
+        self.config_exp_modifier = 1                    # Mulitlpy EXP values of demons
+        self.config_visible_skills = False              # Make all learnable skills visable (like hardtype)
+        self.config_magic_pierce = False                # Make pierce affect most magic spells (like hardtype)
+        self.config_stock_healing = False               # Make AoE healing affect stock demons (like hardtype)
+        self.config_remove_hardmode_prices = False      # Remove the 3x multiplier on hard mode shop prices 
+        self.config_fix_inheritance = False             # Remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
 
     def init_iso_data(self):
         print ("parsing iso")
@@ -86,14 +85,13 @@ class Randomizer:
         for old_demon, new_demon in zip(demon_pool, shuffled_pool):
             demon_map[old_demon.ind] = new_demon.ind
 
-        if config_easy_hospital:
-            # iterate through each hospital demon looking for conflicts
-            for demon in all_base:
-                new_demon = nocturne.lookup_demon(demon_map.get(demon.ind))
-                if new_demon.phys_inv:
-                    # choose a new demon from all non-hospital, non-phys invalid demons
-                    new_choice = random.choice([d for d in demon_pool if not d.phys_inv])
-                    swap_demon(new_choice, demon)
+        # iterate through each hospital demon looking for conflicts
+        for demon in all_base:
+            new_demon = nocturne.lookup_demon(demon_map.get(demon.ind))
+            if new_demon.phys_inv:
+                # choose a new demon from all non-hospital, non-phys invalid demons
+                new_choice = random.choice([d for d in demon_pool if not d.phys_inv])
+                swap_demon(new_choice, demon)
 
         for element in all_elements:
             # find the element in generated demons
@@ -140,7 +138,7 @@ class Randomizer:
             else:
                 print("Error finding mutation for " + fiend.name)
 
-        if config_make_logs:
+        if self.config_make_logs:
             with open('logs/demon_spoiler.txt', 'w') as f:
                 for key, value in demon_map.items():
                     f.write(nocturne.lookup_demon(key).name + " -> " + nocturne.lookup_demon(value).name + '\n')
@@ -363,7 +361,7 @@ class Randomizer:
             if old_demon.base_demon:
                 old_demon.base_demon = False
             # distribute basic buffs to the base demons
-            if new_demon.name == 'Pixie' and config_give_pixie_estoma_riberama:
+            if new_demon.name == 'Pixie':
                 new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, [73, 74])
             elif new_demon.base_demon and len(skills_to_distribute) > 0:
                 skill = [skills_to_distribute.pop()]
@@ -378,12 +376,10 @@ class Randomizer:
 
     def randomize_magatamas(self):
         new_magatamas = []
-        # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort, Victory Cry, Son's Oath
-        ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152, 348, 361]
-        if config_keep_marogareh_pierce:
-            ignored_skills.append(357)
+        # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort, Victory Cry, Son's Oath, Pierce
+        ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152, 348, 361, 357]
         # make one skill_map for all magatamas to prevent duplicate skills
-        skill_map = self.generate_skill_permutation(config_balance_by_skill_rank, ignored_skills)
+        skill_map = self.generate_skill_permutation(False, ignored_skills)
         for old_magatama in nocturne.all_magatamas.values():
             new_magatama = copy.copy(old_magatama)
             new_magatama.stats = self.randomize_stats(sum(new_magatama.stats), False)
@@ -478,12 +474,12 @@ class Randomizer:
                 if new_boss_demon.name == "Mara (Boss)":
                     new_hp = round(new_hp / 2)
                     new_hp = min(new_hp, 4000)
-                if config_always_go_first and new_boss_demon.name not in self.always_goes_first:
+                if new_boss_demon.name not in self.always_goes_first:
                     boss_battle.goes_first = 0x0D
-                balanced_demon = self.rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=config_exp_modifier, stat_mod=1)
+                balanced_demon = self.rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=self.config_exp_modifier, stat_mod=1)
             else:
                 balanced_demon = old_boss_demon
-                new_exp *= config_exp_modifier
+                new_exp *= self.config_exp_modifier
                 balanced_demon.exp_drop = int(min(new_exp, 0xFFFF))
             boss_demons.append(balanced_demon)
             # balance any extra demons that show up in the fight
@@ -503,7 +499,7 @@ class Randomizer:
                     new_hp = balanced_demon.hp
                     new_mp = balanced_demon.mp
                 for d in extras:
-                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=config_exp_modifier, stat_mod=stat_mod)
+                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=self.config_exp_modifier, stat_mod=stat_mod)
                     boss_demons.append(d)
 
             # get rid of any vanilla magatama drops
@@ -527,22 +523,79 @@ class Randomizer:
 
 
     def run(self):
+        print("SMT3 Nocturne Randomizer version {}".format(VERSION))
+        if BETA:
+            print("WARNING: This is a beta build and things may not work as intended. Contact PinkPajamas or NMarkro if you encounter any bugs")
+
+        if self.input_iso_path == None:
+            self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip()
+            print()
+
+        if not path.exists(self.input_iso_path):
+            print("File not found, check input path")
+            return
+
         if self.text_seed is None:
-            self.text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-        print("ROM Seed: " + self.text_seed)
+            self.text_seed = input("Please input your desired seed value (blank for random seed):\n> ").strip()
+            print()
+            if self.text_seed == "":
+                self.text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         seed = int(hashlib.sha256(self.text_seed.encode('utf-8')).hexdigest(), 16)
         random.seed(seed)
+
+        flags_text = '''p   Tweak 'pierce' skill to work with magic.
+s   Remove hard mode shop price mulitplier.
+h   Tweak AoE healing spells to affect demons in the stock.
+i   Tweak inheritance so that all skills inherit equally regaless of rank or body parts.
+v   Make learnable skills always visible.
+d   Double EXP gains.'''
+
+        if self.flags == None:
+            print(flags_text)
+            self.flags = input("Please input your desired flags (blank for all, '.' for none):\n> ").strip()
+            print()
+            if self.flags == '':
+                self.flags = 'abcdefghijklmnopqrstuvwxyz'
+
+        if 'p' in self.flags:
+            self.config_magic_pierce = True
+
+        if 's' in self.flags:
+            self.config_remove_hardmode_prices = True
+
+        if 'h' in self.flags:
+            self.config_stock_healing = True
+
+        if 'i' in self.flags:
+            self.config_fix_inheritance = True
+
+        if 'v' in self.flags:
+            self.config_visible_skills = True
+
+        if 'd' in self.flags:
+            self.config_exp_modifier = 2
+
+        if not TEST:
+            print("Testing MD5 hash of input file. (This can take a while)")
+            with open(self.input_iso_path, 'rb') as f:
+                input_md5 = hashlib.md5(f.read()).hexdigest()
+                if input_md5 != MD5_NTSC:
+                    print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
+                    response = input("Continue? y/n\n> ")
+                    print()
+                    if not response[0].lower == 'y':
+                        return
 
         print('opening iso')
         self.init_iso_data()
 
         logger = logging.getLogger('')
-        if config_make_logs:
+        if self.config_make_logs:
             logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
 
         print('initializing data')
         nocturne.load_all(self.rom)
-        if config_make_logs:
+        if self.config_make_logs:
             self.write_demon_log('logs/demons.txt', nocturne.all_demons.values())
 
         print('creating logical progression')
@@ -563,7 +616,7 @@ class Randomizer:
         # generate_demon_permutation disregards demon names for most races for better randomization (non-element/mitama)
         demon_map = self.generate_demon_permutation(demon_generator)
         # randomize and rebalance all demon stats
-        new_demons = self.randomize_demons(demon_map, demon_generator.demons, exp_mod=config_exp_modifier)
+        new_demons = self.randomize_demons(demon_map, demon_generator.demons, exp_mod=self.config_exp_modifier)
 
         print('randomizing battles')
         # mutate all the non-boss demons using demon_map 
@@ -572,7 +625,7 @@ class Randomizer:
         new_bosses, new_boss_battles = self.randomize_boss_battles(world)
         new_demons.extend(new_bosses)
         new_battles.extend(new_boss_battles)
-        if config_make_logs:
+        if self.config_make_logs:
             self.write_demon_log('logs/random_demons.txt', new_demons)
 
         # magatamas have to be randomized AFTER boss battles to correctly rebalance their levels
@@ -588,7 +641,7 @@ class Randomizer:
 
         # write all changes to the binary buffer
         print("writing changes to binary")
-        nocturne.write_all(self.rom, world)
+        nocturne.write_all(self.rom, world, self)
 
         print ("patching scripts")
         script_modifier = Script_Modifier(self.dds3)
@@ -597,8 +650,11 @@ class Randomizer:
         print("exporting modified dds3 fs")
         self.dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')
 
-        print("exporting randomized iso")
-        self.output_iso_path = 'rom/output.iso'
+        if TEST:
+            self.output_iso_path = 'rom/output.iso'
+        else:
+            self.output_iso_path = 'rom/nocturne_rando_{}.iso'.format(self.text_seed)
+        print("exporting randomized iso to {}".format(self.output_iso_path))
         self.input_iso_file.add_new_file('SLUS_209.11;1', BytesIO(self.rom.buffer))
         self.input_iso_file.rm_file('DUMMY.DAT;1')
 
@@ -606,8 +662,14 @@ class Randomizer:
             self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
 
 if __name__ == '__main__':
+    input_path = None
     seed = None
+    flags = None
     if len(sys.argv) > 1:
-        seed = sys.argv[1].upper().strip()
-    rando = Randomizer(seed, 'rom/input.iso', '')
+        input_path = sys.argv[1].strip()
+    if len(sys.argv) > 2:
+        seed = sys.argv[2].upper().strip()
+    if len(sys.argv) > 3:
+        flags = sys.argv[3].strip()
+    rando = Randomizer(input_path, seed, flags)
     rando.run()
