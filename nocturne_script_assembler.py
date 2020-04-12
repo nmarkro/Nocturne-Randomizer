@@ -13,6 +13,8 @@ Escape codes:
 	^m - End message 0a f1 04 00
     ^t - After each selection
     ^. - After ^t between each selection
+    ^i - Used for item descriptions
+    ^0 - 0x00
 '''
 import math
 import copy
@@ -518,7 +520,7 @@ class bf_script:
             ret_str+="\n\t"
             if not msg.text_formed:
                 msg.bytes_to_message_str()
-                msg.space_text()
+                #msg.space_text()
             ret_str+=msg.str
             ret_str+="\n"
         return ret_str
@@ -711,6 +713,7 @@ class message_pointer:
 #escape codes
 et = [0x2e, 0x00] #Used to distinguish selections.
 edot = [0xF2, 0x08, 0xFF, 0xFF]
+ei = [0xF2, 0x06, 0x02, 0xFF]
 ep = [0xF2, 0x02, 0x01, 0xFF]
 er = [0xF2, 0x02, 0x02, 0xFF]
 eb = [0xF2, 0x02, 0x03, 0xFF]
@@ -722,7 +725,7 @@ exx = [0xF1, 0x04, 0xF2, 0x08, 0xFF, 0xFF] #alternate of ex
 em = [0x0A, 0xF1, 0x04, 0x00]
 es = [0xF2, 0x08, 0xFF, 0xFF, 0xF2, 0x07, 0x07, 0xFF] #bytes at the start. Not used as an escape but automatically added in.
 class message:
-    def __init__(self, str = "", label_str = ""):
+    def __init__(self, str = "", label_str = "", auto_space=True):
         self.str = str #message in text as str
         self.label_str = label_str
         self.textbox_count = 0
@@ -734,8 +737,10 @@ class message:
         self.is_decision = False #decision text (like yes/no) is structured differently than other text
         self.byte_formed = False #message is valid in byte form
         self.text_formed = False #message is valid in string form
-        if str != "" and label_str != "":
+        if str != "" and label_str != "" and auto_space:
             self.space_text()
+            self.text_formed = True
+        elif str != "" and label_str != "":
             self.text_formed = True
     def getSize(self):
         #Label str 0x18
@@ -795,6 +800,12 @@ class message:
                     bytes_by_int.extend(edot)
                     byte_count +=len(edot)
                     self.relative_pointers.append(byte_count)
+                elif c == 'i':
+                    bytes_by_int.extend(ei)
+                    byte_count +=len(ei)
+                elif c == '0':
+                    bytes_by_int.append(0)
+                    byte_count +=1
                 in_escape=False
             elif c == "^":
                 in_escape = True
@@ -817,8 +828,8 @@ class message:
             self.byte_formed = True
         else:
             self.bytes = self.text_bytes
-            print (self.bytes)
-            print (len(self.bytes))
+            #print (self.bytes)
+            #print (len(self.bytes))
         bytelen = len(self.bytes)
         i=0
         m_str = ""
@@ -842,6 +853,10 @@ class message:
                         m_str+="^y"
                     elif bc == bytearray(eg):
                         m_str+="^g"
+                    elif bc == bytearray(edot):
+                        m_str+="^."
+                    elif bc == bytearray(ei):
+                        m_str+="^i"
                     else:
                         print("Warning: In message.bytes_to_str(). Unknown set of bytes:",bc)
                         m_str+="^u("+str(bc)+")"
@@ -856,6 +871,7 @@ class message:
                         m_str+="^x"
                         i+=6
                         checkdone = True
+                        
                 if i+3 < bytelen and not checkdone:
                     if self.bytes[i:i+4] == bytearray(em):
                         m_str+="^m"
@@ -873,6 +889,8 @@ class message:
                         print("Warning: In message.bytes_to_str(). Unknown bytes from 0xF1")
                         m_str+="^u(f1)"
                         i+=1
+            elif self.bytes[i] == 0:
+                i+=1
             else:
                 m_str+=chr(self.bytes[i])
                 i+=1
@@ -1177,10 +1195,10 @@ def parse_binary_script(byte_array):
     c_off = s.sections[MESSAGES].offset
     s.sections[MESSAGES].type = bbtoi(byte_array[c_off:c_off+4])
     if s.sections[MESSAGES].type != 7:
-        print("Warning? Message file type not 7. Type:",s.sections[MESSAGES].type)
+        print("Warning? Message file type not 7. Type:",hex(s.sections[MESSAGES].type),"Reading from",hex(c_off))
     s.sections[MESSAGES].m_size = bbtoi(byte_array[c_off+4:c_off+8])
     if s.sections[MESSAGES].m_size != s.sections[MESSAGES].count:
-        print("Warning. Message file size from relocation / section table (",s.sections[MESSAGES].count,") and message script (",s.sections[MESSAGES].m_size,") do not match.")
+        print("Warning. Message file size from relocation / section table (",hex(s.sections[MESSAGES].count),") and message script (",hex(s.sections[MESSAGES].m_size),") do not match.")
     s.sections[MESSAGES].magic = [chr(x) for x in byte_array[c_off+8:c_off+12]]
     #if s.sections[MESSAGES].magic != "MSG1":
     #    print "Warning. Message file signature not 'MSG1'" #Finds ['M','S','G','1'] instead.
@@ -1288,7 +1306,7 @@ def parse_binary_script(byte_array):
     r_p = s.sections[MESSAGES].rolling_pointer
     r_s = s.sections[MESSAGES].rolling_size
     s.sections[MESSAGES].rolling_offsets = byte_array[m_off+r_p-0x20:m_off+r_p+r_s-0x20] #for some reason the pointer offset is before the message header instead of after like the other instances?
-    
+
     #Section 04 - PUSHSTR strings
     #   Size: Variable
     #Strings delimited by 0x00. Referred to by index.
@@ -1304,6 +1322,7 @@ def parse_binary_script(byte_array):
         if p_str != "":
             s.sections[STRINGS].strings.append(p_str)
         c_off+=1
+
     return s
     
 #possible states:
@@ -1390,7 +1409,37 @@ def test_funs(fname):
     #bytesToFile(piped_bytes,"piped_scripts/f016check.bf")
     bytesToFile(piped_bytes,"piped_scripts/f024.bf")
 
+#Used to write in new item descriptions. Needs a bf file with the item MSG file inserted into it. It's janky, but it kind of works.
+def new_item_msg_script(fname):
+    bytes = filenameToBytes(fname)
+    obj = parse_binary_script(bytes)
+    useless_item_descs = [0x21, 0x2f, 0x30, 0x31, 0x32, 0x33, 0x39, 0x3b, 0x3c, 0x3e, 0x3f, 0x4b, 0x4c, 0x4d, 0x4e, 0x51, 0x52, 0x54, 0x56, 0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f]
+    useless_item_msgs = []
+    for i in useless_item_descs:
+        short_msg = message("a","item_"+hex(i))
+        obj.changeMessageByIndex(short_msg,i)
+    black_key_msg = message("^.^iThe key for the^nBlack Amala Temple.^nThe handle reads^ntetrakarn goes here.^n^0","item_91",False)
+    white_key_msg = message("^.^iThe key for the^nWhite Amala Temple.^nThe handle reads^nBOOOOOOOM!^n^0","item_92",False)
+    red_key_msg = message("^.^iThe key for the^nRed Amala Temple.^nThe handle reads^nCalifornia.^n^0","item_93",False)
+    apocalypse_msg = message("^.^iA stone that attracts^nthe 4 horsemen.^nNow with extra blight!^n^0","item_94",False)
+    goblet_msg = message("^.^iA mother skeleton's^nfavorite cup.^nHappy Mother's Day!^n^0","item_95",False)
+    eggplant_msg = message("^.^iThe missing piece for^na suspicious ritual.^nIt is very plump^nwith excellent girth.^n^0","item_96",False)
+    obj.changeMessageByIndex(black_key_msg,0x91)
+    obj.changeMessageByIndex(white_key_msg,0x92)
+    obj.changeMessageByIndex(red_key_msg,0x93)
+    obj.changeMessageByIndex(apocalypse_msg,0x94)
+    obj.changeMessageByIndex(goblet_msg,0x95)
+    obj.changeMessageByIndex(eggplant_msg,0x96)
+    #unused_key_items = [0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f]
+    newfile = open('piped_scripts/itemnames.bfasm','w')
+    newfile.write(obj.exportASM())
+    newfile.close()
+    piped_bytes = obj.toBytes()
+    print("Original len:",len(bytes),"New len:",len(piped_bytes))
+    bytesToFile(piped_bytes,"piped_scripts/items.bf")
+    
 
+#new_item_msg_script('scripts/f024.bf') #Any bf file with the item MSG file.
 #piped_bytes = obj.toBytes()
 #test_funs("piped_scripts/f016.bf")
 #test_funs("scripts/f024.bf")
