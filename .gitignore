@@ -104,9 +104,9 @@ venv.bak/
 .mypy_cache/
 
 # ps2 isos and binary
-out/*.iso
-out/SLUS_209.11
-out/*.xdelta
+*.iso
+SLUS_209.11
+*.xdelta
 
 # armips binary and other asm stuff
 asm/armips.exe
