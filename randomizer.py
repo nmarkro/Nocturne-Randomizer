@@ -563,6 +563,7 @@ class Randomizer:
             print()
             if self.text_seed == "":
                 self.text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+                print('Your generated seed is: {}'.format(self.text_seed))
         seed = int(hashlib.sha256(self.text_seed.encode('utf-8')).hexdigest(), 16)
         random.seed(seed)
 
@@ -706,6 +707,13 @@ d   Double EXP gains.'''
         with open('out/DDS3.DDT', 'rb') as ddt, open('out/DDS3.IMG', 'rb') as img:
             self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
 
+        if not TEST:
+            print('cleaning up files')
+            os.remove('out/DDS3.DDT')
+            os.remove('out/DDS3.IMG')
+            os.remove('out/old_DDS3.DDT')
+            os.remove('out/old_DDS3.IMG')
+
 if __name__ == '__main__':
     input_path = None
     seed = None
@@ -722,4 +730,4 @@ if __name__ == '__main__':
         flags = sys.argv[3].strip()
     rando = Randomizer(input_path, seed, flags)
     rando.run()
-    input()
+    input('Done! Press any button to exit')
