@@ -6,6 +6,7 @@ import shutil
 import hashlib
 import string
 import sys
+import os
 from collections import defaultdict
 from io import BytesIO
 from os import path
@@ -50,18 +51,21 @@ class Randomizer:
         rom_file = self.input_iso_file.get_file_from_path('SLUS_209.11;1')
         self.rom = Rom(rom_file)
 
+        if not os.path.exists('out'):
+            os.mkdir('out')
+
         print("getting ddt")
         ddt_file = self.input_iso_file.get_file_from_path('DDS3.DDT;1')
-        with open('rom/old_DDS3.DDT', 'wb') as file:
+        with open('out/old_DDS3.DDT', 'wb') as file:
             file.write(ddt_file.read())
 
         print("getting file system img")
-        with open('rom/old_DDS3.IMG', 'wb') as file:
+        with open('out/old_DDS3.IMG', 'wb') as file:
             for chunk in self.input_iso_file.read_file_in_chunks('DDS3.IMG;1'):
                 file.write(chunk)
 
         print("parsing dds3 fs")
-        self.dds3 = DDS3FS('rom/old_DDS3.DDT', 'rom/old_DDS3.IMG')
+        self.dds3 = DDS3FS('out/old_DDS3.DDT', 'out/old_DDS3.IMG')
         self.dds3.read_dds3()
 
     def generate_demon_permutation(self, demon_gen):
@@ -535,14 +539,14 @@ class Randomizer:
                     print('Config file found, previous ISO file path: {}'.format(config_iso_path))
                     response = input('Use previous ISO file? y/n\n> ').strip()
                     print()
-                    if response[0].lower() == 'y':
+                    if response[:1].lower() == 'y':
                         self.input_iso_path = config_iso_path
 
                 if config_flags:
                     print('Previous flags: {}'.format(config_flags))
                     response = input('Use previous flags? y/n\n> ').strip()
                     print()
-                    if response[0].lower() == 'y':
+                    if response[:1].lower() == 'y':
                         self.flags = config_flags
 
 
@@ -601,12 +605,7 @@ d   Double EXP gains.'''
         if not TEST:
             if path.exists(self.input_iso_path + '.md5'):
                 with open(self.input_iso_path + '.md5', 'r') as f:
-                    if f.read().strip() != MD5_NTSC:
-                        print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
-                        response = input("Continue? y/n\n> ")
-                        print()
-                        if not response[0].lower() == 'y':
-                            return
+                    input_md5 = f.read().strip()
             else:
                 print("Testing MD5 hash of input file. (This can take a while)")
                 # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
@@ -622,15 +621,18 @@ d   Double EXP gains.'''
                 with open(self.input_iso_path + '.md5', 'w') as f:
                     f.write(input_md5)
             
-                if input_md5 != MD5_NTSC:
-                    print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
-                    response = input("Continue? y/n\n> ")
-                    print()
-                    if not response[0].lower == 'y':
-                        return
+            if input_md5 != MD5_NTSC:
+                print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
+                response = input("Continue? y/n\n> ")
+                print()
+                if not response[:1].lower() == 'y':
+                    return
 
         print('opening iso')
         self.init_iso_data()
+
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
 
         logger = logging.getLogger('')
         if self.config_make_logs:
@@ -691,17 +693,17 @@ d   Double EXP gains.'''
         script_modifier.run(world)
 
         print("exporting modified dds3 fs")
-        self.dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')
+        self.dds3.export_dds3('out/DDS3.DDT', 'out/DDS3.IMG')
 
         if TEST:
-            self.output_iso_path = 'rom/output.iso'
+            self.output_iso_path = 'out/output.iso'
         else:
-            self.output_iso_path = 'rom/nocturne_rando_{}.iso'.format(self.text_seed)
+            self.output_iso_path = 'out/nocturne_rando_{}.iso'.format(self.text_seed)
         print("exporting randomized iso to {}".format(self.output_iso_path))
         self.input_iso_file.add_new_file('SLUS_209.11;1', BytesIO(self.rom.buffer))
         self.input_iso_file.rm_file('DUMMY.DAT;1')
 
-        with open('rom/DDS3.DDT', 'rb') as ddt, open('rom/DDS3.IMG', 'rb') as img:
+        with open('out/DDS3.DDT', 'rb') as ddt, open('out/DDS3.IMG', 'rb') as img:
             self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
 
 if __name__ == '__main__':
@@ -709,7 +711,7 @@ if __name__ == '__main__':
     seed = None
     flags = None
     if TEST:
-        input_path = 'rom/input.iso'
+        input_path = 'out/input.iso'
         seed = ''
         flags = string.ascii_lowercase
     if len(sys.argv) > 1:
@@ -720,3 +722,4 @@ if __name__ == '__main__':
         flags = sys.argv[3].strip()
     rando = Randomizer(input_path, seed, flags)
     rando.run()
+    input()

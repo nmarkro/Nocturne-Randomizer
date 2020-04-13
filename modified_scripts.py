@@ -5,6 +5,7 @@ from io import BytesIO
 from os import path
 import copy
 
+from paths import PATCHES_PATH
 from fs.Iso_FS import *
 from fs.DDS3_FS import *
 from fs.LB_FS import *
@@ -2867,7 +2868,8 @@ class Script_Modifier:
         #Red Temple - Checks flag 0x03C2
         #    MSG 1 - 0x12
         #    MSG 2 - 0x13
-        f034_inf_patched = BytesIO(bytes(open('patches/Doors_F034.INF','rb').read()))
+        doors_inf_path = path.join(PATCHES_PATH, 'Doors_F034.INF')
+        f034_inf_patched = BytesIO(bytes(open(doors_inf_path,'rb').read()))
         self.dds3.add_new_file('/fld/f/f034/F034.INF', f034_inf_patched)
         f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3f1,world)+"^p.","BLACK_LOCK"),0x10)
         #get_flag_reward_location_string
