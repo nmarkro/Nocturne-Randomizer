@@ -20,6 +20,11 @@ Krisan Thyme (file format and tools documentation)
 
 Zombero (documentation from hardtye hack)
 
+### Running the randomizer
+Windows users can download the latest from https://github.com/nmarkro/Nocturne-Randomizer/releases
+
+Unzip and run nocturne_rando.exe
+
 ### Running the randomizer from source
 
 Install python 3 at https://python.org

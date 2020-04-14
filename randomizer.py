@@ -9,7 +9,6 @@ import sys
 import os
 from collections import defaultdict
 from io import BytesIO
-from os import path
 
 import nocturne
 import logic
@@ -20,7 +19,7 @@ from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
 
-VERSION = 1
+VERSION = '0.1.0'
 BETA = True
 TEST = False
 
@@ -527,15 +526,15 @@ class Randomizer:
 
 
     def run(self):
-        print("SMT3 Nocturne Randomizer version {}".format(VERSION))
+        print("SMT3 Nocturne Randomizer version {}\n".format(VERSION))
         if BETA:
-            print("WARNING: This is a beta build and things may not work as intended. Contact PinkPajamas or NMarkro if you encounter any bugs")
+            print("WARNING: This is a beta build and things may not work as intended.\nContact PinkPajamas or NMarkro if you encounter any bugs\n")
 
-        if path.exists('config.ini'):
+        if os.path.exists('config.ini'):
             with open('config.ini', 'r') as f:
                 config_iso_path = f.readline().strip()
                 config_flags = f.readline().strip()
-                if path.exists(config_iso_path):
+                if os.path.exists(config_iso_path):
                     print('Config file found, previous ISO file path: {}'.format(config_iso_path))
                     response = input('Use previous ISO file? y/n\n> ').strip()
                     print()
@@ -554,7 +553,7 @@ class Randomizer:
             self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip()
             print()
 
-        if not path.exists(self.input_iso_path):
+        if not os.path.exists(self.input_iso_path):
             print("File not found, check input path")
             return
 
@@ -567,7 +566,8 @@ class Randomizer:
         seed = int(hashlib.sha256(self.text_seed.encode('utf-8')).hexdigest(), 16)
         random.seed(seed)
 
-        flags_text = '''p   Tweak 'pierce' skill to work with magic.
+        flags_text = '''Settings Flags:
+p   Tweak 'pierce' skill to work with magic.
 s   Remove hard mode shop price mulitplier.
 h   Tweak AoE healing spells to affect demons in the stock.
 i   Tweak inheritance so that all skills inherit equally regaless of rank or body parts.
@@ -604,7 +604,7 @@ d   Double EXP gains.'''
             self.config_exp_modifier = 2
 
         if not TEST:
-            if path.exists(self.input_iso_path + '.md5'):
+            if os.path.exists(self.input_iso_path + '.md5'):
                 with open(self.input_iso_path + '.md5', 'r') as f:
                     input_md5 = f.read().strip()
             else:
@@ -730,4 +730,4 @@ if __name__ == '__main__':
         flags = sys.argv[3].strip()
     rando = Randomizer(input_path, seed, flags)
     rando.run()
-    input('Done! Press any button to exit')
+    input('Press any button to exit')
