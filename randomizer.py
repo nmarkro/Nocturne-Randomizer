@@ -19,7 +19,7 @@ from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 BETA = True
 TEST = False
 
@@ -524,6 +524,22 @@ class Randomizer:
             for demon in demons:
                 file.write(str(vars(demon)) + "\n\n")
 
+    def test_md5(self, file_path):
+        # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
+        with open(file_path, 'rb') as f:
+            input_md5 = hashlib.md5()
+            while True:
+                chunk = f.read(2**20)
+                if not chunk:
+                    break
+                input_md5.update(chunk)
+
+        input_md5 = input_md5.hexdigest() 
+        with open(file_path + '.md5', 'w') as f:
+            f.write(input_md5)
+
+        return input_md5
+
 
     def run(self):
         print("SMT3 Nocturne Randomizer version {}\n".format(VERSION))
@@ -552,6 +568,24 @@ class Randomizer:
         if self.input_iso_path == None:
             self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip()
             print()
+
+        if os.path.isdir(self.input_iso_path):
+            print("Searching directory for ISO")
+            for filename in os.listdir(self.input_iso_path):
+                path = os.path.join(self.input_iso_path, filename)
+                stats = os.stat(path)
+                if stats.st_size == 4270227456:
+                    input_md5 = self.test_md5(path)
+                    if input_md5 == MD5_NTSC:
+                        self.input_iso_path = path
+                        break
+            else:
+                print("File not found, check input path")
+                return
+            print("Found valid ISO: {}\n".format(self.input_iso_path))
+        else:
+            if not self.input_iso_path.endswith('.iso'):
+                self.input_iso_path += '.iso'
 
         if not os.path.exists(self.input_iso_path):
             print("File not found, check input path")
@@ -609,18 +643,7 @@ d   Double EXP gains.'''
                     input_md5 = f.read().strip()
             else:
                 print("Testing MD5 hash of input file. (This can take a while)")
-                # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
-                with open(self.input_iso_path, 'rb') as f:
-                    input_md5 = hashlib.md5()
-                    while True:
-                        chunk = f.read(2**20)
-                        if not chunk:
-                            break
-                        input_md5.update(chunk)
-
-                input_md5 = input_md5.hexdigest() 
-                with open(self.input_iso_path + '.md5', 'w') as f:
-                    f.write(input_md5)
+                input_md5 = self.test_md5(self.input_iso_path)
             
             if input_md5 != MD5_NTSC:
                 print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
