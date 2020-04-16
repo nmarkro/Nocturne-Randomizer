@@ -64,7 +64,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Mifunashiro'),
-        lambda state: state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
+        lambda state: state.has_terminal('Asakusa')
     )
     set_rule(
         world.get_area('Yurakucho Tunnel'),
@@ -80,7 +80,8 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('ToK'),
-        lambda state: state.has_terminal('Obelisk') and state.has_flag('Pyramidion') and state.has_terminal('Amala Temple')
+        lambda state: state.has_terminal('Obelisk') and state.has_flag('Pyramidion') and state.has_terminal('Amala Temple') and
+            state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
     )
 
     # Check access rules

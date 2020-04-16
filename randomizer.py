@@ -19,7 +19,7 @@ from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
 
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 BETA = True
 TEST = False
 
@@ -291,13 +291,13 @@ class Randomizer:
             new_demon.hp = new_hp
         else:
             # generate hp based on level and vitality stat if they aren't supplied
-            new_demon.hp = (6*new_demon.level) + (6*new_demon.stats[3])
+            new_demon.hp = (6*new_demon.level) + (6*new_demon.stats[2])
         new_demon.hp = min(int(new_demon.hp), 0xFFFF)
         if new_mp > 0:
             new_demon.mp = new_mp
         else:
             # generate mp based on level and magic stat if they aren't supplied
-            new_demon.mp = (3*new_demon.level) + (3*new_demon.stats[2])
+            new_demon.mp = (3*new_demon.level) + (3*new_demon.stats[1])
         new_demon.mp = min(int(new_demon.mp), 0xFFFF)
         if new_exp > 0:
             exp = new_exp * exp_mod
@@ -492,17 +492,18 @@ class Randomizer:
                 new_mp = -1
                 new_level = balanced_demon.level
                 stat_mod = 1
+                exp_mod = self.config_exp_modifier
                 if new_boss_demon.name in ['White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)']:
-                    stat_mod = 0.4
-                    new_level = round(new_level * 0.6)
+                    stat_mod = 0.75
+                    new_level = round(new_level * 0.85)
                 elif new_boss_demon.name == 'Albion (Boss)':
-                    stat_mod = 0.5
                     new_level = round(new_level * 0.75)
+                    exp_mod = 1
                 elif new_boss_demon.name == "Atropos 2 (Boss)":
                     new_hp = balanced_demon.hp
                     new_mp = balanced_demon.mp
                 for d in extras:
-                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=self.config_exp_modifier, stat_mod=stat_mod)
+                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=exp_mod, stat_mod=stat_mod)
                     boss_demons.append(d)
 
             # get rid of any vanilla magatama drops
@@ -524,7 +525,8 @@ class Randomizer:
             for demon in demons:
                 file.write(str(vars(demon)) + "\n\n")
 
-    def test_md5(self, file_path):
+
+    def get_md5(self, file_path):
         # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
         with open(file_path, 'rb') as f:
             input_md5 = hashlib.md5()
@@ -575,7 +577,7 @@ class Randomizer:
                 path = os.path.join(self.input_iso_path, filename)
                 stats = os.stat(path)
                 if stats.st_size == 4270227456:
-                    input_md5 = self.test_md5(path)
+                    input_md5 = self.get_md5(path)
                     if input_md5 == MD5_NTSC:
                         self.input_iso_path = path
                         break
@@ -643,7 +645,7 @@ d   Double EXP gains.'''
                     input_md5 = f.read().strip()
             else:
                 print("Testing MD5 hash of input file. (This can take a while)")
-                input_md5 = self.test_md5(self.input_iso_path)
+                input_md5 = self.get_md5(self.input_iso_path)
             
             if input_md5 != MD5_NTSC:
                 print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
@@ -676,7 +678,7 @@ d   Double EXP gains.'''
             world = logic.randomize_world(world, logger)
 
         # adjust the level of the bonus magatama
-        nocturne.all_magatamas[world.bonus_magatama.name].level = 2
+        nocturne.all_magatamas[world.bonus_magatama.name].level = 4
 
         print('randomizing demons')
         # generate demon levels and races making sure all demons are fuseable
