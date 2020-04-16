@@ -8,6 +8,8 @@ We are currently in the alpha/beta stages, and the randomizer itself is not comp
 
 The list of added features and changes to the randomizer can be seen on this document: https://docs.google.com/document/d/1pZ_aiLmRK1lYKKDy6A23m2iAVeU1wcVut1-mGM4vkLM
 
+Feel free to join the Nocturne Randomizer discord: https://discord.gg/d25ZAha
+
 ### Credits
 
 The randomizer was created and programmed by NMarkro and PinkPajamas, with additional help from:

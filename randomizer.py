@@ -19,7 +19,7 @@ from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
 
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 BETA = True
 TEST = False
 
@@ -494,7 +494,7 @@ class Randomizer:
                 stat_mod = 1
                 exp_mod = self.config_exp_modifier
                 if new_boss_demon.name in ['White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)']:
-                    stat_mod = 0.75
+                    # stat_mod = 0.75
                     new_level = round(new_level * 0.85)
                 elif new_boss_demon.name == 'Albion (Boss)':
                     new_level = round(new_level * 0.75)
@@ -663,6 +663,8 @@ d   Double EXP gains.'''
         logger = logging.getLogger('')
         if self.config_make_logs:
             logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
+            with open('logs/spoiler.log', 'w') as f:
+                f.write("")
 
         print('initializing data')
         nocturne.load_all(self.rom)
@@ -755,4 +757,4 @@ if __name__ == '__main__':
         flags = sys.argv[3].strip()
     rando = Randomizer(input_path, seed, flags)
     rando.run()
-    input('Press any button to exit')
+    input('Press [Enter] to exit')

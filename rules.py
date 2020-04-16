@@ -83,6 +83,10 @@ def set_rules(world):
         lambda state: state.has_terminal('Obelisk') and state.has_flag('Pyramidion') and state.has_terminal('Amala Temple') and
             state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
     )
+    set_rule(
+        world.get_area('Bandou Shrine'),
+        lambda state: state.has_terminal('Yurakucho Tunnel') and state.has_terminal('Asakusa') and state.has_checked('Bishamon 1')
+    )
 
     # Check access rules
     set_rule(
@@ -291,6 +295,26 @@ def set_rules(world):
     set_rule(
         world.get_boss('Metatron'),
         lambda state: state.has_resistance("Expel")
+    )
+    set_rule(
+        world.get_boss('Bishamon 1'),
+        lambda state: state.has_resistance("Fire")
+    )
+    set_rule(
+        world.get_boss('Bishamon 2'),
+        lambda state: state.has_resistance("Fire")
+    )
+    set_rule(
+        world.get_boss('Jikoku'),
+        lambda state: state.has_resistance("Ice")
+    )
+    set_rule(
+        world.get_boss('Koumoku'),
+        lambda state: state.has_resistance("Force")
+    )
+    set_rule(
+        world.get_boss('Zouchou'),
+        lambda state: state.has_resistance("Elec")
     )
 
     # Make sure Resist/Null/Absorb/Repel Phys bosses aren't in SMC
