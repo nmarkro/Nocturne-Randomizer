@@ -8,6 +8,7 @@ import os
 import randomizer
 import races
 from base_classes import Demon, Skill, Magatama, Battle
+from paths import DATA_PATH, PATCHES_PATH
 
 N_DEMONS = 383
 N_MAGATAMAS = 25
@@ -36,7 +37,8 @@ SHADY_BROKER = {
 def load_demons(rom):
     demon_offset = 0x0024A7F0
 
-    demon_names = open('data/demon_names.txt', 'r').read().strip()
+    demon_names_path = os.path.join(DATA_PATH, 'demon_names.txt')
+    demon_names = open(demon_names_path, 'r').read().strip()
     demon_names = demon_names.split('\n')
 
     rom.seek(demon_offset)
@@ -99,7 +101,8 @@ def lookup_demon(ind):
 
 race_names = []
 def load_races():
-    names = open('data/race_names.txt', 'r').read().strip()
+    names_path = os.path.join(DATA_PATH, 'race_names.txt')
+    names = open(names_path, 'r').read().strip()
     names = names.split('\n')
     race_names.extend(names)
 
@@ -146,7 +149,8 @@ def load_demon_skills(rom, skill_offset, level):
     return demon_skills
 
 def load_skills(rom):
-    skill_data = open('data/skill_data.txt', 'r').read().strip()
+    skill_data_path = os.path.join(DATA_PATH, 'skill_data.txt')
+    skill_data = open(skill_data_path, 'r').read().strip()
     pattern = re.compile(r"([\dABCDEF]{3}) ([\w\'\&\- ]+) (\d+) (\d+)")
 
     skill_data = list(map(lambda s: re.search(pattern, s), skill_data.split('\n')))
@@ -169,7 +173,8 @@ def lookup_skill(ind):
 def load_magatamas(rom):
     magatama_offset = 0x0023AE3A
 
-    magatama_names = open('data/magatama_names.txt', 'r').read().strip()
+    magatama_names_path = os.path.join(DATA_PATH, 'magatama_names.txt')
+    magatama_names = open(magatama_names_path , 'r').read().strip()
     magatama_names = magatama_names.split('\n')
 
     rom.seek(magatama_offset)
@@ -518,7 +523,8 @@ def write_sp_item_strings(rom):
         rom.write(name.encode(), off)
         rom.write_word(off + 0xFF000, start_sp_name_table_offset + (i * 4))    
 
-    with open('patches/items.msg', 'rb') as file:
+    items_path = os.path.join(PATCHES_PATH, 'items.msg')
+    with open(items_path, 'rb') as file:
         rom.seek(description_msg_offset)
         rom.write(file.read())
 
@@ -529,30 +535,31 @@ def load_all(rom):
     load_magatamas(rom)
     load_battles(rom)
 
-def write_all(rom, world, rando):
+def write_all(rando, world):
+    rom = rando.rom
     write_demons(rom, world.demons.values())
     write_magatamas(rom, world.magatamas.values())
     write_battles(rom, world.battles.values())
 
     # make the random mitamas and elementals not show up in rag's shop
-    apply_asm_patch(rom, 'patches/rags.txt')
+    apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'rags.txt'))
     # fix most non-recruitable demons and demon races
-    apply_asm_patch(rom, 'patches/recruit.txt')
+    apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'recruit.txt'))
     # make the pierce skill work on magic
     if rando.config_magic_pierce:
-        apply_asm_patch(rom, 'patches/pierce.txt')
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'pierce.txt'))
     # make aoe healing work on the stock demons
     if rando.config_stock_healing:
-        apply_asm_patch(rom, 'patches/healing.txt')
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'healing.txt'))
     # make learnable skills always visible
     if rando.config_visible_skills:
-        apply_asm_patch(rom, 'patches/skills.txt')
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'skills.txt'))
     # remove hard mode price multiplier
     if rando.config_remove_hardmode_prices:
-        apply_asm_patch(rom, 'patches/prices.txt')
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'prices.txt'))
     # remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
     if rando.config_fix_inheritance:
-        apply_asm_patch(rom, 'patches/inherit.txt')
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'inherit.txt'))
 
     # remove magatamas from shops since they are all tied to boss drops now
     remove_shop_magatamas(rom)

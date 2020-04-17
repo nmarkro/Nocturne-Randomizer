@@ -1,6 +1,6 @@
 .ps2
 
-.open "out/SLUS_209.11", "out/output.elf", 0xFF000
+.open "in/SLUS_209.11", "out/SLUS_209.11", 0xFF000
 .include "src/pierce.asm"
 .include "src/skills.asm"
 .include "src/healing.asm"

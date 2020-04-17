@@ -104,9 +104,9 @@ venv.bak/
 .mypy_cache/
 
 # ps2 isos and binary
-rom/*.iso
-rom/SLUS_209.11
-rom/*.xdelta
+*.iso
+SLUS_209.11
+*.xdelta
 
 # armips binary and other asm stuff
 asm/armips.exe
@@ -116,3 +116,9 @@ rando.sublime-project
 rando.sublime-workspace
 *.DDT
 *.IMG
+
+config.ini
+*.md5
+
+nocturne_rando.exe
+nocturne_rando_windows.zip

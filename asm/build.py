@@ -1,24 +1,8 @@
-import subprocess
 import re
 import os
-import shutil
 from collections import defaultdict
 
-import sys
-sys.path.append('../')
-from rom import Rom
-
-def main(iso_path):
-    if not os.path.exists('out'):
-        os.mkdir('out')
-
-    rom = Rom(iso_path)
-    with open('out/SLUS_209.11', 'wb') as f:
-        f.write(bytearray(rom.buffer))
-    rom = None
-
-    subprocess.run(['armips', 'src.asm', '-sym2', 'build/sym.txt'])
-
+def main():
     sym_patches = defaultdict(list)
     with open('build/sym.txt') as f:
         for line in f:
@@ -37,7 +21,7 @@ def main(iso_path):
 
     for sym_type, sym_data in sym_patches.items():
         path = os.path.join('../patches/', sym_type.lower() + ".txt")
-        with open(path, 'w') as f, open('out/output.elf', 'rb') as binary:
+        with open(path, 'w') as f, open('out/SLUS_209.11', 'rb') as binary:
             for d in sym_data:
                 f.write("; " + d['name'] + "\n")
 
@@ -46,7 +30,5 @@ def main(iso_path):
                     data = ord(binary.read(1))
                     f.write(str(d['addr'] + i) + "," + str(data) + '\n')
 
-    shutil.rmtree('out')
-
 if __name__ == '__main__':
-    main('../rom/input.iso')
+    main()

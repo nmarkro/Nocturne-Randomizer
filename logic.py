@@ -86,6 +86,7 @@ def create_areas(world):
     world.add_check('Pale Rider', asakusa, 2856928)
     world.add_check("Black Frost", asakusa, 2845148)
     world.add_check('White Rider', asakusa, 2856966)
+    world.add_check('Bishamon 1', asakusa, 2845186)
     world.add_flag("Apocalypse Stone", 0x3F4)
 
     obelisk = world.add_area('Obelisk')
@@ -152,9 +153,15 @@ def create_areas(world):
     world.get_check('Noah').flag_rewards = [netherstone]
     world.get_check('Baal Avatar').flag_rewards = [heavenstone]
 
+    bandou = world.add_area('Bandou Shrine')
+    world.add_check("Bishamon 2", bandou, 2848606)
+    world.add_check("Jikoku", bandou, 2848644)
+    world.add_check("Koumoku", bandou, 2854344)
+    world.add_check("Zouchou", bandou, 2854382)
+
 
 # Bosses not to randomize
-BANNED_BOSSES = ['Ongyo-Ki', 'Specter 1', 'Specter 2', 'Specter 3', 'Dante 1', 'Dante 2', 'Ahriman', 'Noah', 'Thor 2', 'Baal Avatar', 'Kagutsuchi', 'Lucifer']
+BANNED_BOSSES = ['Ongyo-Ki', 'Specter 1', 'Specter 2', 'Specter 3', 'Ahriman', 'Noah', 'Thor 2', 'Baal Avatar', 'Kagutsuchi', 'Lucifer']
 
 def create_world():
     world = World()
@@ -234,6 +241,7 @@ def randomize_world(world, logger, attempts=100):
     random.shuffle(magatama_pool)
     world.bonus_magatama = magatama_pool.pop()
     state.get_magatama(world.bonus_magatama.name)
+    logger.info('Bonus Magatama: {}'.format(world.bonus_magatama.name))
 
     reward_pool = magatama_pool + flag_pool
     random.shuffle(reward_pool)

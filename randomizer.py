@@ -6,9 +6,9 @@ import shutil
 import hashlib
 import string
 import sys
+import os
 from collections import defaultdict
 from io import BytesIO
-from os import path
 
 import nocturne
 import logic
@@ -19,7 +19,7 @@ from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
 
-VERSION = 1
+VERSION = '0.1.3'
 BETA = True
 TEST = False
 
@@ -50,18 +50,21 @@ class Randomizer:
         rom_file = self.input_iso_file.get_file_from_path('SLUS_209.11;1')
         self.rom = Rom(rom_file)
 
+        if not os.path.exists('out'):
+            os.mkdir('out')
+
         print("getting ddt")
         ddt_file = self.input_iso_file.get_file_from_path('DDS3.DDT;1')
-        with open('rom/old_DDS3.DDT', 'wb') as file:
+        with open('out/old_DDS3.DDT', 'wb') as file:
             file.write(ddt_file.read())
 
         print("getting file system img")
-        with open('rom/old_DDS3.IMG', 'wb') as file:
+        with open('out/old_DDS3.IMG', 'wb') as file:
             for chunk in self.input_iso_file.read_file_in_chunks('DDS3.IMG;1'):
                 file.write(chunk)
 
         print("parsing dds3 fs")
-        self.dds3 = DDS3FS('rom/old_DDS3.DDT', 'rom/old_DDS3.IMG')
+        self.dds3 = DDS3FS('out/old_DDS3.DDT', 'out/old_DDS3.IMG')
         self.dds3.read_dds3()
 
     def generate_demon_permutation(self, demon_gen):
@@ -288,13 +291,13 @@ class Randomizer:
             new_demon.hp = new_hp
         else:
             # generate hp based on level and vitality stat if they aren't supplied
-            new_demon.hp = (6*new_demon.level) + (6*new_demon.stats[3])
+            new_demon.hp = (6*new_demon.level) + (6*new_demon.stats[2])
         new_demon.hp = min(int(new_demon.hp), 0xFFFF)
         if new_mp > 0:
             new_demon.mp = new_mp
         else:
             # generate mp based on level and magic stat if they aren't supplied
-            new_demon.mp = (3*new_demon.level) + (3*new_demon.stats[2])
+            new_demon.mp = (3*new_demon.level) + (3*new_demon.stats[1])
         new_demon.mp = min(int(new_demon.mp), 0xFFFF)
         if new_exp > 0:
             exp = new_exp * exp_mod
@@ -489,17 +492,18 @@ class Randomizer:
                 new_mp = -1
                 new_level = balanced_demon.level
                 stat_mod = 1
+                exp_mod = self.config_exp_modifier
                 if new_boss_demon.name in ['White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)']:
-                    stat_mod = 0.4
-                    new_level = round(new_level * 0.6)
+                    # stat_mod = 0.75
+                    new_level = round(new_level * 0.85)
                 elif new_boss_demon.name == 'Albion (Boss)':
-                    stat_mod = 0.5
                     new_level = round(new_level * 0.75)
+                    exp_mod = 1
                 elif new_boss_demon.name == "Atropos 2 (Boss)":
                     new_hp = balanced_demon.hp
                     new_mp = balanced_demon.mp
                 for d in extras:
-                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=self.config_exp_modifier, stat_mod=stat_mod)
+                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=exp_mod, stat_mod=stat_mod)
                     boss_demons.append(d)
 
             # get rid of any vanilla magatama drops
@@ -522,16 +526,70 @@ class Randomizer:
                 file.write(str(vars(demon)) + "\n\n")
 
 
+    def get_md5(self, file_path):
+        # from https://stackoverflow.com/questions/1131220/get-md5-hash-of-big-files-in-python
+        with open(file_path, 'rb') as f:
+            input_md5 = hashlib.md5()
+            while True:
+                chunk = f.read(2**20)
+                if not chunk:
+                    break
+                input_md5.update(chunk)
+
+        input_md5 = input_md5.hexdigest() 
+        with open(file_path + '.md5', 'w') as f:
+            f.write(input_md5)
+
+        return input_md5
+
+
     def run(self):
-        print("SMT3 Nocturne Randomizer version {}".format(VERSION))
+        print("SMT3 Nocturne Randomizer version {}\n".format(VERSION))
         if BETA:
-            print("WARNING: This is a beta build and things may not work as intended. Contact PinkPajamas or NMarkro if you encounter any bugs")
+            print("WARNING: This is a beta build and things may not work as intended.\nContact PinkPajamas or NMarkro if you encounter any bugs\n")
+
+        if os.path.exists('config.ini'):
+            with open('config.ini', 'r') as f:
+                config_iso_path = f.readline().strip()
+                config_flags = f.readline().strip()
+                if os.path.exists(config_iso_path):
+                    print('Config file found, previous ISO file path: {}'.format(config_iso_path))
+                    response = input('Use previous ISO file? y/n\n> ').strip()
+                    print()
+                    if response[:1].lower() == 'y':
+                        self.input_iso_path = config_iso_path
+
+                if config_flags:
+                    print('Previous flags: {}'.format(config_flags))
+                    response = input('Use previous flags? y/n\n> ').strip()
+                    print()
+                    if response[:1].lower() == 'y':
+                        self.flags = config_flags
+
 
         if self.input_iso_path == None:
             self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip()
             print()
 
-        if not path.exists(self.input_iso_path):
+        if os.path.isdir(self.input_iso_path):
+            print("Searching directory for ISO")
+            for filename in os.listdir(self.input_iso_path):
+                path = os.path.join(self.input_iso_path, filename)
+                stats = os.stat(path)
+                if stats.st_size == 4270227456:
+                    input_md5 = self.get_md5(path)
+                    if input_md5 == MD5_NTSC:
+                        self.input_iso_path = path
+                        break
+            else:
+                print("File not found, check input path")
+                return
+            print("Found valid ISO: {}\n".format(self.input_iso_path))
+        else:
+            if not self.input_iso_path.endswith('.iso'):
+                self.input_iso_path += '.iso'
+
+        if not os.path.exists(self.input_iso_path):
             print("File not found, check input path")
             return
 
@@ -540,10 +598,12 @@ class Randomizer:
             print()
             if self.text_seed == "":
                 self.text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+                print('Your generated seed is: {}'.format(self.text_seed))
         seed = int(hashlib.sha256(self.text_seed.encode('utf-8')).hexdigest(), 16)
         random.seed(seed)
 
-        flags_text = '''p   Tweak 'pierce' skill to work with magic.
+        flags_text = '''Settings Flags:
+p   Tweak 'pierce' skill to work with magic.
 s   Remove hard mode shop price mulitplier.
 h   Tweak AoE healing spells to affect demons in the stock.
 i   Tweak inheritance so that all skills inherit equally regaless of rank or body parts.
@@ -555,7 +615,11 @@ d   Double EXP gains.'''
             self.flags = input("Please input your desired flags (blank for all, '.' for none):\n> ").strip()
             print()
             if self.flags == '':
-                self.flags = 'abcdefghijklmnopqrstuvwxyz'
+                self.flags = string.ascii_lowercase
+
+        with open('config.ini', 'w') as f:
+            f.write(self.input_iso_path + "\n")
+            f.write(self.flags)
 
         if 'p' in self.flags:
             self.config_magic_pierce = True
@@ -576,22 +640,31 @@ d   Double EXP gains.'''
             self.config_exp_modifier = 2
 
         if not TEST:
-            print("Testing MD5 hash of input file. (This can take a while)")
-            with open(self.input_iso_path, 'rb') as f:
-                input_md5 = hashlib.md5(f.read()).hexdigest()
-                if input_md5 != MD5_NTSC:
-                    print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
-                    response = input("Continue? y/n\n> ")
-                    print()
-                    if not response[0].lower == 'y':
-                        return
+            if os.path.exists(self.input_iso_path + '.md5'):
+                with open(self.input_iso_path + '.md5', 'r') as f:
+                    input_md5 = f.read().strip()
+            else:
+                print("Testing MD5 hash of input file. (This can take a while)")
+                input_md5 = self.get_md5(self.input_iso_path)
+            
+            if input_md5 != MD5_NTSC:
+                print("WARNING: The MD5 of the provided ISO file does not match the MD5 of an unmodified Nocturne ISO")
+                response = input("Continue? y/n\n> ")
+                print()
+                if not response[:1].lower() == 'y':
+                    return
 
         print('opening iso')
         self.init_iso_data()
 
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+
         logger = logging.getLogger('')
         if self.config_make_logs:
             logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
+            with open('logs/spoiler.log', 'w') as f:
+                f.write("")
 
         print('initializing data')
         nocturne.load_all(self.rom)
@@ -607,7 +680,7 @@ d   Double EXP gains.'''
             world = logic.randomize_world(world, logger)
 
         # adjust the level of the bonus magatama
-        nocturne.all_magatamas[world.bonus_magatama.name].level = 2
+        nocturne.all_magatamas[world.bonus_magatama.name].level = 4
 
         print('randomizing demons')
         # generate demon levels and races making sure all demons are fuseable
@@ -641,30 +714,41 @@ d   Double EXP gains.'''
 
         # write all changes to the binary buffer
         print("writing changes to binary")
-        nocturne.write_all(self.rom, world, self)
+        nocturne.write_all(self, world)
 
         print ("patching scripts")
         script_modifier = Script_Modifier(self.dds3)
         script_modifier.run(world)
 
         print("exporting modified dds3 fs")
-        self.dds3.export_dds3('rom/DDS3.DDT', 'rom/DDS3.IMG')
+        self.dds3.export_dds3('out/DDS3.DDT', 'out/DDS3.IMG')
 
         if TEST:
-            self.output_iso_path = 'rom/output.iso'
+            self.output_iso_path = 'out/output.iso'
         else:
-            self.output_iso_path = 'rom/nocturne_rando_{}.iso'.format(self.text_seed)
+            self.output_iso_path = 'out/nocturne_rando_{}.iso'.format(self.text_seed)
         print("exporting randomized iso to {}".format(self.output_iso_path))
         self.input_iso_file.add_new_file('SLUS_209.11;1', BytesIO(self.rom.buffer))
         self.input_iso_file.rm_file('DUMMY.DAT;1')
 
-        with open('rom/DDS3.DDT', 'rb') as ddt, open('rom/DDS3.IMG', 'rb') as img:
+        with open('out/DDS3.DDT', 'rb') as ddt, open('out/DDS3.IMG', 'rb') as img:
             self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
+
+        if not TEST:
+            print('cleaning up files')
+            os.remove('out/DDS3.DDT')
+            os.remove('out/DDS3.IMG')
+            os.remove('out/old_DDS3.DDT')
+            os.remove('out/old_DDS3.IMG')
 
 if __name__ == '__main__':
     input_path = None
     seed = None
     flags = None
+    if TEST:
+        input_path = 'out/input.iso'
+        seed = ''
+        flags = string.ascii_lowercase
     if len(sys.argv) > 1:
         input_path = sys.argv[1].strip()
     if len(sys.argv) > 2:
@@ -673,3 +757,4 @@ if __name__ == '__main__':
         flags = sys.argv[3].strip()
     rando = Randomizer(input_path, seed, flags)
     rando.run()
+    input('Press [Enter] to exit')
