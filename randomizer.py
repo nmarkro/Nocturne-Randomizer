@@ -444,7 +444,7 @@ class Randomizer:
     }
 
     # bosses that should always go first regardless of settings
-    always_goes_first = ['Specter 1 (Boss)', 'White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)', 'Albion (Boss)', 'Trumpeter (Boss)']
+    always_goes_first = ['Specter 1 (Boss)', 'Matador (Boss)', 'White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)', 'Albion (Boss)', 'Trumpeter (Boss)']
 
     def randomize_boss_battles(self, world):
         boss_demons = []
