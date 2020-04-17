@@ -38,7 +38,36 @@ f0##_obj.changeProcByIndex(f0##_xxx_insts, f0##_xxx_labels, f0##_xxx_room)
 f0##_lb = push_bf_into_lb(f0##_obj, 'f0##')
 dds3.add_new_file(custom_vals.LB0_PATH['f0##'], f0##_lb)
 '''
-
+'''
+Hints plan:
+Specter: Hijiri will tell you on 2nd open trigger.
+    "..Oh yeah, there's something you should know" 
+Troll: The Eligor tells you
+	"This is Ginza, the city under the rule"
+	or
+	Add it to 006_start
+Berith: ??? (2nd Eligor tells you)
+Kaiwan: ??? (1st Eligor tells you)
+Ose: ??? (Door tells you)
+Mizuchi: Jack Frost tells you
+Sisters: ???
+Ongyo-Ki: Text when going in early
+Black Frost: ??? (text from NPC?)
+Specter 2: Last door block trap will tell you
+Girimehkala: Maybe high pixies tell you?
+Specter 3: Hijiri would tell you before going in.
+Futomimi: Yes/No text tells you
+Archantels: Door would tell you
+Mara: ???
+Surt: ???
+Mada: ???
+Mot: ???
+Mithra: ???
+Samael: ???
+Dante 2: ???
+Beelzebub: ???
+Metatron: ???
+'''
 
 #instruction creation shortcut
 def inst(opcode_str,operand=0):
@@ -88,6 +117,16 @@ class Script_Modifier:
                     return custom_vals.LOCATION_NAMES_BY_CHECK[check_name]
         print ("Warning: In get_flag_reward_location_string(), flag",hex(flag_id),"not found.")
         return ""
+    def get_checks_boss_id(self, check_name, world):
+        boss_of_check = world.checks[check_name].boss.name
+        if boss_of_check in custom_vals.BOSS_DEMON_ID_BY_NAME:
+            return custom_vals.BOSS_DEMON_ID_BY_NAME[boss_of_check]
+        if boss_of_check in custom_vals.DEMON_ID_BY_NAME[boss_of_check]:
+            return custom_vals.DEMON_ID_BY_NAME[boss_of_check]
+        print("Error: In get_checks_boss_id(), ID of boss",boss_of_check,"was not found")
+        return 1 #Vishnu
+    def get_checks_boss_name(self, check_name, world):
+        return world.checks[check_name].boss.name
     def insert_callback(self, field_string, location_insert, fun_name_insert, overwrite_warning=True):
         if len(fun_name_insert) > 15:
             print("ERROR: In insert_callback().",fun_name_insert,"is over 15 characters long")
@@ -661,6 +700,14 @@ class Script_Modifier:
         f015_forneus_reward_insts = f015_forneus_reward_insts[:-1] + self.get_flag_reward_insts("Forneus",world) + [inst("END")]
         f015_obj.changeProcByIndex(f015_forneus_reward_insts,[],f015_forneus_reward_proc)
         
+        f015_obj.changeMessageByIndex(assembler.message("What!? You're going to defeat^n^r"+self.get_checks_boss_name("Forneus",world)+"^p!?","F015_SINEN19_01"),0xf1)
+        f015_obj.changeMessageByIndex(assembler.message("You're going to defeat^n^r"+self.get_checks_boss_name("Forneus",world)+"^p?^nRiiiiiiight!","F015_SINEN19_02"),0xf5)
+        f015_obj.changeMessageByIndex(assembler.message("You really beat ^r"+self.get_checks_boss_name("Forneus",world)+"^p?","F015_SINEN19_05"),0xf9)
+        f015_obj.changeMessageByIndex(assembler.message("What!? You're going to defeat^n^r"+self.get_checks_boss_name("Forneus",world)+"^p!?","BOSSMAE"),0x29)
+        f015_obj.changeMessageByIndex(assembler.message("Amazing... You really beat ^r"+self.get_checks_boss_name("Forneus",world)+"^p!!","BOSSMAEFNASI"),0x2d)
+        #Other messages that mention Forneus: 0x78, 0xa5, 0xa6, 0xb8, 0xba, 0xbe, 0xc1, 0xdb, 0xdc, 0xe5, 0x10a, 0x10b, 0x110
+        f015_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Black Rider",world)+"^p.","FIRE_YURE"),0x6e)
+        
         #Black Rider
         f015_br_proc = f015_obj.getProcIndexByLabel('014_b_rider')
         f015_br_insts, f015_br_labels = f015_obj.getProcInstructionsLabelsByIndex(f015_br_proc)
@@ -738,9 +785,6 @@ class Script_Modifier:
         ] + self.get_flag_reward_insts("Black Rider",world) + [
             inst("END")
         ]
-        f015_brider_reward_str = ""
-
-        #flag adding
 
         f015_obj.appendProc(f015_br_rwms_insts, [], f015_brider_callback_str)
         self.insert_callback('f015',0x3b0,f015_brider_callback_str)
@@ -798,6 +842,9 @@ class Script_Modifier:
                     l.label_offset+=len(f017_09_insert_insts)
         f017_obj.changeProcByIndex(f017_09_insts, f017_09_labels, f017_09_proc)
         f017_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Mara",world),"MARA_RWMS"),0x19)
+
+        #TODO: Change fire text to White Rider boss name
+        #TODO: Change some text to Mara.
 
         #001_w_rider for warning.
         #bit checks: 5c0, 7b8, 112 unset. Turns off 0x755.
@@ -898,6 +945,8 @@ class Script_Modifier:
         f017_obj.appendProc(f017_wr_callback_insts, [], f017_wr_callback_str)
         self.insert_callback('f017', 0x34c, f017_wr_callback_str)
 
+        f017_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("White Rider",world)+"^p.","FIRE_YURE"),0x34)
+
         f017_lb = self.push_bf_into_lb(f017_obj, 'f017')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f017'], f017_lb)
 
@@ -974,6 +1023,8 @@ class Script_Modifier:
         ] + self.get_flag_reward_insts("Specter 1",world)
         #change 0x16 for specter 1 reward.
         f018_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Specter 1",world),"SPEC1_REWARD"),0x27)
+        #TODO: Change message to tell you that Specter 1 is there. "..Oh yeah, there's something you should know" 
+        
         precut1 = 35
         postcut1 = 161
         precut2 = 171
@@ -1086,6 +1137,8 @@ class Script_Modifier:
             inst("END")
         ]
         f022_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Matador",world),"MATA_REWARD"),0x1d)
+        f022_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Matador",world)+"^p.","FIRE_YURE"),0x59)
+        f022_rr_hint_msg = f022_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Red Rider",world)+"^p.","RR_HINT")
         f022_obj.changeProcByIndex(f022_mata_callback_insts,[],f022_mata_callback)
 
         f022_obj.changeProcByIndex(f022_013_e1_insts, f022_013_e1_labels, f022_mata_room)
@@ -1093,6 +1146,7 @@ class Script_Modifier:
         f022_rr_proc = f022_obj.getProcIndexByLabel('010_r_rider')
         f022_rr_insts, f022_rr_labels = f022_obj.getProcInstructionsLabelsByIndex(f022_rr_proc)
         f022_rr_insts[4] = inst("PUSHIS",0x3f4) #Change rider trigger check from 7b8 to key item
+        f022_rr_insts[46] = inst("PUSHIS",f022_rr_hint_msg)
         f022_obj.changeProcByIndex(f022_rr_insts, f022_rr_labels, f022_rr_proc)
 
         f022_10_proc = f022_obj.getProcIndexByLabel('010_01eve_01')
@@ -1242,6 +1296,12 @@ class Script_Modifier:
         f023_daisoujou_callback_str = "DAI_CB"
         f023_daisoujou_rwms_index = f023_obj.appendMessage(self.get_reward_str("Daisoujou",world), "DAI_REWARD")
 
+        f023_daisoujou_hint_msg = f023_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Daisoujou",world)+"^p.","DAI_HINT")
+        f023_03_start_proc = f023_obj.getProcIndexByLabel("003_daisojo")
+        f023_03_start_insts, f023_03_start_labels = f023_obj.getProcInstructionsLabelsByIndex(f023_03_start_proc)
+        f023_03_start_insts[42] = inst("PUSHIS",f023_daisoujou_hint_msg)
+        f023_obj.changeProcByIndex(f023_03_start_insts, f023_03_start_labels, f023_03_start_proc)
+
         f023_proclen = len(f023_obj.p_lbls().labels)
         f023_daisoujou_rwmspr_insts = [ #reward message proc
             inst("PROC",f023_proclen),
@@ -1305,6 +1365,12 @@ class Script_Modifier:
         f023_obj.appendProc(f023_dante_reward_insts, [], f023_dante_callback_str)
         self.insert_callback('f023',0x220,f023_dante_callback_str)
 
+        f023_dante_hint_msg = f023_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Dante 1",world)+"^p.","DANTE1_HINT")
+        f023_01_start_proc = f023_obj.getProcIndexByLabel("001_dantesign")
+        f023_01_start_insts, f023_01_start_labels = f023_obj.getProcInstructionsLabelsByIndex(f023_01_start_proc)
+        f023_01_start_insts[47] = inst("PUSHIS",f023_dante_hint_msg)
+        f023_obj.changeProcByIndex(f023_01_start_insts, f023_01_start_labels, f023_01_start_proc)
+        
         f023_lb = self.push_bf_into_lb(f023_obj, 'f023')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f023'], f023_lb)
 
@@ -1315,7 +1381,7 @@ class Script_Modifier:
 
         f024_obj = self.get_script_obj_by_name('f024')
         f024_01_room = f024_obj.getProcIndexByLabel("001_start")
-        f024_thor_gauntlet_msg_index = f024_obj.appendMessage("Do you want to go directly to the Thor gauntlet?", "THOR_GAUNTLET_MSG")
+        f024_thor_gauntlet_msg_index = f024_obj.appendMessage("Do you want to go directly to the Thor gauntlet? It starts with^r"+self.get_checks_boss_name("Orthrus",world)+".", "THOR_GAUNTLET_MSG")
         f024_thor_gauntlet_msg_no_index = f024_obj.appendMessage("If you would like to do the Thor gauntlet, go to the center room^non the 3rd floor.", "THOR_GAUNTLET_MSG_NO")
         f024_yesno_sel = 174 #that is the literal label name
 
@@ -1366,7 +1432,7 @@ class Script_Modifier:
         f024_10_room = f024_obj.getProcIndexByLabel("010_start")
         f024_10_insts, f024_10_labels = f024_obj.getProcInstructionsLabelsByIndex(f024_10_room)
         f024_10_insert_insts = [
-            inst("PUSHIS", 82), #Orthrus's ID
+            inst("PUSHIS", self.get_checks_boss_id("Orthrus",world)), 
             inst("PUSHIS",6),
             inst("COMM",0x15),
             inst("PUSHREG"),
@@ -1381,7 +1447,7 @@ class Script_Modifier:
         ]
         f024_orthrus_rwms = f024_obj.appendMessage(self.get_reward_str("Orthrus",world),"ORTHRUS_RWMS")
         f024_10_insert_insts_yaksini = [
-            inst("PUSHIS", 100), #Yaksini's ID
+            inst("PUSHIS", self.get_checks_boss_id("Yaksini",world)), 
             inst("PUSHIS",6),
             inst("COMM",0x15),
             inst("PUSHREG"),
@@ -1400,7 +1466,7 @@ class Script_Modifier:
         ] + self.get_flag_reward_insts("Orthrus",world)
         f024_yaksini_rwms = f024_obj.appendMessage(self.get_reward_str("Yaksini",world),"YAKSINI_RWMS")
         f024_10_insert_insts_thor_pre = [
-            inst("PUSHIS", 22), #Thor's ID
+            inst("PUSHIS", self.get_checks_boss_id("Thor 1",world)), #Thor's ID
             inst("PUSHIS",6),
             inst("COMM",0x15),
             inst("PUSHREG"),
@@ -1827,6 +1893,7 @@ class Script_Modifier:
         f004_obj.changeProcByIndex(f004_biker_insts,f004_biker_labels,f004_biker_event)
         f004_biker_callback_proc_str = "HBIKER_CB"
         f004_biker_callback_msg = f004_obj.appendMessage(self.get_reward_str("Hell Biker",world),"HBIKER_REWARD")
+        f004_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Hell Biker",world)+"^p.","HBIKER_HINT"),4)
         f004_biker_callback_insts = [
             inst("PROC",len(f004_obj.p_lbls().labels)),
             inst("COMM",0x60),
@@ -1910,6 +1977,12 @@ class Script_Modifier:
         f026_obj.appendProc(f026_kinki_rwms_insts, [], f026_kinki_callback_str)
         self.insert_callback('f026',0x158,f026_kinki_callback_str)
         
+        #Change Kin-ki model to check boss
+        f026_15_room = f026_obj.getProcIndexByLabel("015_start")
+        f026_15_room_insts, f026_15_room_labels = f026_obj.getProcInstructionsLabelsByIndex(f026_15_room)
+        f026_15_room_insts[7] = inst("PUSHIS",self.get_checks_boss_id("Kin-Ki",world))
+        f026_obj.changeProcByIndex(f026_15_room_insts, f026_15_room_labels, f026_15_room)
+        
         f026_suiki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Sui-Ki",world),"SUIKI_REWARD")
         f026_suiki_rwms_insts = [
             inst("PROC",len(f026_obj.p_lbls().labels)),
@@ -1926,6 +1999,11 @@ class Script_Modifier:
         f026_obj.appendProc(f026_suiki_rwms_insts, [], f026_suiki_callback_str)
         self.insert_callback('f026',0xf4,f026_suiki_callback_str)
         
+        f026_14_room = f026_obj.getProcIndexByLabel("014_start")
+        f026_14_room_insts, f026_14_room_labels = f026_obj.getProcInstructionsLabelsByIndex(f026_14_room)
+        f026_14_room_insts[7] = inst("PUSHIS",self.get_checks_boss_id("Sui-Ki",world))
+        f026_obj.changeProcByIndex(f026_14_room_insts, f026_14_room_labels, f026_14_room)
+        
         f026_fuuki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Fuu-Ki",world),"FUUKI_REWARD")
         f026_fuuki_rwms_insts = [
             inst("PROC",len(f026_obj.p_lbls().labels)),
@@ -1941,6 +2019,11 @@ class Script_Modifier:
         f026_fuuki_callback_str = "FUUKI_CB"
         f026_obj.appendProc(f026_fuuki_rwms_insts, [], f026_fuuki_callback_str)
         self.insert_callback('f026',0x1bc,f026_fuuki_callback_str)
+
+        f026_16_room = f026_obj.getProcIndexByLabel("016_start")
+        f026_16_room_insts, f026_16_room_labels = f026_obj.getProcInstructionsLabelsByIndex(f026_16_room)
+        f026_16_room_insts[7] = inst("PUSHIS",self.get_checks_boss_id("Fuu-Ki",world))
+        f026_obj.changeProcByIndex(f026_16_room_insts, f026_16_room_labels, f026_16_room)
 
         f026_ongyoki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Ongyo-Ki",world),"ONGYOKI_REWARD")
         f026_ongyoki_rwms_insts = [
@@ -1971,6 +2054,8 @@ class Script_Modifier:
         f027_pr_insts, f027_pr_labels = f027_obj.getProcInstructionsLabelsByIndex(f027_pr_proc)
         f027_pr_insts[12] = inst("PUSHIS",0x3f4) #Change rider trigger check from 7b8 to key item
         f027_obj.changeProcByIndex(f027_pr_insts, f027_pr_labels, f027_pr_proc)
+
+        f027_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Pale Rider",world)+"^p.","FIRE_YURE"),0x13)
 
         f027_16_proc = f027_obj.getProcIndexByLabel('016_01eve_01')
         f027_16_insts = [
@@ -2097,17 +2182,23 @@ class Script_Modifier:
         self.dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e644'],BytesIO(bytes(e644_obj.toBytes())))
 
         #Bishamonten scene f039
-        '''#Currently not in the pool
         f039_obj = self.get_script_obj_by_name('f039')
         f039_obj.changeMessageByIndex(assembler.message("Well done.","SHORTER_B_TEXT"),0x11)
         f039_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Bishamon 1",world),"BISHA_REWARD"),0x13)
         f039_rwms_proc = f039_obj.getProcIndexByLabel('039_B_AFTER')
         f039_rwms_insts, f039_rwms_labels = f039_obj.getProcInstructionsLabelsByIndex(f039_rwms_proc)
         f039_rwms_insts = f039_rwms_insts[:-1] + self.get_flag_reward_insts("Bishamon 1",world) + [inst("END")]
+        f039_rwms_insts[23] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1"))
         f039_obj.changeProcByIndex(f039_rwms_insts,[],f039_rwms_proc) #No labels in the proc
+        f039_02_proc = f039_obj.getProcIndexByLabel("002_start")
+        f039_02_insts, f039_02_labels = f039_obj.getProcInstructionsLabelsByIndex(f039_02_proc)
+        f039_02_insts[41] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1"))
+        f039_02_insts[166] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1"))
+        f039_obj.changeProcByIndex(f039_02_insts, f039_02_labels, f039_02_proc)
         f039_lb = self.push_bf_into_lb(f039_obj, 'f039')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f039'], f039_lb)
-        '''
+        #Model lines: 41, 166 of 002_start, 23 of 039_B_AFTER
+        
 
         #Cutscene removal in Mifunashiro f035
         #Shorten and add decision on boss
@@ -2620,6 +2711,8 @@ class Script_Modifier:
         f016_obj.appendProc(f016_harlot_rwms_insts, [], f016_harlot_callback_str)
         self.insert_callback('f016',0xf4,f016_harlot_callback_str)
 
+        f016_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("The Harlot",world)+"^p.","FIRE_YURE"),0x4a)
+
         f016_lb = self.push_bf_into_lb(f016_obj,'f016')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f016'],f016_lb)
         self.insert_callback('f016', 0x1b84, f016_gary_reward_proc_str)
@@ -2782,6 +2875,12 @@ class Script_Modifier:
         ]
         f034_obj.changeProcByIndex(f034_25_2_insts, f034_25_2_labels, f034_25_2_proc)
 
+        f034_albion_hint_msg = f034_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Albion",world)+"^p.","ALBION_HINT")
+        f034_25_start_proc = f034_obj.getProcIndexByLabel("025_start")
+        f034_25_start_insts, f034_25_start_labels = f034_obj.getProcInstructionsLabelsByIndex(f034_25_start_proc)
+        f034_25_start_insts[100] = inst("PUSHIS",f034_albion_hint_msg)
+        f034_obj.changeProcByIndex(f034_25_start_insts, f034_25_start_labels, f034_25_start_proc)
+
         #Skadi callback
         #Set 6ad, check 6ac and 6ae. If both are set then set 6af
         f034_18_2_proc = f034_obj.getProcIndexByLabel('018_01eve_02')
@@ -2815,6 +2914,12 @@ class Script_Modifier:
             assembler.label("SKADI_TO_CENTER",19)
         ]
         f034_obj.changeProcByIndex(f034_18_2_insts, f034_18_2_labels, f034_18_2_proc)
+
+        f034_skadi_hint_msg = f034_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Skadi",world)+"^p.","SKADI_HINT")
+        f034_18_start_proc = f034_obj.getProcIndexByLabel("018_start")
+        f034_18_start_insts, f034_18_start_labels = f034_obj.getProcInstructionsLabelsByIndex(f034_18_start_proc)
+        f034_18_start_insts[116] = inst("PUSHIS",f034_skadi_hint_msg)
+        f034_obj.changeProcByIndex(f034_18_start_insts, f034_18_start_labels, f034_18_start_proc)
 
         #Aciel callback
         f034_10_2_proc = f034_obj.getProcIndexByLabel('010_01eve_02')
@@ -2850,6 +2955,12 @@ class Script_Modifier:
         ]
         f034_obj.changeProcByIndex(f034_10_2_insts, f034_10_2_labels, f034_10_2_proc)
 
+        f034_aciel_hint_msg = f034_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Aciel",world)+"^p.","ACIEL_HINT")
+        f034_10_start_proc = f034_obj.getProcIndexByLabel("010_start")
+        f034_10_start_insts, f034_10_start_labels = f034_obj.getProcInstructionsLabelsByIndex(f034_10_start_proc)
+        f034_10_start_insts[96] = inst("PUSHIS",f034_aciel_hint_msg)
+        f034_obj.changeProcByIndex(f034_10_start_insts, f034_10_start_labels, f034_10_start_proc)
+
         #Center temple: 1st scene sets 0x864 and 0x52. 0x51 is the check. Keeping 0x51 set is probably safe.
         #   2nd scene checks 0x73. We want it to check Pyramidion instead.
         f034_03_01_proc = f034_obj.getProcIndexByLabel('003_01eve_01')
@@ -2871,8 +2982,8 @@ class Script_Modifier:
         self.dds3.add_new_file('/fld/f/f034/F034.INF', f034_inf_patched)
         f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^bblack temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3f1,world)+"^p.","BLACK_LOCK"),0x10)
         #get_flag_reward_location_string
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3f2,world)+"^p.","WHITE_LOCK"),0x11)
-        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is held by ^g"+self.get_flag_reward_location_string(0x3f3,world)+"^p.","RED_LOCK"),0x12)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^ywhite temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3f2,world)+"^p.","WHITE_LOCK"),0x11)
+        f034_obj.changeMessageByIndex(assembler.message("This door is locked by the^n^rred temple key^p,^nwhich is found in ^g"+self.get_flag_reward_location_string(0x3f3,world)+"^p.","RED_LOCK"),0x12)
         f034_obj.changeMessageByIndex(assembler.message("You have opened the locked door.","DOOR_OPEN"),0x13)
         #f034_lb = push_bf_into_lb(f034_obj, 'f034')
         #f034b_lb = push_bf_into_lb(f034_obj, 'f034b')
@@ -2993,6 +3104,8 @@ class Script_Modifier:
         f021_toot_reward_proc_str = "TOOT_CB"
         f021_obj.appendProc(f021_toot_rwms_insts,[],f021_toot_reward_proc_str)
         self.insert_callback('f021', 0xf4, f021_toot_reward_proc_str)
+
+        f021_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Trumpeter",world)+"^p.","FIRE_YURE"),0x59)
 
         f021_lb = self.push_bf_into_lb(f021_obj, 'f021')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f021'], f021_lb)
