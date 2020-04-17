@@ -528,6 +528,16 @@ def write_sp_item_strings(rom):
         rom.seek(description_msg_offset)
         rom.write(file.read())
 
+def write_seed_strings(rom, seed):
+    rom.write(struct.pack('<112x'), 0x43EE50)
+    rom.write('Run rate is zero.'.encode(), 0x43EE70)
+    rom.write('Take double damage.'.encode(), 0x43EE88)
+    seed_msg = "Seed: {}".format(seed)
+    if len(seed_msg) > 17:
+        seed_msg = seed_msg[14:] + "..."
+    rom.write(seed_msg.encode(), 0x43EE50)
+    rom.write(seed_msg.encode(), 0x43EEA8)
+
 def load_all(rom):
     load_demons(rom)
     load_races()
@@ -592,3 +602,4 @@ def write_all(rando, world):
     patch_fix_dummy_convo(rom)
 
     write_sp_item_strings(rom)
+    write_seed_strings(rom, rando.text_seed)

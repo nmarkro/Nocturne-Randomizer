@@ -13,13 +13,16 @@ from io import BytesIO
 import nocturne
 import logic
 import races
+from paths import RANDO_ROOT_PATH, PATCHES_PATH
 from modified_scripts import Script_Modifier
 from base_classes import *
 from rom import Rom
 from fs.Iso_FS import IsoFS
 from fs.DDS3_FS import DDS3FS
+from fs.LB_FS import LB_FS
 
-VERSION = '0.1.3'
+with open(os.path.join(RANDO_ROOT_PATH, 'version.txt'), 'r') as f:
+    VERSION = f.read().strip()
 BETA = True
 TEST = False
 
@@ -144,7 +147,7 @@ class Randomizer:
         if self.config_make_logs:
             with open('logs/demon_spoiler.txt', 'w') as f:
                 for key, value in demon_map.items():
-                    f.write(nocturne.lookup_demon(key).name + " -> " + nocturne.lookup_demon(value).name + '\n')
+                    f.write('Vanilla {} became Randomized {}\n'.format(nocturne.lookup_demon(key).name, nocturne.lookup_demon(value).name))
 
         return demon_map
 
@@ -365,13 +368,16 @@ class Randomizer:
                 old_demon.base_demon = False
             # distribute basic buffs to the base demons
             if new_demon.name == 'Pixie':
+                # Always give Pixie Estoma and Riberama
                 new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, [73, 74])
+            if new_demon.name == 'Dante':
+                # Always give Dante Son's Oath
+                new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, [0x169])
             elif new_demon.base_demon and len(skills_to_distribute) > 0:
                 skill = [skills_to_distribute.pop()]
                 new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, skill)
             else:
                 new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon)
-            #print(str(vars(new_demon)) + "\n")
             new_demons.append(new_demon)
 
         return new_demons
@@ -599,7 +605,8 @@ class Randomizer:
             if self.text_seed == "":
                 self.text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
                 print('Your generated seed is: {}'.format(self.text_seed))
-        seed = int(hashlib.sha256(self.text_seed.encode('utf-8')).hexdigest(), 16)
+        self.full_seed = '{}-{}-{}'.format(VERSION, self.text_seed, self.flags)
+        seed = int(hashlib.sha256(self.full_seed.encode('utf-8')).hexdigest(), 16)
         random.seed(seed)
 
         flags_text = '''Settings Flags:
@@ -668,8 +675,8 @@ d   Double EXP gains.'''
 
         print('initializing data')
         nocturne.load_all(self.rom)
-        if self.config_make_logs:
-            self.write_demon_log('logs/demons.txt', nocturne.all_demons.values())
+        # if self.config_make_logs:
+        #     self.write_demon_log('logs/demons.txt', nocturne.all_demons.values())
 
         print('creating logical progression')
         # generate a world and come up with a logical boss and boss magatama drop progression
@@ -719,6 +726,14 @@ d   Double EXP gains.'''
         print ("patching scripts")
         script_modifier = Script_Modifier(self.dds3)
         script_modifier.run(world)
+
+        # just overwrite the old title screen tmx
+        # I'm too lazy to rewrite the lb fs just for this
+        title_screen_lb_data = self.dds3.get_file_from_path('/title/titletex.LB')
+        with open(os.path.join(PATCHES_PATH, 't_logo.tmx'), 'rb') as f:
+            title_screen_lb_data.seek(0x20440)
+            title_screen_lb_data.write(f.read())
+        self.dds3.add_new_file('/title/titletex.LB', title_screen_lb_data)
 
         print("exporting modified dds3 fs")
         self.dds3.export_dds3('out/DDS3.DDT', 'out/DDS3.IMG')
