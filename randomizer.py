@@ -217,6 +217,9 @@ class Randomizer:
         level = 0
 
         skill_pool = [s for s in list(nocturne.all_skills.values()) if s.ind not in self.BANNED_SKILLS]
+        # re-add son's oath to skill pool for dante only
+        if new_demon.name == "Dante":
+            skill_pool.append(nocturne.lookup_skill(0x169))
         unique_pool = [s for s in skill_pool if s.rank >= 100]
         # remove unique skills from skill pool
         skill_pool = [s for s in skill_pool if s not in unique_pool]
@@ -370,9 +373,6 @@ class Randomizer:
             if new_demon.name == 'Pixie':
                 # Always give Pixie Estoma and Riberama
                 new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, [73, 74])
-            if new_demon.name == 'Dante':
-                # Always give Dante Son's Oath
-                new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, [0x169])
             elif new_demon.base_demon and len(skills_to_distribute) > 0:
                 skill = [skills_to_distribute.pop()]
                 new_demon.skills, new_demon.battle_skills = self.randomize_skills(new_demon, skill)
