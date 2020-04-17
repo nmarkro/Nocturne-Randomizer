@@ -121,7 +121,7 @@ class Script_Modifier:
         boss_of_check = world.checks[check_name].boss.name
         if boss_of_check in custom_vals.BOSS_DEMON_ID_BY_NAME:
             return custom_vals.BOSS_DEMON_ID_BY_NAME[boss_of_check]
-        if boss_of_check in custom_vals.DEMON_ID_BY_NAME[boss_of_check]:
+        if boss_of_check in custom_vals.DEMON_ID_BY_NAME:
             return custom_vals.DEMON_ID_BY_NAME[boss_of_check]
         print("Error: In get_checks_boss_id(), ID of boss",boss_of_check,"was not found")
         return 1 #Vishnu
@@ -2188,12 +2188,12 @@ class Script_Modifier:
         f039_rwms_proc = f039_obj.getProcIndexByLabel('039_B_AFTER')
         f039_rwms_insts, f039_rwms_labels = f039_obj.getProcInstructionsLabelsByIndex(f039_rwms_proc)
         f039_rwms_insts = f039_rwms_insts[:-1] + self.get_flag_reward_insts("Bishamon 1",world) + [inst("END")]
-        f039_rwms_insts[23] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1"))
+        f039_rwms_insts[23] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1",world))
         f039_obj.changeProcByIndex(f039_rwms_insts,[],f039_rwms_proc) #No labels in the proc
         f039_02_proc = f039_obj.getProcIndexByLabel("002_start")
         f039_02_insts, f039_02_labels = f039_obj.getProcInstructionsLabelsByIndex(f039_02_proc)
-        f039_02_insts[41] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1"))
-        f039_02_insts[166] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1"))
+        f039_02_insts[41] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1",world))
+        f039_02_insts[166] = inst("PUSHIS",self.get_checks_boss_id("Bishamon 1",world))
         f039_obj.changeProcByIndex(f039_02_insts, f039_02_labels, f039_02_proc)
         f039_lb = self.push_bf_into_lb(f039_obj, 'f039')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f039'], f039_lb)
