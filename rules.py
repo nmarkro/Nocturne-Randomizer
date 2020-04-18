@@ -135,7 +135,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_check('Mara'),
-        lambda state: state.has_checked('Sisters')
+        lambda state: state.has_flag('Eggplant')
     )
     set_rule(
         world.get_check('Troll'),
