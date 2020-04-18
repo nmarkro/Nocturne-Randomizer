@@ -2,7 +2,6 @@
 import random
 import copy
 import logging
-import shutil
 import hashlib
 import string
 import sys

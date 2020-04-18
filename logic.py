@@ -326,14 +326,14 @@ def randomize_world(world, logger, attempts=100):
         no_reward_boss_pool = [b for b in shuffled_bosses if b.reward == None and b.check.flag_rewards == []]
         if no_reward_boss_pool != []:
             chosen_boss = random.choice(no_reward_boss_pool)
-        if chosen_boss == None:
+        else:
             for b in shuffled_bosses:
                 if b.can_add_reward(chosen_reward):
                     chosen_boss = b
                     break
-        if chosen_boss == None:
-            print('Error generating world, trying again')
-            return None
+            else:
+                print('Error generating world, trying again')
+                return None
         logger.info("Adding " + chosen_reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name + "\n")
         chosen_boss.add_reward(chosen_reward)
         reward_pool.remove(chosen_reward)
@@ -341,7 +341,8 @@ def randomize_world(world, logger, attempts=100):
     logger.info("Placing unused rewards")
     # reverse to add rewards to bosses from the beginning of the game
     bosses_progressed.reverse()
-    for reward in reward_pool:
+    while reward_pool:
+        reward = reward_pool.pop()
         chosen_boss = None
         # try to give the chosen reward to a boss with no magatama or flag reward 
         no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
@@ -352,9 +353,11 @@ def randomize_world(world, logger, attempts=100):
                 if b.check.area.name != 'ToK' and b.can_add_reward(reward):
                     chosen_boss = b
                     break
+            else:
+                print('Error generating world, trying again')
+                return None
         logger.info("Adding " + reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name)
         chosen_boss.add_reward(reward)
-        reward_pool.remove(reward)
 
     logger.info("Complete spoiler:")
     for check in world.get_checks():
@@ -369,6 +372,8 @@ def randomize_world(world, logger, attempts=100):
 
 if __name__ == '__main__':
     logger = logging.getLogger('')
+    with open('logs/spoiler.log', 'w') as f:
+        f.write('')
     logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
 
     world = None
