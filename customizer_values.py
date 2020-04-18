@@ -406,7 +406,9 @@ FLAG_REWARD_MSG = {
 BOSS_NAMES = [
     "Forneus", "Ose", "Girimehkala", "Noah", "Ahriman", "Baal Avatar", "Specter 1", "Troll", "Red Rider", "Daisoujou", "Matador", "Black Rider", "Hell Biker", "White Rider", "Pale Rider", "Beelzebub", "Metatron", "The Harlot", "Trumpeter", "Mara", "Orthrus", "Yaksini", "Thor 1", "Mizuchi", "Black Frost", "Sui-Ki", "Kin-Ki", "Fuu-Ki", "Ongyo-Ki", "Specter 2", "Specter 3", "Sisters", "Clotho", "Lachesis", "Atropos", "Thor 2", "Surt", "Mada", "Mithra", "Mot", "Aciel", "Skadi", "Albion", "Bishamon 1", "Koumoku", "Zouchou", "Jikoku", "Bishamon 2", "Dante 1", "Dante 2", "Futomimi", "Archangels"
 ]
-BOSS_DEMON_ID_BY_NAME = {
+#Put in bosses that have different IDs than their normal counterpart.
+BOSS_DEMON_ID_BY_NAME = {}
+'''
     "Forneus":256,
     "Specter 1":257,
     "Troll":317,
@@ -452,11 +454,8 @@ BOSS_DEMON_ID_BY_NAME = {
     "The Harlot":352,
     "Mara":321,
     "Trumpeter":353,
+    "Bishamon":320,
     "Bishamon 1":320,
-    "Bishamon 2":320,
-    "Jikoku": 323,
-    "Koumoku": 324,
-    "Zouchou": 325,
     "Surt":335,
     "Mada":333,
     "Mot":334,
@@ -470,6 +469,7 @@ BOSS_DEMON_ID_BY_NAME = {
     "Kagutsuchi":293,
     "Lucifer":344
 }
+'''
 DEMON_ID_BY_NAME = {
     "Vishnu":1,
     "Mithra":2,
@@ -493,6 +493,8 @@ DEMON_ID_BY_NAME = {
     "Kikuri-Hime":20,
     "Bishamon":21,
     "Thor":22,
+    "Thor 1":22,
+    "Thor 2":22,
     "Jikoku":23,
     "Mikazuchi":24,
     "Okuninushi":25,
@@ -640,6 +642,8 @@ DEMON_ID_BY_NAME = {
     "Chatterskull":177,
     "Phantom":178,
     "Dante":192,
+    "Dante 1":192,
+    "Dante 2":192,
     "Metatron":193,
     "Beelzebub (Fly)":194,
     "Pale Rider":195,

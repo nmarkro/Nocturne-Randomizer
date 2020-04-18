@@ -1138,7 +1138,7 @@ class Script_Modifier:
             inst("END")
         ]
         f022_obj.changeMessageByIndex(assembler.message(self.get_reward_str("Matador",world),"MATA_REWARD"),0x1d)
-        f022_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Matador",world)+"^p.","FIRE_YURE"),0x59)
+        f022_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Matador",world)+"^p.","F22_YURE"),0x1a)
         f022_rr_hint_msg = f022_obj.appendMessage("You sense the presence of^n^r"+self.get_checks_boss_name("Red Rider",world)+"^p.","RR_HINT")
         f022_obj.changeProcByIndex(f022_mata_callback_insts,[],f022_mata_callback)
 
@@ -1382,7 +1382,7 @@ class Script_Modifier:
 
         f024_obj = self.get_script_obj_by_name('f024')
         f024_01_room = f024_obj.getProcIndexByLabel("001_start")
-        f024_thor_gauntlet_msg_index = f024_obj.appendMessage("Do you want to go directly to the Thor gauntlet? It starts with^r"+self.get_checks_boss_name("Orthrus",world)+".", "THOR_GAUNTLET_MSG")
+        f024_thor_gauntlet_msg_index = f024_obj.appendMessage("Do you want to go directly to the Thor gauntlet? It starts with ^r"+self.get_checks_boss_name("Orthrus",world)+"^p.", "THOR_GAUNTLET_MSG")
         f024_thor_gauntlet_msg_no_index = f024_obj.appendMessage("If you would like to do the Thor gauntlet, go to the center room^non the 3rd floor.", "THOR_GAUNTLET_MSG_NO")
         f024_yesno_sel = 174 #that is the literal label name
 
@@ -3106,7 +3106,7 @@ class Script_Modifier:
         f021_obj.appendProc(f021_toot_rwms_insts,[],f021_toot_reward_proc_str)
         self.insert_callback('f021', 0xf4, f021_toot_reward_proc_str)
 
-        f021_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Trumpeter",world)+"^p.","FIRE_YURE"),0x59)
+        f021_obj.changeMessageByIndex(assembler.message("You sense the presence of^n^r"+self.get_checks_boss_name("Trumpeter",world)+"^p.","FIRE_YURE"),0x38)
 
         f021_lb = self.push_bf_into_lb(f021_obj, 'f021')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f021'], f021_lb)
@@ -3231,8 +3231,6 @@ class Script_Modifier:
             inst("IF",0),
             inst("PUSHIS",0x73),
             inst("COMM",8),
-            inst("PUSHIS",0x3da),
-            inst("COMM",8),
             inst("PUSHIS",0x2a2),
             inst("PUSHIS",0x2a0),
             inst("COMM",0x28),
@@ -3246,7 +3244,7 @@ class Script_Modifier:
             inst("END")
         ]
         e674_labels = [
-            assembler.label("SAMAEL_DEFEATED",15)
+            assembler.label("SAMAEL_DEFEATED",13)
         ]
         e674_obj.changeProcByIndex(e674_insts,e674_labels,0)
         self.dds3.add_new_file(custom_vals.SCRIPT_OBJ_PATH['e674'], BytesIO(bytes(e674_obj.toBytes())))
