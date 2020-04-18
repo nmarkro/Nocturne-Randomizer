@@ -326,8 +326,8 @@ def write_magatamas(rom, new_magatams):
             rom.write_halfword(skill['level'])
             rom.write_halfword(skill['skill_id'])
 
-reward_tbl_offset = 0x001FEE00
-reward_tbl = []
+# reward_tbl_offset = 0x001FEE00
+# reward_tbl = []
 
 def write_battles(rom, new_battles, preserve_boss_arenas=False):
     for b in new_battles:
@@ -337,9 +337,10 @@ def write_battles(rom, new_battles, preserve_boss_arenas=False):
             rom.write_halfword(b.reward_index + 1, b.offset + 0x02)
             reward_tbl.append(b.reward)
         else:
-            rom.write_halfword(0x00, b.offset + 0x02)'''
+            rom.write_halfword(0x00, b.offset + 0x02)
         if 345 >= b.reward >= 320:
-            rom.write_halfword(b.reward, b.offset + 0x02)
+            rom.write_halfword(b.reward, b.offset + 0x02)'''
+        rom.write_halfword(b.reward, b.offset + 0x02)
         rom.write_halfword(b.phase_value, b.offset + 0x04)
         rom.seek(b.offset + 0x06)
         for e in b.enemies:
@@ -528,6 +529,16 @@ def write_sp_item_strings(rom):
         rom.seek(description_msg_offset)
         rom.write(file.read())
 
+def write_seed_strings(rom, seed):
+    rom.write(struct.pack('<112x'), 0x43EE50)
+    rom.write('Run rate is zero.'.encode(), 0x43EE70)
+    rom.write('Take double damage.'.encode(), 0x43EE88)
+    seed_msg = "Seed: {}".format(seed)
+    if len(seed_msg) > 17:
+        seed_msg = seed_msg[:14] + "..."
+    rom.write(seed_msg.encode(), 0x43EE50)
+    rom.write(seed_msg.encode(), 0x43EEA8)
+
 def load_all(rom):
     load_demons(rom)
     load_races()
@@ -592,3 +603,4 @@ def write_all(rando, world):
     patch_fix_dummy_convo(rom)
 
     write_sp_item_strings(rom)
+    write_seed_strings(rom, rando.text_seed)
