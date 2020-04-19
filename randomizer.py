@@ -90,6 +90,15 @@ class Randomizer:
         for old_demon, new_demon in zip(demon_pool, shuffled_pool):
             demon_map[old_demon.ind] = new_demon.ind
 
+        # iterate through each hospital demon looking for conflicts
+        for demon in all_base:
+            new_demon = nocturne.lookup_demon(demon_map.get(demon.ind))
+            if new_demon.phys_inv:
+                # choose a new demon from all non-hospital, non-phys invalid demons
+                new_choice = random.choice([d for d in demon_pool if not d.phys_inv and not d.base_demon])
+                swap_demon(new_choice, demon)
+                demon_pool.remove(new_choice)
+
         for element in all_elements:
             # find the element in generated demons
             chosen_demon = None
@@ -134,14 +143,6 @@ class Randomizer:
                 swap_demon(fiend, chosen_demon)
             else:
                 print("Error finding mutation for " + fiend.name)
-                
-        # iterate through each hospital demon looking for conflicts
-        for demon in all_base:
-            new_demon = nocturne.lookup_demon(demon_map.get(demon.ind))
-            if new_demon.phys_inv:
-                # choose a new demon from all non-hospital, non-phys invalid demons
-                new_choice = random.choice([d for d in demon_pool if not d.phys_inv and not d.base_demon])
-                swap_demon(new_choice, demon)
 
         if self.config_make_logs:
             with open('logs/demon_spoiler.txt', 'w') as f:
