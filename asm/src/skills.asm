@@ -1,6 +1,9 @@
 .org 0x002382D0
 .func SKILLS_VISIBLE
-    bltz s2,0x02383C8
+    bltz s2, 0x02383C8
+    sll s3, v0, 0x01
+    lw a0, 0x3C(sp)
+    dmove v0, zero
 .endfunc
 
 .org 0x00222C68
