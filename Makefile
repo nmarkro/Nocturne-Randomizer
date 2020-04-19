@@ -1,6 +1,6 @@
 all: patches/*.txt nocturne_rando.exe nocturne_rando_windows.zip
 
-patches/*.txt:
+patches:
 	cd asm && ./armips.exe src.asm -sym2 build/sym.txt && python build.py
 
 nocturne_rando.exe: *.py data/*.txt patches/*
