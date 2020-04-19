@@ -228,7 +228,7 @@ def randomize_world(world, logger, attempts=100):
     # Remove the starting Magatama and Gaea (24 st magatama)
     state.get_magatama('Marogareh')
     magatama_pool.remove(world.get_magatama('Marogareh'))
-    magatama_pool.remove(world.get_magatama('Gaea'))
+    # magatama_pool.remove(world.get_magatama('Gaea'))
     magatama_pool.remove(world.get_magatama('Masakados'))
     # remove the fixed flags and terminal flags
     flag_pool = [f for f in flag_pool if not f.is_terminal]

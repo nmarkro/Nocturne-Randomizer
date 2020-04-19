@@ -24,3 +24,8 @@
     li a2, 0x63
     li v0, 0x1
 .endfunc
+
+.org 0x00222B68
+.func INHERIT_EQ_SKILL_TYPE
+    li v0, 0xFF
+.endfunc

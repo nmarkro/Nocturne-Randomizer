@@ -55,15 +55,17 @@ class Randomizer:
         if not os.path.exists('out'):
             os.mkdir('out')
 
-        print("getting ddt")
-        ddt_file = self.input_iso_file.get_file_from_path('DDS3.DDT;1')
-        with open('out/old_DDS3.DDT', 'wb') as file:
-            file.write(ddt_file.read())
+        if not os.path.exists('out/old_DDS3.DDT'):
+            print("getting ddt")
+            ddt_file = self.input_iso_file.get_file_from_path('DDS3.DDT;1')
+            with open('out/old_DDS3.DDT', 'wb') as file:
+                file.write(ddt_file.read())
 
-        print("getting file system img")
-        with open('out/old_DDS3.IMG', 'wb') as file:
-            for chunk in self.input_iso_file.read_file_in_chunks('DDS3.IMG;1'):
-                file.write(chunk)
+        if not os.path.exists('out/old_DDS3.IMG'):
+            print("getting file system img")
+            with open('out/old_DDS3.IMG', 'wb') as file:
+                for chunk in self.input_iso_file.read_file_in_chunks('DDS3.IMG;1'):
+                    file.write(chunk)
 
         print("parsing dds3 fs")
         self.dds3 = DDS3FS('out/old_DDS3.DDT', 'out/old_DDS3.IMG')
@@ -753,8 +755,8 @@ d   Double EXP gains.'''
             print('cleaning up files')
             os.remove('out/DDS3.DDT')
             os.remove('out/DDS3.IMG')
-            os.remove('out/old_DDS3.DDT')
-            os.remove('out/old_DDS3.IMG')
+            # os.remove('out/old_DDS3.DDT')
+            # os.remove('out/old_DDS3.IMG')
 
 if __name__ == '__main__':
     input_path = None

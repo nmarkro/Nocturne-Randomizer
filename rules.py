@@ -85,7 +85,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Bandou Shrine'),
-        lambda state: state.has_terminal('Yurakucho Tunnel') and state.has_terminal('Asakusa') and state.has_checked('Bishamon 1')
+        lambda state: state.has_terminal('Yurakucho Tunnel') and state.has_terminal('Asakusa') and state.has_checked('Bishamon 1') and state.has_all_magatamas()
     )
 
     # Check access rules
