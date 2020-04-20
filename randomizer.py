@@ -443,7 +443,8 @@ class Randomizer:
         'Red Rider (Boss)': [360],                  # Power
         'Black Rider (Boss)': [361],                # Legion
         'Pale Rider (Boss)': [358],                 # Loa
-        'Atropos 2 (Boss)': [326, 327]              # Clotho, Lachesis
+        'Atropos 2 (Boss)': [326, 327],             # Clotho, Lachesis
+        'Berith (Boss)': [313],                     # Succubus
     }
 
     # bosses that should always go first regardless of settings
@@ -463,6 +464,11 @@ class Randomizer:
             old_boss_demon = next((nocturne.lookup_demon(d) for d in old_boss.battle.enemies if d > 0), None)
             new_boss_demon = copy.copy(next((nocturne.lookup_demon(d) for d in new_boss.battle.enemies if d > 0), None))
 
+            if old_boss.name == "Berith":
+                old_boss_demon = nocturne.lookup_demon(312)
+            if new_boss.name == "Berith":
+                new_boss_demon = nocturne.lookup_demon(312)
+
             new_level = old_boss_demon.level
 
             new_hp = old_boss_demon.hp
@@ -474,14 +480,20 @@ class Randomizer:
             if old_boss is not new_boss:
                 if new_level < new_boss_demon.level:
                     new_level /= 2
-                # if the new boss is replacing the Sisters triple hp and mp 
-                if old_boss_demon.name == "Atropos 2 (Boss)":
+                # if the new boss is replacing the Sisters or Kaiwans triple hp and mp 
+                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)"]:
                     new_hp *= 3
-                    new_mp *= 3
-                # if the new boss is the Sisters divide the hp pool evenly between the 3
-                if new_boss_demon.name == "Atropos 2 (Boss)":
+                    new_exp *= 3
+                    new_macca *= 3
+                    if old_boss_demon.name in ["Kaiwan (Boss)", 'Berith (Boss)']:
+                        new_mp *= 3
+                # if the new boss is the Sisters or Kaiwans divide the hp pool evenly between the 3
+                if new_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)"]:
                     new_hp = round(new_hp / 3)
-                    new_mp = round(new_mp / 3)
+                    new_exp = round(new_exp / 3)
+                    new_macca = round(new_macca / 3)
+                    if new_boss_demon.name in ["Kaiwan (Boss)", 'Berith (Boss)']:
+                        new_mp = round(new_mp / 3)
                 # if the new boss is mara half it's HP with a cap of 4000
                 if new_boss_demon.name == "Mara (Boss)":
                     new_hp = round(new_hp / 2)
@@ -511,6 +523,9 @@ class Randomizer:
                 elif new_boss_demon.name == "Atropos 2 (Boss)":
                     new_hp = balanced_demon.hp
                     new_mp = balanced_demon.mp
+                elif new_boss_demon.name == "Berith (Boss)":
+                    new_hp = round(balanced_demon.hp * 0.3)
+                    new_mp = round(balanced_demon.mp * 0.3)
                 for d in extras:
                     d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=exp_mod, stat_mod=stat_mod)
                     boss_demons.append(d)
@@ -678,7 +693,7 @@ d   Double EXP gains.'''
             f.write(self.flags)
 
         export_text = '''Export formats:
-1   .ISO file
+1   ISO file
 2   HostFS folder *EXPERIEMENTAL*'''
         print(export_text)
         response = input("Please input which format you would like to export to:\n> ").strip()
@@ -688,7 +703,7 @@ d   Double EXP gains.'''
         elif response[:1] == '2':
             self.config_export_to_hostfs = True
         else:
-            print("Invalid input, defaulting to .ISO export")
+            print("Invalid input, defaulting to ISO file export")
             self.config_export_to_hostfs = False
 
         if 'p' in self.flags:

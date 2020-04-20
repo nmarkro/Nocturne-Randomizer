@@ -68,6 +68,8 @@ def create_areas(world):
 
     nihilo_e = world.add_area('Nihilo East')
     world.add_terminal(nihilo_e, 0x4E1)
+    world.add_check("Berith", nihilo_e, 2822386)
+    world.add_check("Kaiwan", nihilo_e, 2822424)
     world.add_check("Ose", nihilo_e, 2822462)
 
     ikebukuro_tunnel = world.add_area('Ikebukuro Tunnel')

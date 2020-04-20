@@ -166,6 +166,14 @@ def set_rules(world):
         lambda state: state.has_checked('Dante 1')
     )
     set_rule(
+        world.get_check('Kaiwan'),
+        lambda state: state.has_checked('Berith')
+    )
+    set_rule(
+        world.get_check('Ose'),
+        lambda state: state.has_checked('Kaiwan')
+    )
+    set_rule(
         world.get_check('Hell Biker'),
         lambda state: state.has_checked('Ose')
     )
@@ -290,6 +298,10 @@ def set_rules(world):
     )
     set_rule(
         world.get_boss('Beelzebub'),
+        lambda state: state.has_resistance('Death')
+    )
+    set_rule(
+        world.get_boss('Kaiwan'),
         lambda state: state.has_resistance('Death')
     )
     set_rule(
