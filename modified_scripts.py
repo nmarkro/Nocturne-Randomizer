@@ -120,10 +120,10 @@ class Script_Modifier:
         return ""
     def get_checks_boss_id(self, check_name, world):
         boss_of_check = world.checks[check_name].boss.name
-        if boss_of_check in custom_vals.BOSS_DEMON_ID_BY_NAME:
-            return custom_vals.BOSS_DEMON_ID_BY_NAME[boss_of_check]
         if boss_of_check in custom_vals.DEMON_ID_BY_NAME:
             return custom_vals.DEMON_ID_BY_NAME[boss_of_check]
+        if boss_of_check in custom_vals.BOSS_DEMON_ID_BY_NAME:
+            return custom_vals.BOSS_DEMON_ID_BY_NAME[boss_of_check]
         print("Error: In get_checks_boss_id(), ID of boss",boss_of_check,"was not found")
         return 1 #Vishnu
     def get_checks_boss_name(self, check_name, world):
