@@ -618,6 +618,9 @@ def write_all(rando, world):
     # remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
     if rando.config_fix_inheritance:
         apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'inherit.txt'))
+    # apply TGE's hostFS patch 
+    if rando.config_export_to_hostfs:
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'hostfs.txt'))
 
     # remove magatamas from shops since they are all tied to boss drops now
     remove_shop_magatamas(rom)

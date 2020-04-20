@@ -216,4 +216,24 @@ class DDS3FS(object):
         self.output_ddt.close()
         self.output_img.close()  
         self.output_ddt = None
-        self.output_img = None
+        self.output_img = None      
+
+    def export_entry(self, entry, output_path):
+        if entry.is_dir:
+            if not os.path.exists(output_path):
+                os.mkdir(output_path)
+
+            for child_entry in entry.children.values():
+                child_path = '/'.join([output_path, child_entry.name])
+                self.export_entry(child_entry, child_path)
+        else:
+            with open(output_path, 'wb') as f:
+                f.write(self.get_file_from_path(entry.path).read())
+
+    def export_dds3_to_folder(self, output_path, changes={}):
+        self.changes.update(changes)
+        for path in self.changes:
+            if not self.find_by_path(path):
+                self.add_new_file(path, self.changes[path])
+
+        self.export_entry(self.root, output_path)

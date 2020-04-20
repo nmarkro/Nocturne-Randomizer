@@ -42,6 +42,7 @@ class Randomizer:
         self.config_stock_healing = False               # Make AoE healing affect stock demons (like hardtype)
         self.config_remove_hardmode_prices = False      # Remove the 3x multiplier on hard mode shop prices 
         self.config_fix_inheritance = False             # Remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
+        self.config_export_to_hostfs = False            # Build to folder with HostFS patch instead of an .iso
 
     def init_iso_data(self):
         print ("parsing iso")
@@ -550,6 +551,52 @@ class Randomizer:
 
         return input_md5
 
+    def export_to_iso(self):
+        print("exporting modified dds3 fs")
+        self.dds3.export_dds3('out/DDS3.DDT', 'out/DDS3.IMG')
+
+        if TEST:
+            self.output_iso_path = 'out/output.iso'
+        else:
+            self.output_iso_path = 'out/nocturne_rando_{}.iso'.format(self.text_seed)
+        print("exporting randomized iso to {}".format(self.output_iso_path))
+        self.input_iso_file.add_new_file('SLUS_209.11;1', BytesIO(self.rom.buffer))
+        self.input_iso_file.rm_file('DUMMY.DAT;1')
+
+        with open('out/DDS3.DDT', 'rb') as ddt, open('out/DDS3.IMG', 'rb') as img:
+            self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
+
+        if not TEST:
+            print('cleaning up files')
+            os.remove('out/DDS3.DDT')
+            os.remove('out/DDS3.IMG')
+            os.remove('out/old_DDS3.DDT')
+            os.remove('out/old_DDS3.IMG')
+
+    def export_to_hostfs(self):
+        print("exporting modified dds3 fs")
+        self.dds3.export_dds3_to_folder('out/dds3data')
+
+        print("exporting MOVIE folder")
+        if not os.path.exists('out/dds3data/MOVIE'):
+            os.mkdir('out/dds3data/MOVIE')
+
+        for child in self.input_iso_file.find_by_path('MOVIE').children.values():
+            if child.name in ['.', '..']:
+                continue
+            with open('out/dds3data/MOVIE/' + child.name[:-2], 'wb') as f:
+                f.write(self.input_iso_file.get_file_from_path(child.file_path).read())
+                    
+        print("exporting binary")
+        with open('out/SLUS_209.11.ELF', 'wb') as f:
+            f.write(self.rom.buffer)
+        
+        if not TEST:
+            print('cleaning up files')
+            os.remove('out/old_DDS3.DDT')
+            os.remove('out/old_DDS3.IMG')
+
+        print('be sure to change "HostFs=disabled" to "HostFs=enabled" in your emulator\'s "inis/PCSX2_vm.ini" file')
 
     def run(self):
         print("SMT3 Nocturne Randomizer version {}\n".format(VERSION))
@@ -606,7 +653,7 @@ class Randomizer:
             print()
             if self.text_seed == "":
                 self.text_seed = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-                print('Your generated seed is: {}'.format(self.text_seed))
+                print('Your generated seed is: {}\n'.format(self.text_seed))
         self.full_seed = '{}-{}-{}'.format(VERSION, self.text_seed, self.flags)
         seed = int(hashlib.sha256(self.full_seed.encode('utf-8')).hexdigest(), 16)
         random.seed(seed)
@@ -629,6 +676,20 @@ d   Double EXP gains.'''
         with open('config.ini', 'w') as f:
             f.write(self.input_iso_path + "\n")
             f.write(self.flags)
+
+        export_text = '''Export formats:
+1   .ISO file
+2   HostFS folder *EXPERIEMENTAL*'''
+        print(export_text)
+        response = input("Please input which format you would like to export to:\n> ").strip()
+        print()
+        if response[:1] == '1':
+            self.config_export_to_hostfs = False
+        elif response[:1] == '2':
+            self.config_export_to_hostfs = True
+        else:
+            print("Invalid input, defaulting to .ISO export")
+            self.config_export_to_hostfs = False
 
         if 'p' in self.flags:
             self.config_magic_pierce = True
@@ -737,26 +798,10 @@ d   Double EXP gains.'''
             title_screen_lb_data.write(f.read())
         self.dds3.add_new_file('/title/titletex.LB', title_screen_lb_data)
 
-        print("exporting modified dds3 fs")
-        self.dds3.export_dds3('out/DDS3.DDT', 'out/DDS3.IMG')
-
-        if TEST:
-            self.output_iso_path = 'out/output.iso'
+        if self.config_export_to_hostfs:
+            self.export_to_hostfs()
         else:
-            self.output_iso_path = 'out/nocturne_rando_{}.iso'.format(self.text_seed)
-        print("exporting randomized iso to {}".format(self.output_iso_path))
-        self.input_iso_file.add_new_file('SLUS_209.11;1', BytesIO(self.rom.buffer))
-        self.input_iso_file.rm_file('DUMMY.DAT;1')
-
-        with open('out/DDS3.DDT', 'rb') as ddt, open('out/DDS3.IMG', 'rb') as img:
-            self.input_iso_file.export_iso(self.output_iso_path, {'DDS3.DDT;1': ddt, 'DDS3.IMG;1': img})
-
-        if not TEST:
-            print('cleaning up files')
-            os.remove('out/DDS3.DDT')
-            os.remove('out/DDS3.IMG')
-            # os.remove('out/old_DDS3.DDT')
-            # os.remove('out/old_DDS3.IMG')
+            self.export_to_iso()        
 
 if __name__ == '__main__':
     input_path = None
