@@ -665,6 +665,8 @@ DEMON_ID_BY_NAME = {
 LOCATION_NAMES_BY_CHECK = {
     "Forneus":"Shinjuku Medical Center",
     "Ose":"Assembly of Nihilo", 
+    "Berith":"Assembly of Nihilo", 
+    "Kaiwan":"Assembly of Nihilo", 
     "Girimehkala":"Yoyogi Park", 
     "Noah":"Tower of Kagutsuchi 2", 
     "Ahriman":"Tower of Kagutsuchi 1", 
