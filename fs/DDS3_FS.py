@@ -218,6 +218,17 @@ class DDS3FS(object):
         self.output_ddt = None
         self.output_img = None      
 
+    def check_diff(self, entry_data, input_path):
+        buff_size = 2**20
+        with open(input_path, 'rb') as f:
+            while True:
+                d1 = entry_data.read(buff_size)
+                d2 = f.read(buff_size)
+                if d1 != d2:
+                    return True
+                if not (d1 or d2):
+                    return False
+
     def export_entry(self, entry, output_path):
         if entry.is_dir:
             if not os.path.exists(output_path):
@@ -227,8 +238,16 @@ class DDS3FS(object):
                 child_path = '/'.join([output_path, child_entry.name])
                 self.export_entry(child_entry, child_path)
         else:
-            with open(output_path, 'wb') as f:
-                f.write(self.get_file_from_path(entry.path).read())
+            entry_data = self.get_file_from_path(entry.path)
+            if os.path.exists(output_path) and entry.path not in self.changes.keys():
+                if os.stat(output_path).st_size != entry_data.getbuffer().nbytes:
+                    if self.check_diff(entry_data, output_path):
+                        with open(output_path, 'wb') as f:
+                            entry_data.seek(0)
+                            f.write(entry_data.read())
+            else:
+                with open(output_path, 'wb') as f:
+                    f.write(entry_data.read())
 
     def export_dds3_to_folder(self, output_path, changes={}):
         self.changes.update(changes)

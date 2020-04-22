@@ -693,7 +693,7 @@ d   Double EXP gains.'''
             f.write(self.flags)
 
         export_text = '''Export formats:
-1   ISO file
+1   ISO file *Recommended for most users*
 2   HostFS folder *EXPERIEMENTAL*'''
         print(export_text)
         response = input("Please input which format you would like to export to:\n> ").strip()
