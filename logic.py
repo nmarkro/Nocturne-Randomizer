@@ -177,6 +177,8 @@ def create_world():
 
 def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
     random.shuffle(boss_pool)
+    # try to place the smc banned bosses first
+    boss_pool = sorted(boss_pool, key=lambda b: b.smc_banned)
     random.shuffle(check_pool)
     while boss_pool:
         if attempts < 0:
@@ -215,7 +217,7 @@ def randomize_world(world, logger, attempts=100):
         logger.info('Error generating world, returning None')
         return None
     
-    if os.path.exists('logs/spoiler.log'):
+    if os.path.exists('logs'):
         with open('logs/spoiler.log', 'w') as f:
             f.write('')
 
@@ -296,7 +298,7 @@ def randomize_world(world, logger, attempts=100):
             # re-collect the reward and add it to the beginning of the pool
             reward_pool.insert(0, r)
             state.get_reward(r)
-        reward_attempts -= 1
+            reward_attempts -= 1
 
     logger.info("")
     logger.info("========================================")
