@@ -221,12 +221,11 @@ def randomize_world(world, logger, attempts=100):
 
     state = world.state
     flag_pool = [f for f in world.get_flags() if not f.is_terminal]
-    check_pool = world.get_checks()
     magatama_pool = world.get_magatamas()
     boss_pool = world.get_bosses()
     # Remove banned bosses from randomized pool
     for boss_name in BANNED_BOSSES:
-        boss = next((b for b in boss_pool if b.name == boss_name), None)
+        boss = world.get_boss(boss_name)
         boss_pool.remove(boss)
         check = world.get_check(boss.name)
         check.boss = boss
@@ -234,7 +233,7 @@ def randomize_world(world, logger, attempts=100):
     # Do the initial randomization of bosses
     logger.info('Randomizing bosses')
     try:
-        randomize_bosses(boss_pool, check_pool, logger)
+        randomize_bosses(boss_pool, state.world.get_checks(), logger)
     except:
         logger.info('Error generating world, trying again')   
         logger.info("")
@@ -282,7 +281,9 @@ def randomize_world(world, logger, attempts=100):
         r = reward_pool.pop()
         state.remove_reward(r)
 
+        # create a test state with all unplaced rewards (excluding the current reward) that tries to collect all placed rewards
         test_state = collect_possible_rewards(copy.deepcopy(state))
+        # try to add the reward to any completed checks in our test state
         shuffled_checks = [c for c in state.world.get_checks() if test_state.has_checked(c.name)]
         random.shuffle(shuffled_checks)
         for c in shuffled_checks:
@@ -291,13 +292,18 @@ def randomize_world(world, logger, attempts=100):
                 logger.info('Adding {} to check {}'.format(r.name, c.name))
                 break
         else:
+            # couldn't find a place to put the reward
+            # re-collect the reward and add it to the beginning of the pool
             reward_pool.insert(0, r)
+            state.get_reward(r)
         reward_attempts -= 1
 
     logger.info("")
     logger.info("========================================")
     logger.info("")
 
+    # reset the state to the beginning and do a test playthrough to make sure it's completable
+    # also for generating a spoiler log
     state.init_checks()
     state.get_magatama('Marogareh')
     state.get_magatama(world.bonus_magatama.name)
@@ -317,6 +323,7 @@ def randomize_world(world, logger, attempts=100):
                     logger.info("Getting flag reward " + f.name)
                     state.get_reward(f)
 
+    logger.info('Finished generating world in {} attempt(s)'.format(101 - attempts))
     return world
 
 if __name__ == '__main__':
