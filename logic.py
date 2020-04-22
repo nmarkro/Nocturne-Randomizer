@@ -1,6 +1,7 @@
 import copy
 import random
 import logging
+import os
 
 import nocturne
 import rules
@@ -190,25 +191,36 @@ def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
         chosen_check = random.choice(candidates)
         boss.check = chosen_check
         chosen_check.boss = boss
-        # logger.info("Placing " + boss.name + " at check: " + chosen_check.name)
+        logger.info("Placing " + boss.name + " at check: " + chosen_check.name)
 
-# returns a reward that unlocks new checks
-# assumes with the current state there are no completeable checks
-def find_progressive_reward(state, check_pool, reward_pool):
-    for r in reward_pool:
-        state.get_reward(r)
-        completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state)]
-        can_progress = bool(completeable_checks)
-        if can_progress:
-            return r
-        else:
-            state.remove_reward(r)
-    return None
+def collect_possible_rewards(state, excluded_checks=[]):
+    checks = [c for c in state.world.get_checks() if c.name not in excluded_checks]
+    can_progress = True
+    while can_progress:
+        for a in state.world.get_areas():
+            if a.terminal_flag and a.can_reach(state):
+                state.get_terminal(a.name)
+        can_progress = [c for c in checks if c.can_beat(state)]
+        for c in can_progress:
+            state.check(c.name)
+            if c.boss.reward:
+                state.get_reward(c.boss.reward)
+            for f in c.flag_rewards:
+                state.get_reward(f)
+            checks.remove(c)
+    return state
 
 def randomize_world(world, logger, attempts=100):
+    if attempts <= 0:
+        logger.info('Error generating world, returning None')
+        return None
+    
+    if os.path.exists('logs/spoiler.log'):
+        with open('logs/spoiler.log', 'w') as f:
+            f.write('')
+
     state = world.state
-    area_pool = world.get_areas()
-    flag_pool = world.get_flags()
+    flag_pool = [f for f in world.get_flags() if not f.is_terminal]
     check_pool = world.get_checks()
     magatama_pool = world.get_magatamas()
     boss_pool = world.get_bosses()
@@ -224,8 +236,15 @@ def randomize_world(world, logger, attempts=100):
     try:
         randomize_bosses(boss_pool, check_pool, logger)
     except:
-        print('Error generating world, trying again')
-        return None
+        logger.info('Error generating world, trying again')   
+        logger.info("")
+        logger.info("========================================")
+        logger.info("")
+        return randomize_world(create_world(), logger, attempts - 1)
+
+    logger.info("")
+    logger.info("========================================")
+    logger.info("")
 
     # Remove the starting Magatama and Gaea (24 st magatama)
     state.get_magatama('Marogareh')
@@ -233,7 +252,6 @@ def randomize_world(world, logger, attempts=100):
     # magatama_pool.remove(world.get_magatama('Gaea'))
     magatama_pool.remove(world.get_magatama('Masakados'))
     # remove the fixed flags and terminal flags
-    flag_pool = [f for f in flag_pool if not f.is_terminal]
     flag_pool.remove(world.get_flag('Pyramidion'))
     flag_pool.remove(world.get_flag('Earthstone'))
     flag_pool.remove(world.get_flag('Netherstone'))
@@ -248,137 +266,62 @@ def randomize_world(world, logger, attempts=100):
     reward_pool = magatama_pool + flag_pool
     random.shuffle(reward_pool)
 
-    # keep track of bosses beaten for placing magatamas
-    bosses_progressed = []
-    while world.get_check('Kagutsuchi') in check_pool:
-        if attempts < 0:
-            print('Error generating world, trying again')
-            return None
+    # create a starting state where the player has every reward
+    for r in reward_pool:
+        state.get_reward(r)
 
-        # keep beating bosses and unlocking terminals until stuck
-        has_progressed = True
-        while has_progressed:
-            has_progressed = False
-            for area in area_pool:
-                # unlock terminals the player can reach
-                if area.terminal_flag:
-                    if area.can_reach(state) and not state.has_terminal(area.name):
-                        state.get_terminal(area.name)
-                        logger.info("Getting Terminal: " + area.terminal_flag.name)
-                        has_progressed = True
-            # beat bosses the player can reach and beat
-            for check in check_pool:
-                if check.can_reach(state) and check in check_pool:
-                    if check.boss.can_beat(state):
-                        state.check(check.name)
-                        check_pool.remove(check)
-                        logger.info("Beating " + check.boss.name + " at check: " + check.name)
-                        if check.boss.reward:
-                            state.get_reward(check.boss.reward)
-                            logger.info("Getting reward: " + check.boss.reward.name)
-                        for f in check.flag_rewards:
-                            state.get_reward(f)
-                            logger.info("Getting Flag: " + f.name)
-                        has_progressed = True
-                        bosses_progressed.append(check.boss)
-        # check for game completion 
-        if world.get_check('Kagutsuchi') not in check_pool:
-            break
-        logger.info("Can no longer progress\n")
-
-        '''
-        # didn't beat any bosses this passthrough, rerandomize unchecked bosses and try again
-        if not bosses_progressed:
-            logger.info("Re-randomizing unchecked bosses\n")
-            new_boss_pool = []
-            for check in check_pool:
-                if check.boss.name not in BANNED_BOSSES:
-                    new_boss_pool.append(check.boss)
-                    check.boss = None
-            try:
-                randomize_bosses(new_boss_pool, check_pool, logger)
-            except:
-                print('Error generating world, trying again')
-                return None
-            attempts -= 1
-            continue'''
-        
-        # try to assign rewards that unlock progression 
-        can_progress = False
-        shuffled_bosses = copy.copy([b for b in bosses_progressed if b.check.area.name != 'ToK'])
-        random.shuffle(shuffled_bosses)
-        chosen_reward = find_progressive_reward(state, check_pool, reward_pool)
-        if chosen_reward == None or not bosses_progressed:
-            logger.info("Re-randomizing unchecked bosses\n")
-            new_boss_pool = []
-            for check in check_pool:
-                if check.boss.name not in BANNED_BOSSES:
-                    new_boss_pool.append(check.boss)
-                    check.boss = None
-            try:
-                randomize_bosses(new_boss_pool, check_pool, logger)
-            except:
-                print('Error generating world, trying again')
-                return None
-            attempts -= 1
-            continue
-
-        chosen_boss = None
-        # try to give the chosen reward to a boss with no magatama or flag reward 
-        no_reward_boss_pool = [b for b in shuffled_bosses if b.reward == None and b.check.flag_rewards == []]
-        if no_reward_boss_pool != []:
-            chosen_boss = random.choice(no_reward_boss_pool)
-        else:
-            for b in shuffled_bosses:
-                if b.can_add_reward(chosen_reward):
-                    chosen_boss = b
-                    break
-            else:
-                print('Error generating world, trying again')
-                return None
-        logger.info("Adding " + chosen_reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name + "\n")
-        chosen_boss.add_reward(chosen_reward)
-        reward_pool.remove(chosen_reward)
-
-    logger.info("Placing unused rewards")
-    # reverse to add rewards to bosses from the beginning of the game
-    bosses_progressed.reverse()
+    reward_attempts = 100
     while reward_pool:
-        reward = reward_pool.pop()
-        chosen_boss = None
-        # try to give the chosen reward to a boss with no magatama or flag reward 
-        no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
-        if no_reward_boss_pool != []:
-            chosen_boss = no_reward_boss_pool.pop()
-        else:
-            for b in bosses_progressed:
-                if b.check.area.name != 'ToK' and b.can_add_reward(reward):
-                    chosen_boss = b
-                    break
-            else:
-                print('Error generating world, trying again')
-                return None
-        logger.info("Adding " + reward.name + " to boss " + chosen_boss.name + " at check " + chosen_boss.check.name)
-        chosen_boss.add_reward(reward)
+        if reward_attempts <= 0:
+            logger.info('Error generating world, trying again')
+            logger.info("")
+            logger.info("========================================")
+            logger.info("")
+            return randomize_world(create_world(), logger, attempts - 1)
+        # remove rewards one-by-one and attempt to place them in a check that the player can beat without the reward
+        r = reward_pool.pop()
+        state.remove_reward(r)
 
-    logger.info("Complete spoiler:")
-    for check in world.get_checks():
-        boss = check.boss
-        if boss.reward:
-            logger.info("Boss " + boss.name + " is at check " + check.name + " with reward " + boss.reward.name)
+        test_state = collect_possible_rewards(copy.deepcopy(state))
+        shuffled_checks = [c for c in state.world.get_checks() if test_state.has_checked(c.name)]
+        random.shuffle(shuffled_checks)
+        for c in shuffled_checks:
+            if c.boss.can_add_reward(r):
+                c.boss.add_reward(r)
+                logger.info('Adding {} to check {}'.format(r.name, c.name))
+                break
         else:
-            logger.info("Boss " + boss.name + " is at check " + check.name)
-        for f in check.flag_rewards:
-            logger.info("Check " + check.name + " gives " + f.name)
+            reward_pool.insert(0, r)
+        reward_attempts -= 1
+
+    logger.info("")
+    logger.info("========================================")
+    logger.info("")
+
+    state.init_checks()
+    state.get_magatama('Marogareh')
+    state.get_magatama(world.bonus_magatama.name)
+
+    while not state.has_checked('Kagutsuchi'):
+        for a in state.world.get_areas():
+            if a.terminal_flag and a.can_reach(state):
+                state.get_terminal(a.name)
+        for c in [c for c in state.world.get_checks() if not state.has_checked(c.name)]:
+            if c.can_beat(state):
+                state.check(c.name)
+                logger.info("Beating boss {} at check {}".format(c.boss.name, c.name))
+                if c.boss.reward:
+                    logger.info("Getting reward " + c.boss.reward.name)
+                    state.get_reward(c.boss.reward)
+                for f in c.flag_rewards:
+                    logger.info("Getting flag reward " + f.name)
+                    state.get_reward(f)
+
     return world
 
 if __name__ == '__main__':
     logger = logging.getLogger('')
-    with open('logs/spoiler.log', 'w') as f:
-        f.write('')
     logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
 
-    world = None
-    while world == None:
-        world = create_world()
-        world = randomize_world(world, logger)
+    world = create_world()
+    world = randomize_world(world, logger)

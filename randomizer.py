@@ -748,8 +748,6 @@ d   Double EXP gains.'''
         logger = logging.getLogger('')
         if self.config_make_logs:
             logging.basicConfig(filename='logs/spoiler.log', level=logging.INFO)
-            with open('logs/spoiler.log', 'w') as f:
-                f.write("")
 
         print('initializing data')
         nocturne.load_all(self.rom)
@@ -759,10 +757,11 @@ d   Double EXP gains.'''
         print('creating logical progression')
         # generate a world and come up with a logical boss and boss magatama drop progression
         # logic can sometimes get stuck shuffling bosses so keep generating until you get a valid world
-        world = None
-        while world is None:
-            world = logic.create_world()
-            world = logic.randomize_world(world, logger)
+        world = logic.create_world()
+        world = logic.randomize_world(world, logger)
+        if world == None:
+            print("Something went wrong during world generation, try running again")
+            return
 
         # adjust the level of the bonus magatama
         nocturne.all_magatamas[world.bonus_magatama.name].level = 4

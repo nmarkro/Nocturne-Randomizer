@@ -126,6 +126,9 @@ class Check(object):
         self.flag_rewards = []
         self.area.checks.append(self)
 
+    def can_beat(self, state):
+        return self.can_reach(state) and self.boss.can_beat(state)
+
     def can_reach(self, state):
         return self.rule(state) and self.area.can_reach(state)
 
@@ -148,6 +151,8 @@ class Boss(object):
         return self.rule(state)
 
     def can_add_reward(self, reward):
+        if self.check.area.name == "ToK":
+            return False
         if isinstance(reward, Magatama) and self.reward != None:
             return False
         elif isinstance(reward, Flag) and self.check.flag_rewards != []:
