@@ -85,7 +85,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Bandou Shrine'),
-        lambda state: state.has_terminal('Yurakucho Tunnel') and state.has_terminal('Asakusa') and state.has_checked('Bishamon 1')
+        lambda state: state.has_terminal('Yurakucho Tunnel') and state.has_terminal('Asakusa') and state.has_checked('Bishamon 1') and state.has_all_magatamas()
     )
 
     # Check access rules
@@ -164,6 +164,14 @@ def set_rules(world):
     set_rule(
         world.get_check('Daisoujou'),
         lambda state: state.has_checked('Dante 1')
+    )
+    set_rule(
+        world.get_check('Kaiwan'),
+        lambda state: state.has_checked('Berith')
+    )
+    set_rule(
+        world.get_check('Ose'),
+        lambda state: state.has_checked('Kaiwan')
     )
     set_rule(
         world.get_check('Hell Biker'),
@@ -290,6 +298,10 @@ def set_rules(world):
     )
     set_rule(
         world.get_boss('Beelzebub'),
+        lambda state: state.has_resistance('Death')
+    )
+    set_rule(
+        world.get_boss('Kaiwan'),
         lambda state: state.has_resistance('Death')
     )
     set_rule(

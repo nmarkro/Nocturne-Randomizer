@@ -68,6 +68,8 @@ def create_areas(world):
 
     nihilo_e = world.add_area('Nihilo East')
     world.add_terminal(nihilo_e, 0x4E1)
+    world.add_check("Berith", nihilo_e, 2822386)
+    world.add_check("Kaiwan", nihilo_e, 2822424)
     world.add_check("Ose", nihilo_e, 2822462)
 
     ikebukuro_tunnel = world.add_area('Ikebukuro Tunnel')
@@ -228,7 +230,7 @@ def randomize_world(world, logger, attempts=100):
     # Remove the starting Magatama and Gaea (24 st magatama)
     state.get_magatama('Marogareh')
     magatama_pool.remove(world.get_magatama('Marogareh'))
-    magatama_pool.remove(world.get_magatama('Gaea'))
+    # magatama_pool.remove(world.get_magatama('Gaea'))
     magatama_pool.remove(world.get_magatama('Masakados'))
     # remove the fixed flags and terminal flags
     flag_pool = [f for f in flag_pool if not f.is_terminal]

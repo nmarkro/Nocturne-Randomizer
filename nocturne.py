@@ -360,13 +360,52 @@ def write_battles(rom, new_battles, preserve_boss_arenas=False):
         rom.write_halfword(r, offset + 0x02)
     '''
 
-def patch_fix_tutorials(rom):
-    # replaces the 1x preta and 2x sudamas tutorial fights with the unmodified, scipted will o' wisp demons
+def patch_fix_tutorials(rom, tutorial_ais, dds3):
+    # currently demon specific sounds effects don't work for the copied demons
+    # copy preta to 0x16a
+    tut_preta = copy.deepcopy(all_demons[0x83])
+    tut_preta.ai_offset = 0x002999E0 + (0x16A * 0xA4)
+    tut_preta.offset = (0x0024A7F0 + (0x16A * 0x3C)) - 0x3C
+    tut_preta.is_boss = True
+    all_demons[0x16A] = tut_preta
+    write_demon(rom, tut_preta, tut_preta.offset)
+    rom.write(tutorial_ais[0], tut_preta.ai_offset)
+    # write name offset to name table
+    rom.write_word(0x00550248, 0x002E88D0)
+    
+    # copy kodama to 0x16b
+    tut_kodama = copy.deepcopy(all_demons[0x5C])
+    tut_kodama.ai_offset = 0x002999E0 + (0x16B * 0xA4)
+    tut_kodama.offset = (0x0024A7F0 + (0x16B * 0x3C)) - 0x3C
+    tut_kodama.is_boss = True
+    all_demons[0x16B] = tut_kodama
+    write_demon(rom, tut_kodama, tut_kodama.offset)
+    rom.write(tutorial_ais[1], tut_kodama.ai_offset)
+    # write name offset to name table
+    rom.write_word(0x00550328, 0x002E88D4)
+
+    # copy will o' wisp to 0x16c
+    tut_willy = copy.deepcopy(all_demons[0x89])
+    tut_willy.ai_offset = 0x002999E0 + (0x16C * 0xA4)
+    tut_willy.offset = (0x0024A7F0 + (0x16C * 0x3C)) - 0x3C
+    tut_willy.is_boss = True
+    all_demons[0x16C] = tut_willy
+    write_demon(rom, tut_willy, tut_willy.offset)
+    rom.write(tutorial_ais[2], tut_willy.ai_offset)
+    # write name offset to name table
+    rom.write_word(0x00540308, 0x002E88D8)
+
     tutorial_2_offset = 0x002BBBF8
     tutorial_3_offset = 0x002BBC1E
+    tutorial_4_offset = 0x002BBC44
 
-    rom.write(struct.pack('<H', 0x13E), tutorial_2_offset)
-    rom.write(struct.pack('<HH', 0x13E, 0x13E), tutorial_3_offset)
+    rom.write(struct.pack('<H', 0x16A), tutorial_2_offset)
+    rom.write(struct.pack('<HH', 0x16B, 0x16B), tutorial_3_offset)
+    rom.write(struct.pack('<HH', 0x16B, 0x16C), tutorial_4_offset)
+
+    dds3.add_new_file('/npackl/BU16A.LB', dds3.get_file_from_path('/npackl/BU083.LB'))
+    dds3.add_new_file('/npackl/BU16B.LB', dds3.get_file_from_path('/npackl/BU05C.LB'))
+    dds3.add_new_file('/npackl/BU16C.LB', dds3.get_file_from_path('/npackl/BU089.LB'))
 
 def patch_early_spyglass(rom):
     # change the 3x preta fight's reward to spyglass
@@ -548,6 +587,14 @@ def load_all(rom):
 
 def write_all(rando, world):
     rom = rando.rom
+
+    # save the AI of the vanilla tutorial demons before writing the randomized demons
+    tutorial_ais = [
+        rom.read(0xA4, all_demons[0x83].ai_offset),
+        rom.read(0xA4, all_demons[0x5C].ai_offset),
+        rom.read(0xA4, all_demons[0x89].ai_offset)
+    ]
+
     write_demons(rom, world.demons.values())
     write_magatamas(rom, world.magatamas.values())
     write_battles(rom, world.battles.values())
@@ -571,6 +618,9 @@ def write_all(rando, world):
     # remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
     if rando.config_fix_inheritance:
         apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'inherit.txt'))
+    # apply TGE's hostFS patch 
+    if rando.config_export_to_hostfs:
+        apply_asm_patch(rom, os.path.join(PATCHES_PATH, 'hostfs.txt'))
 
     # remove magatamas from shops since they are all tied to boss drops now
     remove_shop_magatamas(rom)
@@ -581,8 +631,8 @@ def write_all(rando, world):
     # swap tyrant to vile for pale rider, the harlot, & trumpeter fusion
     rom.write_byte(0x12, 0x22EDE3)
         
-    # make the tutorial fights all will o' wisps
-    patch_fix_tutorials(rom)
+    # fix tutorial fights
+    patch_fix_tutorials(rom, tutorial_ais, rando.dds3)
     # add the spyglass to 3x preta fight and reduce it's selling price
     patch_early_spyglass(rom)
 

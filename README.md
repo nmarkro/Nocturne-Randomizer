@@ -27,8 +27,17 @@ Windows users can download the latest from https://github.com/nmarkro/Nocturne-R
 
 Unzip and run nocturne_rando.exe
 
+Using PCSX2 v1.5.0 or higher is recommended (download from https://pcsx2.net/download/development/dev-windows.html)
+
 ### Running the randomizer from source
 
 Install python 3 at https://python.org
 
 Run with: python3 randomizer.py
+
+### Using the HostFS export format
+Run nocturne_rando.exe (or from source) and follow the prompts to export to HostFS
+
+Navigate to your PCSX2's "inis" folder and change the line "HostFs=disabled" to "HostFs=enabled" in "PCSX2_vm.ini"
+
+Select your base, unmodified Nocturne ISO in PCSX2 and use "System -> Run ELF" and select "out/SLUS_209.11.ELF" from the randomizer's folder to boot your randomized version of Nocturne 

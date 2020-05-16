@@ -301,3 +301,6 @@ class Progression(object):
 
     def can_warp(self):
         return self.has_checked('Specter 1')
+
+    def has_all_magatamas(self):
+        return all([m for i, m in self.magatamas.items() if i != 'Masakados'])
