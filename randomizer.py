@@ -638,7 +638,7 @@ class Randomizer:
 
 
         if self.input_iso_path == None:
-            self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip()
+            self.input_iso_path = input("Please input the path to your SMT3 Nocturne ISO file:\n> ").strip().replace('"', '').replace("'", "")
             print()
 
         if os.path.isdir(self.input_iso_path):
