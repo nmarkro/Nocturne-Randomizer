@@ -164,8 +164,8 @@ class Randomizer:
                 # still keep special skills (boss/demon specific) separate
                 if skill_id < 100:
                     skill_id = 1
-            # treak attack/passive/recruitment skills differently 
-            skill_id += skill.skill_type * 1000
+                # treak attack/passive/recruitment skills differently 
+                skill_id += skill.skill_type * 1000
             # keep ignored skills separate
             if skill.ind in ignored_skills:
                 skill_id = skill.ind
@@ -656,7 +656,7 @@ class Randomizer:
                 return
             print("Found valid ISO: {}\n".format(self.input_iso_path))
         else:
-            if not self.input_iso_path.endswith('.iso'):
+            if not self.input_iso_path.lower().endswith('.iso'):
                 self.input_iso_path += '.iso'
 
         if not os.path.exists(self.input_iso_path):
