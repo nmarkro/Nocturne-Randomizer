@@ -155,7 +155,7 @@ class Randomizer:
         return demon_map
 
 
-    def generate_skill_permutation(self, balance_by_rank = True, ignored_skills=[]):# keep_pierce = False):
+    def generate_skill_permutation(self, balance_by_rank = True, ignored_skills=[]):
         skill_sets = defaultdict(list)
         # separare skills by rank
         for skill in nocturne.all_skills.values():
@@ -164,8 +164,8 @@ class Randomizer:
                 # still keep special skills (boss/demon specific) separate
                 if skill_id < 100:
                     skill_id = 1
-            # treak attack/passive/recruitment skills differently 
-            skill_id += skill.skill_type * 1000
+                # treak attack/passive/recruitment skills differently 
+                skill_id += skill.skill_type * 1000
             # keep ignored skills separate
             if skill.ind in ignored_skills:
                 skill_id = skill.ind

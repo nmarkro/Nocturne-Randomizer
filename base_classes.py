@@ -151,7 +151,7 @@ class Boss(object):
         return self.rule(state)
 
     def can_add_reward(self, reward):
-        if self.check.area.name == "ToK":
+        if self.check.area.name in ["ToK", "Bandou Shrine"]:
             return False
         if isinstance(reward, Magatama) and self.reward != None:
             return False

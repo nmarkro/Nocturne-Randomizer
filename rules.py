@@ -32,15 +32,16 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Ikebukuro Tunnel'), 
-        lambda state: state.has_checked('Ose')
+        # lambda state: state.has_checked('Ose')
+        lambda state: state.has_flag('Ikebukuro Tunnel Key') and state.has_terminal('Ikebukuro')
     )
     set_rule(
         world.get_area('Kabukicho Prison'), 
-        lambda state: state.has_terminal('Ikebukuro Tunnel')
+        lambda state: state.has_terminal('Ikebukuro')
     )
     set_rule(
         world.get_area('Asakusa'), 
-        lambda state: state.has_checked('Mizuchi')
+        lambda state: state.has_terminal('Ikebukuro Tunnel')
     )
     set_rule(
         world.get_area('Obelisk'), 
@@ -56,7 +57,8 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Amala Network 3'),
-        lambda state: state.has_checked('Girimehkala') and state.has_checked('Specter 2')
+        # lambda state: state.has_checked('Girimehkala') and state.has_checked('Specter 2')
+        lambda state: state.has_flag('Amala Network 3 Key') and state.has_checked('Specter 2') and state.has_terminal('Asakusa')
     )
     set_rule(
         world.get_area('Amala Temple'),
@@ -68,7 +70,8 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Yurakucho Tunnel'),
-        lambda state: state.has_checked('Futomimi')
+        # lambda state: state.has_checked('Futomimi')
+        lambda state: state.has_flag('Yurakucho Tunnel Key') and state.has_terminal('Ginza')
     )
     set_rule(
         world.get_area('Diet Building'),
@@ -103,7 +106,8 @@ def set_rules(world):
     )
     set_rule(
         world.get_check('Kagutsuchi'),
-        lambda state: state.has_checked('Baal Avatar')
+        # lambda state: state.has_checked('Baal Avatar')
+        lambda state: state.has_flag('Earthstone') and state.has_flag('Netherstone') and state.has_flag('Heavenstone')
     )
     set_rule(
         world.get_check('Lucifer'),
@@ -330,6 +334,7 @@ def set_rules(world):
     )
 
     # Make sure Resist/Null/Absorb/Repel Phys bosses aren't in SMC
+    # currently this also affects the Black Rider check
     set_boss_rule(
         world.get_area('SMC'),
         lambda boss: not boss.smc_banned

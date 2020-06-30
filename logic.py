@@ -79,6 +79,7 @@ def create_areas(world):
     world.add_check("Sui-Ki", ikebukuro_tunnel, 2825502)
     world.add_check("Fuu-Ki", ikebukuro_tunnel, 2825540)
     world.add_check("Ongyo-Ki", ikebukuro_tunnel, 2825578)
+    world.add_flag('Ikebukuro Tunnel Key', 0x3F4)
 
     kabukicho_prison = world.add_area('Kabukicho Prison')
     world.add_terminal(kabukicho_prison, 0x581)
@@ -107,6 +108,7 @@ def create_areas(world):
 
     amala_network_3 = world.add_area('Amala Network 3') 
     world.add_check('Specter 3', amala_network_3, 2828162)
+    world.add_flag('Amala Network 3 Key', 0x3F5)
 
     amala_temple = world.add_area('Amala Temple')
     world.add_terminal(amala_temple, 0x6A1)
@@ -124,6 +126,7 @@ def create_areas(world):
     yurakucho_tunnel = world.add_area('Yurakucho Tunnel')
     world.add_terminal(yurakucho_tunnel, 0x501)
     world.add_check("Trumpeter", yurakucho_tunnel, 2857232)
+    world.add_flag('Yurakucho Tunnel Key', 0x3F6)
 
     diet_building = world.add_area('Diet Building')
     world.add_terminal( diet_building, 0x681)
@@ -151,7 +154,7 @@ def create_areas(world):
     earthstone = world.add_flag('Earthstone', None)
     netherstone = world.add_flag('Netherstone', None)
     heavenstone = world.add_flag('Heavenstone', None)
-    world.get_check('Samael').flag_rewards = [pyramidion]
+    # world.get_check('Samael').flag_rewards = [pyramidion]
     world.get_check('Ahriman').flag_rewards = [earthstone]
     world.get_check('Noah').flag_rewards = [netherstone]
     world.get_check('Baal Avatar').flag_rewards = [heavenstone]
@@ -247,13 +250,12 @@ def randomize_world(world, logger, attempts=100):
     logger.info("========================================")
     logger.info("")
 
-    # Remove the starting Magatama and Gaea (24 st magatama)
+    # Remove the starting Magatama and Masakados
     state.get_magatama('Marogareh')
     magatama_pool.remove(world.get_magatama('Marogareh'))
-    # magatama_pool.remove(world.get_magatama('Gaea'))
     magatama_pool.remove(world.get_magatama('Masakados'))
     # remove the fixed flags and terminal flags
-    flag_pool.remove(world.get_flag('Pyramidion'))
+    # flag_pool.remove(world.get_flag('Pyramidion'))
     flag_pool.remove(world.get_flag('Earthstone'))
     flag_pool.remove(world.get_flag('Netherstone'))
     flag_pool.remove(world.get_flag('Heavenstone'))
@@ -263,7 +265,7 @@ def randomize_world(world, logger, attempts=100):
     world.bonus_magatama = magatama_pool.pop()
     state.get_magatama(world.bonus_magatama.name)
     logger.info('Bonus Magatama: {}'.format(world.bonus_magatama.name))
-
+    
     reward_pool = magatama_pool + flag_pool
     random.shuffle(reward_pool)
 
@@ -310,20 +312,68 @@ def randomize_world(world, logger, attempts=100):
     state.get_magatama('Marogareh')
     state.get_magatama(world.bonus_magatama.name)
 
+    checks = state.world.get_checks()
+    required_checks = []
+
     while not state.has_checked('Kagutsuchi'):
         for a in state.world.get_areas():
             if a.terminal_flag and a.can_reach(state):
                 state.get_terminal(a.name)
-        for c in [c for c in state.world.get_checks() if not state.has_checked(c.name)]:
+        for c in checks:
             if c.can_beat(state):
                 state.check(c.name)
-                logger.info("Beating boss {} at check {}".format(c.boss.name, c.name))
+                # logger.info("Beating boss {} at check {}".format(c.boss.name, c.name))
                 if c.boss.reward:
-                    logger.info("Getting reward " + c.boss.reward.name)
+                    # logger.info("Getting reward " + c.boss.reward.name)
                     state.get_reward(c.boss.reward)
                 for f in c.flag_rewards:
-                    logger.info("Getting flag reward " + f.name)
+                    # logger.info("Getting flag reward " + f.name)
                     state.get_reward(f)
+                checks.remove(c)
+                required_checks.append(c)
+
+    state.init_checks()
+    state.get_magatama('Marogareh')
+    state.get_magatama(world.bonus_magatama.name)
+
+    for c in reversed(required_checks):
+        old_reward = c.boss.reward
+        old_flag_reward = c.flag_rewards
+
+        c.boss.reward = None
+        c.flag_rewards = []
+        test_state = collect_possible_rewards(copy.deepcopy(state), [c.name])
+        if test_state.has_checked('Kagutsuchi'):
+            required_checks.remove(c)
+        else:
+            c.boss.reward = old_reward
+            c.flag_rewards = old_flag_reward
+
+    print([c.name for c in required_checks])
+
+    playthrough = []
+    while required_checks:
+        for a in state.world.get_areas():
+            if a.terminal_flag and a.can_reach(state):
+                state.get_terminal(a.name)
+        passthrough = [c for c in required_checks if c.can_beat(state)]
+        for c in passthrough:
+            state.check(c.name)
+            if c.boss.reward:
+                state.get_reward(c.boss.reward)
+            for f in c.flag_rewards:
+                state.get_reward(f)
+            required_checks.remove(c)
+        playthrough.append(passthrough)
+
+    for i, p in enumerate(playthrough):
+        logger.info("Step {}:".format(i + 1))
+        for c in p:
+            logger.info("Beating boss {} at check {}".format(c.boss.name, c.name))
+            if c.boss.reward:
+                logger.info("Getting reward " + c.boss.reward.name)
+            for f in c.flag_rewards:
+                logger.info("Getting flag reward " + f.name)
 
     logger.info('Finished generating world in {} attempt(s)'.format(101 - attempts))
     return world
