@@ -162,7 +162,7 @@ class Randomizer:
             skill_id = skill.rank
             if not balance_by_rank:
                 # still keep special skills (boss/demon specific) separate
-                if skill_id < 100:
+                if skill_id < 100: 
                     skill_id = 1
                 # treak attack/passive/recruitment skills differently 
                 skill_id += skill.skill_type * 1000
@@ -208,7 +208,7 @@ class Randomizer:
         return new_stats
 
     # ban victory cry and son's oath from showing up
-    BANNED_SKILLS = [0x15C, 0x169]
+    BANNED_SKILLS = [0x15C, 0x169, 0x165]
 
     def randomize_skills(self, new_demon, force_skills=None):
         new_skills = []
@@ -226,6 +226,7 @@ class Randomizer:
         unique_pool = [s for s in skill_pool if s.rank >= 100]
         # remove unique skills from skill pool
         skill_pool = [s for s in skill_pool if s not in unique_pool]
+        skill_pool.append(nocturne.lookup_skill(0x165)) #pierce becomes a normal skill
         random.shuffle(skill_pool)
         random.shuffle(unique_pool)
 
@@ -237,6 +238,8 @@ class Randomizer:
                 continue
             if s.rank >= 100:
                 num_of_unique += 1
+        if num_of_unique == 0 and random.randrange(10) == 0: #Demons have a small chance to gain a unique skill
+            num_of_unique += 1
         # add any forced skills first
         if force_skills:
             for s in force_skills:
@@ -323,6 +326,39 @@ class Randomizer:
 
         return new_demon
 
+    #Make the new boss have the exact stats of the old boss
+    def rebalance_demon_stat_copy(self, old_demon, new_level, new_hp=-1, new_mp=-1, new_exp=-1, new_macca=-1, exp_mod=1, stats=[1, 1, 1, 1, 1]):
+        new_demon = copy.copy(old_demon)
+        level_mod = new_level / old_demon.level
+        new_demon.level = int(new_level)
+        new_demon.stats = stats
+        if new_hp > 0:
+            new_demon.hp = new_hp
+        else:
+            # generate hp based on level and vitality stat if they aren't supplied
+            new_demon.hp = (6*new_demon.level) + (6*new_demon.stats[2])
+        new_demon.hp = min(int(new_demon.hp), 0xFFFF)
+        if new_mp > 0:
+            new_demon.mp = new_mp
+        else:
+            # generate mp based on level and magic stat if they aren't supplied
+            new_demon.mp = (3*new_demon.level) + (3*new_demon.stats[1])
+        new_demon.mp = min(int(new_demon.mp), 0xFFFF)
+        if new_exp > 0:
+            exp = new_exp * exp_mod
+        else:
+            # this gives horrible values if the level difference is extreme
+            exp = round(old_demon.exp_drop * exp_mod * level_mod)
+        new_demon.exp_drop = int(min(exp, 0xFFFF))
+        if new_macca > 0:
+            macca = new_macca
+        else:
+            # this gives horrible values if the level difference is extreme
+            macca = round(old_demon.macca_drop * level_mod)
+        new_demon.macca_drop = int(min(macca, 0xFFFF))
+
+        return new_demon
+
 
     def randomize_demons(self, demon_map, generated_demons, exp_mod=1):
         new_demons = []
@@ -388,8 +424,8 @@ class Randomizer:
 
     def randomize_magatamas(self):
         new_magatamas = []
-        # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort, Victory Cry, Son's Oath, Pierce
-        ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152, 348, 361, 357]
+        # remove Watchful, Anti-Expel, Anti-Death, Beckon Call, Estoma, Riberama, Lightoma, Liftoma, Sacrifice, Kamikaze, Last Resort, Victory Cry, Son's Oath, Pierce, Recarmdra
+        ignored_skills = [354, 318, 319, 223, 73, 74, 75, 76, 115, 116, 152, 348, 361, 357, 51]
         # make one skill_map for all magatamas to prevent duplicate skills
         skill_map = self.generate_skill_permutation(False, ignored_skills)
         for old_magatama in nocturne.all_magatamas.values():
@@ -445,10 +481,16 @@ class Randomizer:
         'Pale Rider (Boss)': [358],                 # Loa
         'Atropos 2 (Boss)': [326, 327],             # Clotho, Lachesis
         'Berith (Boss)': [313],                     # Succubus
+        'Noah 1st Form (Boss)': [259],              # Noah 2nd Form
+        'Kagutsuchi 1st Form (Boss)': [264],        # Kagutsuchi 2nd Form
+        'Baal Avatar (Boss)': [289, 290],           # Hallel Flauros, Hallel Ose
+        'Specter 1 (Boss)': [294, 295, 296],        # All fused specters
+        'Ahriman 1st Form (Boss)': [258],           # Ahriman 2nd Form
+        'Raphael (Boss)': [284, 286],               # Gabriel, Uriel
     }
 
     # bosses that should always go first regardless of settings
-    always_goes_first = ['Specter 1 (Boss)', 'Matador (Boss)', 'White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)', 'Albion (Boss)', 'Trumpeter (Boss)']
+    always_goes_first = ['Specter 1 (Boss)', 'Specter 2 (Boss)', 'Specter 3 (Boss)', 'Ongyo-Ki (Boss)','Matador (Boss)', 'White Rider (Boss)', 'Red Rider (Boss)', 'Black Rider (Boss)', 'Pale Rider (Boss)', 'Albion (Boss)', 'Trumpeter (Boss)', 'Mizuchi (Boss)', 'Ahriman 1st Form (Boss)']
 
     def randomize_boss_battles(self, world):
         boss_demons = []
@@ -480,27 +522,47 @@ class Randomizer:
             if old_boss is not new_boss:
                 if new_level < new_boss_demon.level:
                     new_level /= 2
-                # if the new boss is replacing the Sisters or Kaiwans triple hp and mp 
-                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)"]:
+                # if the new boss is replacing the Sisters or Kaiwans triple hp and mp. Also Ahriman and Noah, and Archangels
+                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)", "Ahriman 1st Form (Boss)", "Noah 1st Form (Boss)", "Raphael (Boss)"]:
                     new_hp *= 3
                     new_exp *= 3
                     new_macca *= 3
                     if old_boss_demon.name in ["Kaiwan (Boss)", 'Berith (Boss)']:
                         new_mp *= 3
+                # if the new boss is replacing a Specter, do 6 times hp and mp 
+                if old_boss_demon.name in ["Specter 1 (Boss)", "Specter 2 (Boss)", "Specter 3 (Boss)"]:
+                    new_hp *= 6
+                    new_exp *= 6
+                    new_macca *= 6
+                    new_mp *= 6
+                    #if old_boss_demon.name == "Specter 2 (Boss)":
+                    #    new_mp *= 10
                 # if the new boss is the Sisters or Kaiwans divide the hp pool evenly between the 3
-                if new_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)"]:
+                if new_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)", "Raphael (Boss)"]:
                     new_hp = round(new_hp / 3)
                     new_exp = round(new_exp / 3)
                     new_macca = round(new_macca / 3)
                     if new_boss_demon.name in ["Kaiwan (Boss)", 'Berith (Boss)']:
                         new_mp = round(new_mp / 3)
+                # if the new boss is a Specter, divide hp and mp by 6
+                if new_boss_demon.name in ["Specter 1 (Boss)", "Specter 2 (Boss)", "Specter 3 (Boss)"]:
+                    new_hp = round(new_hp / 6)
+                    new_exp = round(new_exp / 6)
+                    new_macca = round(new_macca / 6)
+                    new_mp = round(new_mp / 6)
+                    if new_boss_demon.name == "Specter 2 (Boss)":
+                        new_mp = 20 + new_level
+                # if the new boss is Noah, Lucifer, or Kagutsuchi, divide hp by 3, add Ahriman later?
+                if new_boss_demon.name in ["Noah 1st Form (Boss)", "Kagutsuchi 1st Form (Boss)", "Lucifer (Boss)", "Ahriman 1st Form (Boss)"]:
+                    new_hp = round(new_hp / 3)
                 # if the new boss is mara half it's HP with a cap of 4000
                 if new_boss_demon.name == "Mara (Boss)":
                     new_hp = round(new_hp / 2)
                     new_hp = min(new_hp, 4000)
                 if new_boss_demon.name not in self.always_goes_first:
                     boss_battle.goes_first = 0x0D
-                balanced_demon = self.rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=self.config_exp_modifier, stat_mod=1)
+                #balanced_demon = self.rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=self.config_exp_modifier, stat_mod=1)
+                balanced_demon = self.rebalance_demon_stat_copy(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=self.config_exp_modifier, stats=old_boss_demon.stats)
             else:
                 balanced_demon = old_boss_demon
                 new_exp *= self.config_exp_modifier
@@ -520,14 +582,24 @@ class Randomizer:
                 elif new_boss_demon.name == 'Albion (Boss)':
                     new_level = round(new_level * 0.75)
                     exp_mod = 1
-                elif new_boss_demon.name == "Atropos 2 (Boss)":
+                elif new_boss_demon.name in ["Atropos 2 (Boss)", 'Raphael (Boss)']: 
                     new_hp = balanced_demon.hp
                     new_mp = balanced_demon.mp
                 elif new_boss_demon.name == "Berith (Boss)":
                     new_hp = round(balanced_demon.hp * 0.3)
                     new_mp = round(balanced_demon.mp * 0.3)
+                elif new_boss_demon.name in ["Noah 1st Form (Boss)", 'Kagutsuchi 1st Form (Boss)', 'Ahriman 1st Form (Boss)', 'Specter 1 (Boss)']: #Could deal with the different forms later
+                    new_hp = balanced_demon.hp * 2
+                    new_mp = balanced_demon.mp * 2
+                elif new_boss_demon.name == 'Baal Avatar (Boss)':
+                    new_hp = round(balanced_demon.hp / 2)
+                    new_mp = round(balanced_demon.mp / 2)
                 for d in extras:
-                    d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=exp_mod, stat_mod=stat_mod)
+                    #phase change bosses keep the stat mirroring, minions have random stats.
+                    if new_boss_demon.name in ["Noah 1st Form (Boss)", 'Kagutsuchi 1st Form (Boss)', 'Ahriman 1st Form (Boss)', 'Specter 1 (Boss)']:
+                        d = self.rebalance_demon_stat_copy(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=exp_mod, stats=old_boss_demon.stats)
+                    else:
+                        d = self.rebalance_demon(nocturne.lookup_demon(d), new_level, new_hp=new_hp, new_mp=new_mp, exp_mod=exp_mod, stat_mod=stat_mod)
                     boss_demons.append(d)
 
             # get rid of any vanilla magatama drops

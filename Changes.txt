@@ -1,0 +1,29 @@
+Logic
+* All bosses are now included in the randomizer
+* The Ahriman and Noah checks don't work properly, so the Beelzebub and Metatron checks were moved to their location
+* Noah and Lucifer are banned from SMC. Furthermore, Lucifer has lost 2/3 of his hp
+* All bosses banned from SMC are also banned from amala network 1
+* The Kaiwan and Berith checks no longer drop rewards
+* Kagatsuchi gives no combat rewards, so it is also banned from having a reward
+* The Archangels check has been added immediately after Futomimi, making Mifunashiro a boss rush
+* Various underwhelming bosses are banned from the Kagutsuchi check: Specter 1, Troll, Orthrus, Yaksini, Thor 1, Kaiwan
+* The futomimi check no longer requires all amala temple bosses in logic, so keys may appear at later parts of the game
+* Rules have been updated: Mada -> null mind, Baal Avatar -> null curse, Girimekhala -> null mind or phys,
+	Mizuchi -> null mind or ice, Red Rider -> resist phys, Black Rider -> null ice, Pale Rider -> null curse or death,
+	Aciel -> resist phys, Samael -> null mind or nerve, Dante 1 -> resist phys, Lucifer -> null nerve
+
+
+Boss Mechanics
+* Bosses now copy the stats of their check directly, but boss extras do not unless it is a phase change
+* Ongyo-Ki glitches into a better boss fight outside of his check
+* If multiple enemies are at the Ongyo-Ki check, the fight ends when just one of them dies
+* The Ongyo-Ki check's boss is immune to reflected damage
+
+
+Other Changes
+* Pierce has been added to the regular skill pool
+* Recarmdra has been removed from magatamas
+* Hint messages have been added for Specter 2 and Specter 3
+* The boss at Kagutsuchi's check is revealed when using the yahiro-no-himorogi
+* The warning message for a field model not found has had the boss's name removed
+* The substitute for bosses with no field model has been changed from Vishnu to Mothman

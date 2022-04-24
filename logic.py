@@ -119,6 +119,7 @@ def create_areas(world):
     mifunashiro = world.add_area('Mifunashiro')
     world.add_terminal(mifunashiro, 0x6E1)
     world.add_check("Futomimi", mifunashiro, 2843628)
+    world.add_check("Archangels", mifunashiro, 2843590)
 
     yurakucho_tunnel = world.add_area('Yurakucho Tunnel')
     world.add_terminal(yurakucho_tunnel, 0x501)
@@ -163,7 +164,7 @@ def create_areas(world):
 
 
 # Bosses not to randomize
-BANNED_BOSSES = ['Ongyo-Ki', 'Specter 1', 'Specter 2', 'Specter 3', 'Ahriman', 'Noah', 'Thor 2', 'Baal Avatar', 'Kagutsuchi', 'Lucifer']
+BANNED_BOSSES = []
 
 def create_world():
     world = World()
@@ -197,7 +198,7 @@ def randomize_bosses(boss_pool, check_pool, logger, attempts=100):
 def find_progressive_reward(state, check_pool, reward_pool):
     for r in reward_pool:
         state.get_reward(r)
-        completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state)]
+        completeable_checks = [c for c in check_pool if c.can_reach(state) and c.boss.can_beat(state) and c.name not in ["Kaiwan", "Berith", "Archangels"] and c.boss.name != "Kagutsuchi"] #Remove broken reward checks
         can_progress = bool(completeable_checks)
         if can_progress:
             return r
@@ -325,12 +326,12 @@ def randomize_world(world, logger, attempts=100):
 
         chosen_boss = None
         # try to give the chosen reward to a boss with no magatama or flag reward 
-        no_reward_boss_pool = [b for b in shuffled_bosses if b.reward == None and b.check.flag_rewards == []]
+        no_reward_boss_pool = [b for b in shuffled_bosses if b.reward == None and b.check.flag_rewards == [] and b.name != "Kagutsuchi" and b.check.name not in ["Kaiwan", "Berith", "Archangels"]]
         if no_reward_boss_pool != []:
             chosen_boss = random.choice(no_reward_boss_pool)
         else:
             for b in shuffled_bosses:
-                if b.can_add_reward(chosen_reward):
+                if b.can_add_reward(chosen_reward) and b.name != "Kagutsuchi" and b.check.name not in ["Kaiwan", "Berith", "Archangels"]:
                     chosen_boss = b
                     break
             else:
@@ -347,12 +348,12 @@ def randomize_world(world, logger, attempts=100):
         reward = reward_pool.pop()
         chosen_boss = None
         # try to give the chosen reward to a boss with no magatama or flag reward 
-        no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == []]
+        no_reward_boss_pool = [b for b in bosses_progressed if b.check.area.name != 'ToK' and b.reward == None and b.check.flag_rewards == [] and b.name != "Kagutsuchi" and b.check.name not in ["Kaiwan", "Berith", "Archangels"]]
         if no_reward_boss_pool != []:
             chosen_boss = no_reward_boss_pool.pop()
         else:
             for b in bosses_progressed:
-                if b.check.area.name != 'ToK' and b.can_add_reward(reward):
+                if b.check.area.name != 'ToK' and b.can_add_reward(reward) and b.name != "Kagutsuchi" and b.check.name not in ["Kaiwan", "Berith", "Archangels"]:
                     chosen_boss = b
                     break
             else:

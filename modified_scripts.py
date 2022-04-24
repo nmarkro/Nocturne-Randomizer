@@ -124,8 +124,9 @@ class Script_Modifier:
             return custom_vals.DEMON_ID_BY_NAME[boss_of_check]
         if boss_of_check in custom_vals.BOSS_DEMON_ID_BY_NAME:
             return custom_vals.BOSS_DEMON_ID_BY_NAME[boss_of_check]
-        print("Error: In get_checks_boss_id(), ID of boss",boss_of_check,"was not found")
-        return 1 #Vishnu
+        #print("Error: In get_checks_boss_id(), ID of boss",boss_of_check,"who is",check_name,"was not found")
+        print("Error: a field boss model does not exist and will show a generic replacement")
+        return 122 #Mothman!
     def get_checks_boss_name(self, check_name, world):
         return world.checks[check_name].boss.name
     def insert_callback(self, field_string, location_insert, fun_name_insert, overwrite_warning=True):
@@ -2200,6 +2201,10 @@ class Script_Modifier:
         self.dds3.add_new_file(custom_vals.LB0_PATH['f039'], f039_lb)
         #Model lines: 41, 166 of 002_start, 23 of 039_B_AFTER
         
+        #inst("PUSHIS",0x56),
+        #inst("COMM",8),
+        #inst("PUSHIS",0x2a2), #0x2a1 is archangels
+        #inst("COMM",0x67)
 
         #Cutscene removal in Mifunashiro f035
         #Shorten and add decision on boss
@@ -2236,6 +2241,18 @@ class Script_Modifier:
             inst("COMM",0),
             inst("COMM",2),
             inst("COMM",0x61),
+            
+            inst("PUSHIS",673),#Should work???
+            inst("PUSHIS",0x2a1),#This is awkward, but it is the best I can do for now. Archangels are boss rush after futomimi
+            inst("COMM",0x28),
+            inst("END"),
+            inst("PUSHIS",673),
+            #inst("PUSHIS",27),
+            inst("PUSHIS",1),
+            inst("COMM",0x97),
+            inst("COMM",0x23),
+            inst("COMM",0x2e),
+            inst("END")
         ] + self.get_flag_reward_insts("Futomimi",world) + [
             inst("END")
         ]
@@ -2347,8 +2364,8 @@ class Script_Modifier:
         e652_insts, e652_labels = e652_obj.getProcInstructionsLabelsByIndex(e652_proc)
         e652_terminal_label_index = 0 #relative index for TERMINAL label. Absolute is 13
         e652_kept_insts = e652_insts[:52] #0-31 is terminal code. 32-51 has camera to hijiri code.
-        e652_network2_msg = e652_obj.appendMessage("Would you like me to take you to Amala Network 2?","NETWORK2_MSG")
-        e652_network3_msg = e652_obj.appendMessage("Would you like me to take you to Amala Network 3, leading to Amala Temple?","NETWORK3_MSG")
+        e652_network2_msg = e652_obj.appendMessage("I think a "+self.get_checks_boss_name("Specter 2",world)+ " is in Amala Network 2. Go?","NETWORK2_MSG")
+        e652_network3_msg = e652_obj.appendMessage(self.get_checks_boss_name("Specter 3",world) + " is pulling me in! ...Save Hijiri?","NETWORK3_MSG")
         e652_locked_msg = e652_obj.appendMessage("Come back after you've completed Yoyogi Park and I will take you to Amala Network 3.","LOCKED_MSG")
         e652_gl_msg = e652_obj.appendMessage("Good luck!","GL_MSG")
         e652_insert_insts = [
@@ -2463,8 +2480,8 @@ class Script_Modifier:
         e660_insts, e660_labels = e660_obj.getProcInstructionsLabelsByIndex(e660_proc)
         e660_terminal_label_index = 0 #relative index for TERMINAL label. Absolute is 13
         e660_kept_insts = e660_insts[:52] #0-31 is terminal code. 32-51 has camera to hijiri code.
-        e660_network2_msg = e660_obj.appendMessage("Would you like me to take you to Amala Network 2?","NETWORK2_MSG")
-        e660_network3_msg = e660_obj.appendMessage("Would you like me to take you to Amala Network 3, leading to Amala Temple?","NETWORK3_MSG")
+        e660_network2_msg = e660_obj.appendMessage("I think a "+self.get_checks_boss_name("Specter 2",world)+ " is in Amala Network 2. Go?","NETWORK2_MSG")
+        e660_network3_msg = e660_obj.appendMessage(self.get_checks_boss_name("Specter 3",world) + " is pulling me in! ...Save Hijiri?","NETWORK3_MSG")
         e660_locked_msg = e660_obj.appendMessage("Come back after you've completed Yoyogi Park and I will take you to Amala Network 3.","LOCKED_MSG")
         e660_gl_msg = e660_obj.appendMessage("Good luck!","GL_MSG")
         e660_yesno_msg = e660_obj.appendMessage("Yes^t^.No^t","YES_NO_SEL",is_decision=True)
@@ -3012,7 +3029,7 @@ class Script_Modifier:
         #set 0x51
 
         e703_obj = self.get_script_obj_by_name('e703')
-        e703_msg = e703_obj.appendMessage("The Tower of Kagutsuchi has been lowered onto the Obelisk.^nFinish it at the Tower of Kagutsuchi!","TOK_LOWERED")
+        e703_msg = e703_obj.appendMessage("The Tower of Kagutsuchi has been lowered onto the Obelisk.^n"+self.get_checks_boss_name("Kagutsuchi",world)+" awaits!","TOK_LOWERED")
         e703_insts = [
             inst("PROC",0),
             inst("PUSHIS",0x10),
@@ -3266,7 +3283,8 @@ class Script_Modifier:
             inst("PUSHIS",0x74),
             inst("COMM",8),
             inst("PUSHIS",0x2a6),
-            inst("PUSHIS",0x14e),
+            inst("PUSHIS", 0x1c2), #Beelzebub
+            #inst("PUSHIS",0x14e),
             inst("COMM",0x28),
             inst("PUSHIS",0x3df),
             inst("COMM",8),
@@ -3294,7 +3312,8 @@ class Script_Modifier:
             inst("PUSHIS",0x61),
             inst("COMM",8),
             inst("PUSHIS",0x2a5),
-            inst("PUSHIS",0x1d8),
+            inst("PUSHIS", 0x1c1), #Metatron
+            #inst("PUSHIS",0x1d8),
             inst("COMM",0x28),
             inst("PUSHIS",0x3e0),
             inst("COMM",8),

@@ -1,9 +1,11 @@
 import nocturne
 
 # Resist/Null/Absorb/Repel Phys to leave out of SMC
-PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost']
+PHYS_INVALID_BOSSES = ['Ongyo-Ki', 'Aciel', 'Girimehkala', 'Skadi', 'Mada', 'Mot', 'The Harlot', 'Black Frost', 'Lucifer', 'Noah']
 # other banned smc bosses 
 BANNED_SMC_BOSSES = ['Kin-Ki', 'Matador', 'Mithra', 'Samael', 'Beelzebub', 'Metatron']
+
+BANNED_FINAL_BOSSES = ['Specter 1','Troll', 'Orthrus', 'Yaksini', 'Thor 1', 'Kaiwan']
 
 class World(object):
     def __init__(self):
@@ -45,6 +47,7 @@ class World(object):
         b = Boss(name)
         b.battle = nocturne.all_battles.get(offset)
         b.smc_banned = name in PHYS_INVALID_BOSSES or name in BANNED_SMC_BOSSES
+        b.final_banned = name in BANNED_FINAL_BOSSES
         self.bosses[name] = b
         return c
 
@@ -141,6 +144,7 @@ class Boss(object):
         self.rule = lambda state: True
         self.reward = None
         self.smc_banned = False
+        self.final_banned = False
 
         self.battle = None
 
@@ -151,6 +155,8 @@ class Boss(object):
         if isinstance(reward, Magatama) and self.reward != None:
             return False
         elif isinstance(reward, Flag) and self.check.flag_rewards != []:
+            return False
+        elif self.name == "Kagutsuchi" or self.check.name in ["Kaiwan", "Berith", "Archangels"]:
             return False
         return True            
 

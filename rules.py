@@ -68,7 +68,8 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Yurakucho Tunnel'),
-        lambda state: state.has_checked('Futomimi')
+        #lambda state: state.has_checked('Futomimi')
+        lambda state: state.has_checked('Archangels')
     )
     set_rule(
         world.get_area('Diet Building'),
@@ -122,8 +123,10 @@ def set_rules(world):
         lambda state: state.has_flag('Red Key')
     )
     set_rule(
-        world.get_check('Futomimi'),
-        lambda state: state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
+        world.get_check('Archangels'),
+        #world.get_check('Futomimi'),
+        lambda state: state.has_checked('Futomimi')
+        #lambda state: state.has_checked('Albion') and state.has_checked('Aciel') and state.has_checked('Skadi')
     )
     set_rule(
         world.get_check('The Harlot'),
@@ -222,7 +225,7 @@ def set_rules(world):
     # Boss Magatama rules
     set_rule(
         world.get_check('Girimehkala'),
-        lambda state: state.has_resistance('Mind')
+        lambda state: state.has_resistance('Mind') or state.has_resistance('Phys')
     )
     set_rule(
         world.get_boss('The Harlot'),
@@ -262,7 +265,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_boss('Mizuchi'),
-        lambda state: state.has_resistance('Mind')
+        lambda state: state.has_resistance('Mind') or state.has_resistance('Ice')
     )
     set_rule(
         world.get_boss('Black Frost'),
@@ -273,12 +276,24 @@ def set_rules(world):
         lambda state: state.has_resistance('Fire')
     )
     set_rule(
+        world.get_boss('Red Rider'),
+        lambda state: state.has_resistance('Phys')
+    )
+    set_rule(
+        world.get_boss('Black Rider'),
+        lambda state: state.has_resistance('Ice')
+    )
+    set_rule(
+        world.get_boss('Pale Rider'),
+        lambda state: state.has_resistance('Curse') or state.has_resistance('Death')
+    )
+    set_rule(
         world.get_boss('Surt'),
         lambda state: state.has_resistance('Fire')
     )
     set_rule(
         world.get_boss('Mada'),
-        lambda state: state.has_resistance('Curse')
+        lambda state: state.has_resistance('Mind')
     )
     set_rule(
         world.get_boss('Mot'),
@@ -290,11 +305,23 @@ def set_rules(world):
     )
     set_rule(
         world.get_boss('Samael'),
-        lambda state: state.has_resistance('Mind')
+        lambda state: state.has_resistance('Mind') or state.has_resistance('Nerve')
+    )
+    set_rule(
+        world.get_boss('Lucifer'),
+        lambda state: state.has_resistance('Nerve')
+    )
+    set_rule(
+        world.get_boss('Aciel'),
+        lambda state: state.has_resistance('Phys')
     )
     set_rule(
         world.get_boss('Skadi'),
         lambda state: state.has_resistance('Force') or state.has_resistance('Phys')
+    )
+    set_rule(
+        world.get_boss('Dante 1'),
+        lambda state: state.has_resistance('Phys')
     )
     set_rule(
         world.get_boss('Beelzebub'),
@@ -328,9 +355,23 @@ def set_rules(world):
         world.get_boss('Zouchou'),
         lambda state: state.has_resistance("Elec")
     )
+    set_rule(
+        world.get_boss('Baal Avatar'),
+        lambda state: state.has_resistance("Curse")
+    )
 
     # Make sure Resist/Null/Absorb/Repel Phys bosses aren't in SMC
     set_boss_rule(
         world.get_area('SMC'),
         lambda boss: not boss.smc_banned
+    )
+
+    set_boss_rule(
+        world.get_area('Amala Network 1'),
+        lambda boss: not boss.smc_banned
+    )
+
+    set_boss_rule(
+        world.get_check('Kagutsuchi'),
+        lambda boss: not boss.final_banned
     )
