@@ -28,19 +28,19 @@ def set_rules(world):
     )
     set_rule(
         world.get_area('Nihilo East'), 
-        lambda state: state.has_checked('Dante 1')
+        lambda state: state.has_terminal('Ginza')
     )
     set_rule(
         world.get_area('Ikebukuro Tunnel'), 
-        lambda state: state.has_checked('Ose')
+        lambda state: state.has_checked('Dante 1') and state.has_flag('Ongyo-Key')
     )
     set_rule(
         world.get_area('Kabukicho Prison'), 
-        lambda state: state.has_terminal('Ikebukuro Tunnel')
+        lambda state: state.has_checked('Hell Biker')
     )
     set_rule(
         world.get_area('Asakusa'), 
-        lambda state: state.has_checked('Mizuchi')
+        lambda state: state.has_terminal('Ikebukuro Tunnel')
     )
     set_rule(
         world.get_area('Obelisk'), 
@@ -138,15 +138,11 @@ def set_rules(world):
     )
     set_rule(
         world.get_check('Mara'),
-        lambda state: state.has_flag('Eggplant')
+        lambda state: state.has_flag('Eggplant') and state.has_terminal('Asakusa')
     )
     set_rule(
         world.get_check('Troll'),
         lambda state: state.has_terminal('Ginza') and state.has_terminal('Ginza Underpass')
-    )
-    set_rule(
-        world.get_check('Matador'),
-        lambda state: state.has_checked('Troll')
     )
     set_rule(
         world.get_check('Red Rider'),
@@ -166,7 +162,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_check('Daisoujou'),
-        lambda state: state.has_checked('Dante 1')
+        lambda state: state.has_checked('Matador')
     )
     set_rule(
         world.get_check('Kaiwan'),
@@ -178,7 +174,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_check('Hell Biker'),
-        lambda state: state.has_checked('Ose')
+        lambda state: state.has_checked('Dante 1')
     )
     set_rule(
         world.get_check('Ongyo-Ki'),
@@ -190,7 +186,7 @@ def set_rules(world):
     )
     set_rule(
         world.get_check('White Rider'),
-        lambda state: state.has_flag('Apocalypse Stone')
+        lambda state: state.has_flag('Apocalypse Stone') and state.has_terminal('Asakusa')
     )
     set_rule(
         world.get_check('Mada'),
@@ -207,6 +203,10 @@ def set_rules(world):
     set_rule(
         world.get_check('Samael'),
         lambda state: state.has_checked('Mithra')
+    )
+    set_rule(
+        world.get_check('Bishamon 1'),
+        lambda state: state.has_checked('Skadi') and state.has_checked('Albion') and state.has_checked('Aciel')
     )
     set_rule(
         world.get_check('Dante 2'),

@@ -553,7 +553,7 @@ def apply_asm_patch(rom, patch_path):
             rom.write_byte(value, addr)
 
 def write_sp_item_strings(rom):
-    names = ['Black Key', 'White Key', 'Red Key', 'Apocalypse Stone', 'Golden Goblet', 'Eggplant']
+    names = ['Black Key', 'White Key', 'Red Key', 'Apocalypse Stone', 'Golden Goblet', 'Eggplant', 'Ongyo-Key']
     start_sp_name_table_offset = 0x002E93B4
     free_space_offset = 0x01FEE00
     description_msg_offset = 0x2F49E0

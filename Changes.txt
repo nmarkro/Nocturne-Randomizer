@@ -1,3 +1,4 @@
+Version 0.2.0
 Logic
 * All bosses are now included in the randomizer
 * The Ahriman and Noah checks don't work properly, so the Beelzebub and Metatron checks were moved to their location
@@ -27,3 +28,19 @@ Other Changes
 * The boss at Kagutsuchi's check is revealed when using the yahiro-no-himorogi
 * The warning message for a field model not found has had the boss's name removed
 * The substitute for bosses with no field model has been changed from Vishnu to Mothman
+
+
+Version 0.2.1:
+* Luficer is no longer in the randomizer
+* Ongyo-Ki now has 1/4 hp, exp, and macca to match having to kill all 4 replicas
+* Albion and Kagutsuchi's check now have increased hp to match Kagutsuchi's phases and Albion's summons
+* Locked specter 2's mp to 40
+* Bishamon 1 check requires all 3 amala temple bosses to be beaten to so it is no longer required to complete a seed
+* Added config flag "t" for vanilla tower of kagutsuchi
+* Various logic changes to match the more open-nature of the randomizer, while ensuring there isn't too
+big of a leap in difficulty
+* Added item Ongyo-Key at id 0x97 to open ikebukuro tunnel. It is in logic, however, the tunnel itself is not blocked
+until the item is obtained
+* (From last patch, forgot to include in changes) Demons without unique skills have a 10% chance to gain one.
+* If there are multiple enemies at the Ongyo-Ki check, AOE attacks will miss, and attacking a single enemy
+removes the others from the field. Any enemy can be targeted, there are no illusions.

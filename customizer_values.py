@@ -393,6 +393,7 @@ FLAG_REWARD_MSG = {
     0x3f4: "You have obtained the ^gApocalypse Stone^p.",
     0x3f5: "You have obtained the ^gGolden Goblet^p.",
     0x3f6: "You have obtained an ^gEggplant^p.",
+    0x3f7: "You have obtained the Ongyo-Key that opens Ikebukuro tunnel",
     0x3dd: "You have obtained the ^gKey to Yoyogi Park^p.",
     0x3da: "You have obtained the ^gYahirono Himorogi^p.",
     #0x3db: "You have obtained the ^gKimon Stone^p."

@@ -115,6 +115,7 @@ def create_areas(world):
     world.add_flag("Black Key", 0x3F1)
     world.add_flag("White Key", 0x3F2)
     world.add_flag("Red Key", 0x3F3)
+    world.add_flag("Ongyo-Key", 0x3F7)
 
     mifunashiro = world.add_area('Mifunashiro')
     world.add_terminal(mifunashiro, 0x6E1)
@@ -164,7 +165,7 @@ def create_areas(world):
 
 
 # Bosses not to randomize
-BANNED_BOSSES = []
+BANNED_BOSSES = ["Lucifer"]
 
 def create_world():
     world = World()
@@ -206,7 +207,7 @@ def find_progressive_reward(state, check_pool, reward_pool):
             state.remove_reward(r)
     return None
 
-def randomize_world(world, logger, attempts=100):
+def randomize_world(world, logger, config_vanilla_tok, attempts=100):
     state = world.state
     area_pool = world.get_areas()
     flag_pool = world.get_flags()
@@ -214,7 +215,17 @@ def randomize_world(world, logger, attempts=100):
     magatama_pool = world.get_magatamas()
     boss_pool = world.get_bosses()
     # Remove banned bosses from randomized pool
-    for boss_name in BANNED_BOSSES:
+    vanilla = []
+    for banned in BANNED_BOSSES:
+        vanilla.append(banned)
+    #If vanilla tower flag is set, add tok bosses to the ban list
+    if config_vanilla_tok:
+        vanilla.append("Ahriman")
+        vanilla.append("Noah")
+        vanilla.append("Thor 2")
+        vanilla.append("Baal Avatar")
+        vanilla.append("Kagutsuchi")
+    for boss_name in vanilla:
         boss = next((b for b in boss_pool if b.name == boss_name), None)
         boss_pool.remove(boss)
         check = world.get_check(boss.name)

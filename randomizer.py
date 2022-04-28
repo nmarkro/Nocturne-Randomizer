@@ -42,6 +42,7 @@ class Randomizer:
         self.config_stock_healing = False               # Make AoE healing affect stock demons (like hardtype)
         self.config_remove_hardmode_prices = False      # Remove the 3x multiplier on hard mode shop prices 
         self.config_fix_inheritance = False             # Remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
+        self.config_vanilla_tok = False                 # Do not randomize ToK bosses (Ahriman, Noah, Thor 2, Baal Avatar, Kagutsuchi)
         self.config_export_to_hostfs = False            # Build to folder with HostFS patch instead of an .iso
 
     def init_iso_data(self):
@@ -522,8 +523,8 @@ class Randomizer:
             if old_boss is not new_boss:
                 if new_level < new_boss_demon.level:
                     new_level /= 2
-                # if the new boss is replacing the Sisters or Kaiwans triple hp and mp. Also Ahriman and Noah, and Archangels
-                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)", "Ahriman 1st Form (Boss)", "Noah 1st Form (Boss)", "Raphael (Boss)"]:
+                # if the new boss is replacing the Sisters or Kaiwans triple hp and mp. Also Ahriman, Noah, Kagutsuchi, Albion, and Archangels
+                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)", "Ahriman 1st Form (Boss)", "Noah 1st Form (Boss)", "Raphael (Boss)", "Kagutsuchi 1st Form (Boss)", "Albion (Boss)"]:
                     new_hp *= 3
                     new_exp *= 3
                     new_macca *= 3
@@ -551,13 +552,17 @@ class Randomizer:
                     new_macca = round(new_macca / 6)
                     new_mp = round(new_mp / 6)
                     if new_boss_demon.name == "Specter 2 (Boss)":
-                        new_mp = 20 + new_level
+                        new_mp = 40
                 # if the new boss is Noah, Lucifer, or Kagutsuchi, divide hp by 3, add Ahriman later?
                 if new_boss_demon.name in ["Noah 1st Form (Boss)", "Kagutsuchi 1st Form (Boss)", "Lucifer (Boss)", "Ahriman 1st Form (Boss)"]:
                     new_hp = round(new_hp / 3)
                 # if the new boss is mara half it's HP with a cap of 4000
                 if new_boss_demon.name == "Mara (Boss)":
                     new_hp = round(new_hp / 2)
+                    new_exp = round(new_exp / 4)
+                    new_macca = round(new_macca / 4)
+                if new_boss_demon.name == "Ongyo-Ki (Boss)":
+                    new_hp = round(new_hp / 4)
                     new_hp = min(new_hp, 4000)
                 if new_boss_demon.name not in self.always_goes_first:
                     boss_battle.goes_first = 0x0D
@@ -751,7 +756,8 @@ s   Remove hard mode shop price mulitplier.
 h   Tweak AoE healing spells to affect demons in the stock.
 i   Tweak inheritance so that all skills inherit equally regaless of rank or body parts.
 v   Make learnable skills always visible.
-d   Double EXP gains.'''
+d   Double EXP gains.
+t   keep tower of Kagutsuchi bosses vanilla'''
 
         if self.flags == None:
             print(flags_text)
@@ -796,6 +802,9 @@ d   Double EXP gains.'''
         if 'd' in self.flags:
             self.config_exp_modifier = 2
 
+        if 't' in self.flags:
+            self.config_vanilla_tok = True
+
         if not TEST:
             if os.path.exists(self.input_iso_path + '.md5'):
                 with open(self.input_iso_path + '.md5', 'r') as f:
@@ -834,7 +843,7 @@ d   Double EXP gains.'''
         world = None
         while world is None:
             world = logic.create_world()
-            world = logic.randomize_world(world, logger)
+            world = logic.randomize_world(world, logger, self.config_vanilla_tok)
 
         # adjust the level of the bonus magatama
         nocturne.all_magatamas[world.bonus_magatama.name].level = 4
