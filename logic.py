@@ -324,7 +324,7 @@ def randomize_world(world, logger, config_vanilla_tok, attempts=100):
             logger.info("Re-randomizing unchecked bosses\n")
             new_boss_pool = []
             for check in check_pool:
-                if check.boss.name not in BANNED_BOSSES:
+                if check.boss.name not in vanilla:
                     new_boss_pool.append(check.boss)
                     check.boss = None
             try:
