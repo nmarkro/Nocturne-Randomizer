@@ -21,7 +21,7 @@ def init_magatamas(world):
     world.add_magatama('Murakumo', ['Phys'], 12)
     world.add_magatama('Geis', ['Expel'], 13)
     world.add_magatama('Djed', ['Curse'], 14)
-    world.add_magatama('Muspell', ['Nerve', 'Mind'], 15)
+    world.add_magatama('Muspell', [], 15) #Muspell is not good enough for ailment based bosses
     world.add_magatama('Gehenna', ['Fire'], 16)
     world.add_magatama('Kamurogi', ['Phys'], 17)
     world.add_magatama('Satan', ['Death'], 18)

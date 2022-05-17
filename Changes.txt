@@ -44,3 +44,11 @@ until the item is obtained
 * (From last patch, forgot to include in changes) Demons without unique skills have a 10% chance to gain one.
 * If there are multiple enemies at the Ongyo-Ki check, AOE attacks will miss, and attacking a single enemy
 removes the others from the field. Any enemy can be targeted, there are no illusions.
+
+version 0.2.2
+* Ahriman and Noah's checks now work properly, instead of using Metatron and Beelzebub's check
+* Specter 2's starting mp is fixed to 29, max mp is uncapped
+* exe file has been built, some of the smaller changes aren't reflected in it yet
+* Two music flags have been added: m for random boss music, and l for location based boss music
+* The odds of a demon with no unique skills gaining 1 has been lowered form 10% to 7%
+* Muspell is no longer a valid prerequisite to ailment-based bosses

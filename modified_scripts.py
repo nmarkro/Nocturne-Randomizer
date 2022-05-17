@@ -400,7 +400,7 @@ class Script_Modifier:
             inst("COMM",8),
             inst("PUSHIS",1386), #^
             inst("COMM",8),
-            inst("PUSHIS",36), #Ikebukuro Tunnel
+            inst("PUSHIS",36), #Ikebukuro Tunnel, maybe remove this one?
             inst("COMM",8),
             inst("PUSHIS",35), #^
             inst("COMM",8),
@@ -1962,6 +1962,10 @@ class Script_Modifier:
         #Callback: 0x1bc
         #Ongyo-ki: 017_start
         #Callback: 0x220
+        
+        #patch ikebukuro tunnel entrance to use new key item
+        #f004_inf_patched = BytesIO(bytes(open(path.join(PATCHES_PATH,'F004_tunnel_key.INF'),'rb').read()))
+        #self.dds3.add_new_file('/fld/f/f004/F004.INF', f004_inf_patched)
         f026_obj = self.get_script_obj_by_name('f026')
         f026_kinki_rwms_index = f026_obj.appendMessage(self.get_reward_str("Kin-Ki",world),"KINKI_REWARD")
         f026_kinki_rwms_insts = [
@@ -3283,7 +3287,8 @@ class Script_Modifier:
             inst("PUSHIS",0x74),
             inst("COMM",8),
             inst("PUSHIS",0x2a6),
-            inst("PUSHIS", 0x1c2), #Beelzebub
+            inst("PUSHIS", 0x3e0), #Ahriman mysterious 2nd appearance
+            #inst("PUSHIS", 0x1c2), #Beelzebub
             #inst("PUSHIS",0x14e),
             inst("COMM",0x28),
             inst("PUSHIS",0x3df),
@@ -3312,7 +3317,8 @@ class Script_Modifier:
             inst("PUSHIS",0x61),
             inst("COMM",8),
             inst("PUSHIS",0x2a5),
-            inst("PUSHIS", 0x1c1), #Metatron
+            inst("PUSHIS", 0x3e1), #Noah mysterious 2nd appearance
+            #inst("PUSHIS", 0x1c1), #Metatron
             #inst("PUSHIS",0x1d8),
             inst("COMM",0x28),
             inst("PUSHIS",0x3e0),

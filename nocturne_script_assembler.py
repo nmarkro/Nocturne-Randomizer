@@ -1424,7 +1424,7 @@ def new_item_msg_script(fname):
     apocalypse_msg = message("^.^iA stone that attracts^nthe 4 horsemen.^nNow with extra blight!^n^0","item_94",False)
     goblet_msg = message("^.^iA mother skeleton's^nfavorite cup.^nHappy Mother's Day!^n^0","item_95",False)
     eggplant_msg = message("^.^iThe missing piece for^na suspicious ritual.^nIt is very plump^nwith excellent girth.^n^0","item_96",False)
-    ikebukuro_msg = message("^.^iThe key to entering^Ikebukuro tunnel^nIt can dispell^nillusions, apparently.^n^0","item_97",False)
+    ikebukuro_msg = message("^.^iThe key to entering^nIkebukuro tunnel^nIt can dispell^nillusions, apparently.^n^0","item_97",False)
     obj.changeMessageByIndex(black_key_msg,0x91)
     obj.changeMessageByIndex(white_key_msg,0x92)
     obj.changeMessageByIndex(red_key_msg,0x93)

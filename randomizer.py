@@ -43,6 +43,8 @@ class Randomizer:
         self.config_remove_hardmode_prices = False      # Remove the 3x multiplier on hard mode shop prices 
         self.config_fix_inheritance = False             # Remove skill rank from inheritance odds and make demons able to learn all inheritable skills 
         self.config_vanilla_tok = False                 # Do not randomize ToK bosses (Ahriman, Noah, Thor 2, Baal Avatar, Kagutsuchi)
+        self.config_random_music = False                # boss music is randomized
+        self.config_check_based_music = False           # boss music is based on location rather than boss demon
         self.config_export_to_hostfs = False            # Build to folder with HostFS patch instead of an .iso
 
     def init_iso_data(self):
@@ -239,7 +241,7 @@ class Randomizer:
                 continue
             if s.rank >= 100:
                 num_of_unique += 1
-        if num_of_unique == 0 and random.randrange(10) == 0: #Demons have a small chance to gain a unique skill
+        if num_of_unique == 0 and random.randrange(100) < 7: #Demons have a small chance to gain a unique skill
             num_of_unique += 1
         # add any forced skills first
         if force_skills:
@@ -524,11 +526,11 @@ class Randomizer:
                 if new_level < new_boss_demon.level:
                     new_level /= 2
                 # if the new boss is replacing the Sisters or Kaiwans triple hp and mp. Also Ahriman, Noah, Kagutsuchi, Albion, and Archangels
-                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)", "Ahriman 1st Form (Boss)", "Noah 1st Form (Boss)", "Raphael (Boss)", "Kagutsuchi 1st Form (Boss)", "Albion (Boss)"]:
+                if old_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Ahriman 1st Form (Boss)", "Noah 1st Form (Boss)", "Raphael (Boss)", "Kagutsuchi 1st Form (Boss)", "Albion (Boss)"]:
                     new_hp *= 3
                     new_exp *= 3
                     new_macca *= 3
-                    if old_boss_demon.name in ["Kaiwan (Boss)", 'Berith (Boss)']:
+                    if old_boss_demon.name == "Kaiwan (Boss)":
                         new_mp *= 3
                 # if the new boss is replacing a Specter, do 6 times hp and mp 
                 if old_boss_demon.name in ["Specter 1 (Boss)", "Specter 2 (Boss)", "Specter 3 (Boss)"]:
@@ -539,11 +541,11 @@ class Randomizer:
                     #if old_boss_demon.name == "Specter 2 (Boss)":
                     #    new_mp *= 10
                 # if the new boss is the Sisters or Kaiwans divide the hp pool evenly between the 3
-                if new_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Berith (Boss)", "Raphael (Boss)"]:
+                if new_boss_demon.name in ["Atropos 2 (Boss)", "Kaiwan (Boss)", "Raphael (Boss)"]:
                     new_hp = round(new_hp / 3)
                     new_exp = round(new_exp / 3)
                     new_macca = round(new_macca / 3)
-                    if new_boss_demon.name in ["Kaiwan (Boss)", 'Berith (Boss)']:
+                    if new_boss_demon.name == "Kaiwan (Boss)":
                         new_mp = round(new_mp / 3)
                 # if the new boss is a Specter, divide hp and mp by 6
                 if new_boss_demon.name in ["Specter 1 (Boss)", "Specter 2 (Boss)", "Specter 3 (Boss)"]:
@@ -551,19 +553,19 @@ class Randomizer:
                     new_exp = round(new_exp / 6)
                     new_macca = round(new_macca / 6)
                     new_mp = round(new_mp / 6)
-                    if new_boss_demon.name == "Specter 2 (Boss)":
-                        new_mp = 40
+                    #if new_boss_demon.name == "Specter 2 (Boss)":
+                    #    new_mp = 40
                 # if the new boss is Noah, Lucifer, or Kagutsuchi, divide hp by 3, add Ahriman later?
                 if new_boss_demon.name in ["Noah 1st Form (Boss)", "Kagutsuchi 1st Form (Boss)", "Lucifer (Boss)", "Ahriman 1st Form (Boss)"]:
                     new_hp = round(new_hp / 3)
                 # if the new boss is mara half it's HP with a cap of 4000
                 if new_boss_demon.name == "Mara (Boss)":
                     new_hp = round(new_hp / 2)
-                    new_exp = round(new_exp / 4)
-                    new_macca = round(new_macca / 4)
+                    new_hp = min(new_hp, 4000)
                 if new_boss_demon.name == "Ongyo-Ki (Boss)":
                     new_hp = round(new_hp / 4)
-                    new_hp = min(new_hp, 4000)
+                    new_exp = round(new_exp / 4)
+                    new_macca = round(new_macca / 4)
                 if new_boss_demon.name not in self.always_goes_first:
                     boss_battle.goes_first = 0x0D
                 #balanced_demon = self.rebalance_demon(new_boss_demon, new_level, new_hp=new_hp, new_mp=new_mp, new_exp=new_exp, new_macca=new_macca, exp_mod=self.config_exp_modifier, stat_mod=1)
@@ -616,6 +618,23 @@ class Randomizer:
                 boss_battle.reward = magatama.ind + 320
                 magatama.level = min(magatama.level, round(old_boss_demon.level/2))
 
+            if self.config_check_based_music:
+                boss_battle.music = old_boss.battle.music
+                if old_boss_demon.name == "kagutsuchi 1st Form (Boss)" and old_boss is not new_boss:
+                    boss_battle.music = 8
+            elif self.config_random_music:
+               #music randomizer, 8 is maybe kagutsuchi phase 2?
+               boss_battle.music = random.choice([5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+
+            
+            
+
+
+            #Sakahagi returns?
+            #if old_boss_demon.name == 'Girimehkala (Boss)':
+            #    boss_battle.phase_value = 2
+            #    #print(old_boss.battle.reinforcement_value)
+                
             boss_battles.append(boss_battle)
 
         return boss_demons, boss_battles
@@ -757,7 +776,9 @@ h   Tweak AoE healing spells to affect demons in the stock.
 i   Tweak inheritance so that all skills inherit equally regaless of rank or body parts.
 v   Make learnable skills always visible.
 d   Double EXP gains.
-t   keep tower of Kagutsuchi bosses vanilla'''
+t   keep tower of Kagutsuchi bosses vanilla
+m   randomize boss music
+l   location-based boss music (overrides random music)'''
 
         if self.flags == None:
             print(flags_text)
@@ -804,6 +825,12 @@ t   keep tower of Kagutsuchi bosses vanilla'''
 
         if 't' in self.flags:
             self.config_vanilla_tok = True
+
+        if 'm' in self.flags:
+            self.config_random_music = True
+
+        if 'l' in self.flags:
+            self.config_check_based_music = True
 
         if not TEST:
             if os.path.exists(self.input_iso_path + '.md5'):

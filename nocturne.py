@@ -216,6 +216,8 @@ def load_battles(rom):
         for j in range(0, 18, 2):
             enemy_id = rom.read_halfword(offset + 6 + j)
             enemies.append(enemy_id)
+            #if enemy_id == 293:
+            #    print(rom.read_halfword(offset + 0x24))
 
         battle = Battle(offset)
         battle.enemies = enemies
@@ -237,7 +239,11 @@ def write_demon(rom, demon, offset):
     rom.write_byte(demon.level, offset + 0x11)
     rom.write_halfword(demon.hp, offset + 0x12)
     rom.write_halfword(demon.hp, offset + 0x14)
-    rom.write_halfword(demon.mp, offset + 0x16)
+    #Specter 2 starting mp fix
+    if demon.name == "Specter 2 (Boss)":
+        rom.write_halfword(29, offset + 0x16)
+    else:
+        rom.write_halfword(demon.mp, offset + 0x16)
     rom.write_halfword(demon.mp, offset + 0x18)
 
     stats = struct.pack('<BBBBBB', demon.stats[0], 0x00, demon.stats[1], demon.stats[2], demon.stats[3], demon.stats[4])
