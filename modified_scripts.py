@@ -1909,7 +1909,18 @@ class Script_Modifier:
         ]
         f004_obj.appendProc(f004_biker_callback_insts,[],f004_biker_callback_proc_str)
         self.insert_callback('f004', 0x540, f004_biker_callback_proc_str)
-        f004_lb = self.push_bf_into_lb(f004_obj, 'f004')
+        
+        #Swap the 0x24 flag for Ikebukuro Tunnel to the 0x3f7 Ongyo-Key
+        f004_wap = bytearray(self.dds3.get_file_from_path(custom_vals.WAP_PATH['f004']).read())
+        f004_wap[0x35e] = 0xf7
+        f004_wap[0x35f] = 0x03
+
+        f004_lb_data = self.dds3.get_file_from_path(custom_vals.LB0_PATH['f004'])
+        f004_lb = LB_FS(f004_lb_data)
+        f004_lb.read_lb()
+        f004_lb = f004_lb.export_lb({'WAP': BytesIO(f004_wap), 'BF': BytesIO(bytes(f004_obj.toBytes()))})
+        
+        #f004_lb = self.push_bf_into_lb(f004_obj, 'f004')
         self.dds3.add_new_file(custom_vals.LB0_PATH['f004'], f004_lb)
 
         #Cutscene removal in Kabukicho Prison f025
